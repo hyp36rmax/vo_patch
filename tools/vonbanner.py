@@ -38,8 +38,9 @@ from PIL import Image, ImageDraw, ImageFont
 TILE_OFF = 0x21C000          # escrgame.bin, first tile slot of this banner
 TILE_BASE = 17280            # its tile index within the file
 TILE_MAX = 109               # slots this banner owns
-SPILL_TILE = 24845           # a run of 116 empty tiles further into the file
-SPILL_MAX = 116              # anything past TILE_MAX goes there instead
+SPILL_TILE = 24845           # a run of empty tiles further into the file
+SPILL_MAX = 115              # anything past TILE_MAX goes there instead;
+                             # 116 in escrgame.bin, 115 in jscrgame.bin
 TABLE_OFF = 0x269B60         # v_on.exe, retail's file offset of the table;
                              # the other builds' come from their site maps
 COLS, ROWS = 42, 3

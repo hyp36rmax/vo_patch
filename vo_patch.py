@@ -5690,7 +5690,9 @@ BANNER_TILE_OFF = 0x21c000      # escrgame.bin, first tile slot
 BANNER_TILE_BASE = 17280        # its tile index within that file
 BANNER_TILE_MAX = 109           # slots this banner owns
 BANNER_SPILL = 24845            # a run of empty tiles further in
-BANNER_SPARE = 116              # how many
+BANNER_SPARE = 115              # how many: 116 in escrgame.bin, but the
+                                # 116th holds a tile of the logo in
+                                # jscrgame.bin, so the run is the shorter
 BANNER_INK = 0xfca0             # the orange the original uses
 ESCRGAME, ESCRGAME_SIZE, ESCRGAME_MD5 = RETAIL.art
 

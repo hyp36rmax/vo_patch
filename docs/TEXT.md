@@ -102,7 +102,7 @@ Not text. 42x3 cells of 8x8 pixels, 16bpp RGB565.
 | --- | --- |
 | Tile indices | `v_on.exe` `0x269b60`, 126 entries of 16 bits |
 | Artwork | the title artwork, `0x21c000`, 109 tiles of 128 bytes |
-| Spare tiles | the same file, tile 24845, a run of 116 empty ones |
+| Spare tiles | the same file, tile 24845, a run of 115 empty ones - 116 in `escrgame.bin`, but the 116th is a logo tile in `jscrgame.bin` |
 
 The artwork is `escrgame.bin` in the English retail and OEM builds and
 `jscrgame.bin` in both Japanese builds; the tiles this touches are in
@@ -150,7 +150,7 @@ does not try. What `--selfcheck` does check, at import:
 | --- | --- |
 | bitmap is 1008 bytes | a truncated or hand-edited blob |
 | table is 126 entries | a bitmap of the wrong shape |
-| unique tiles fit 109 + 116 spare | wording too detailed to fit |
+| unique tiles fit 109 + 115 spare | wording too detailed to fit |
 | every index inside 14 bits | an index the renderer would mask into another tile |
 | every tile inside the file | an offset past the end of the artwork |
 
