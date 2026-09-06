@@ -333,7 +333,7 @@ filled at apply time.
 **The dialog procedure** ticks each check box from the game's own flag on
 `WM_INITDIALOG` (through the loop in `f11pause.asm`'s tail), shows both
 players' deadzone digits, and forwards clicks. Close, Defaults and Quit go
-to the annex in `voxt.asm`. On close it reads the deadzone boxes back:
+to `voxt.asm`, at the tail of the `.voxt` section. On close it reads the deadzone boxes back:
 two digits per player, clamped to 5-95, written into the thresholds the
 tick compares and out to the v_on.ini lines through `iniparse.asm`'s
 tail; a rejected entry is re-seeded to the percent in force. Defaults
@@ -764,6 +764,28 @@ once it works.
 The rerelease reports each failure inside its recreate with a message
 box, which the retry turns into one box per attempt; those three calls
 are nopped in that build alone. See [NOTES.md](../docs/NOTES.md).
+
+## lockline.asm
+
+The line from the enemy to the distance readout, drawn as a flat grey
+band across the picture whenever the enemy is far off to one side.
+
+The 2D quad submits (the marker's lines and triangles, the HUD frame
+lines) project their vertices, which carry z = 1.0, with the aspect slot
+of the renderer's projection. The clipper they hand the quad to
+re-projects from the same vertices whenever it clips against the
+picture's edges or splits an edge longer than the subdivision threshold,
+and does so with the 3D slot, focal length included - 600 times the size.
+The leader line is the one quad that gets long enough.
+
+Four hooks and twenty-two call sites, per renderer: `quad2d_a`/`b` run in
+place of the submits' seven-byte prologues and raise the renderer's flag;
+`walk_a`/`b` do the same at the mesh walkers, the only other callers of
+the clippers, and drop it; the clippers' eleven `fdivr dword [PROJ]`
+sites each call `clipproj_a`/`b`, which divides by the aspect slot while
+the flag is up and the 3D slot otherwise. Two renderers, two flags, two
+pairs of projection slots. How it was found is in
+[HIRES.md](../docs/HIRES.md), *The lock-on line*.
 
 ## titlever.asm
 
