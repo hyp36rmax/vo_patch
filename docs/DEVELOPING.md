@@ -114,6 +114,7 @@ wrong on the build it is for; before tagging, give all four.
 | `disc` | `disctest.py`: the disc reader, on ISO9660 images the test builds itself - one per sector layout, plus a cue that names the wrong one. Extraction is byte-exact, the `ssp.ini` rules give the retail and OEM file lists, and every refusal names what is wrong. Needs no game and no disc, so CI runs it |
 | `gui` | `guitest.py`: the window, opened under xvfb and driven without its loop - which button is offered for which source, that a copy holds both down until it finishes, and that the two columns end level whatever is open. None of these raise on their own, so each asserts the property. Needs a display; with none it skips and prints a note rather than passing quietly |
 | `lint` | pyflakes |
+| `map` | `map.py --check`: the region table in MAP.md matches the script's line numbers; `map.py --write` regenerates it |
 | `tree` | nothing regenerated was left uncommitted. Skipped outside CI, where it would fail on every edit in progress |
 | `offsets` | `selftest.py`: every `original` column against a real file, hundreds of patch combinations applied, and the fully patched MD5, on whichever build the file is |
 | `banner` | `bannertest.py`: the title prompt decodes back to the bitmap it was written from, and both files restore byte for byte, on whichever build the folder holds |
