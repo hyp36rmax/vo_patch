@@ -526,9 +526,9 @@ submit_b_done:
     push 0x5cc4cc
     ret
 
-; HUD passes. The patcher puts a jump at the entry of every function that
-; draws HUD elements (in-game HUD, machine select, cursors, menu frames:
-; the functions that own the HUD projection setups) to a stub that calls
+; HUD passes. The patcher puts a jump at the entry of each function that
+; draws HUD elements (the in-game HUD and the machine select per
+; renderer, the attract overlay, name entry: UI_PASS_FUNCS) to a stub that calls
 ; hud_enter, runs the displaced prologue and jumps back. hud_enter swaps
 ; the function's return address for hud_leave and counts the depth;
 ; while it is above zero every submission is HUD. Nested passes and both

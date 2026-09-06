@@ -8,7 +8,7 @@ the record of porting it to the other builds.
 
 ## What is patched
 
-About 280 sites over the retail executable, in families:
+About 260 sites over the retail executable, in families:
 
 ### Mode and window
 
@@ -151,9 +151,12 @@ and cut are under *Credits letterboxing, found and removed* below.
 
 ### HUD passes
 
-Twenty pass prologues (UI_PASS_FUNCS) are wrapped by 20-byte stubs that
-count pass depth in and out; submissions inside a pass get the HUD
-projection, and the insert hooks rescale their vertices to the HUD frame.
+Six pass prologues (UI_PASS_FUNCS: the in-game HUD and the machine
+select for each renderer, the attract overlay, name entry) are wrapped
+by 20-byte stubs that count pass depth in and out; submissions inside a
+pass get the HUD projection, and the insert hooks rescale their vertices
+to the HUD frame. Twenty functions have the shape; how the list came
+down to six is under *The pass functions*.
 
 In side-by-side split the 4:3 frame is centred in a taller viewport.
 While a round's HUD is on screen (MODE 4, SUBMODE 9..0x0c, 0x14, 0x15,
