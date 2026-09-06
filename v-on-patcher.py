@@ -9714,7 +9714,7 @@ def run_tk():
             self.cap = min(max(self.px(360),
                                parent.winfo_screenheight() - self.px(150)
                                - self._logo_h),
-                           row * 56)
+                           row * 48)
             self.inner.bind('<Configure>', self._fit)
             self.canvas.bind('<Configure>', self._fit)
             self.canvas.bind('<Configure>', self._nudge, add='+')
