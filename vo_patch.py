@@ -1591,13 +1591,8 @@ ADDR = {
     'WORLD1': 0x51444d, 'WORLD2': 0x51448e, 'WORLD3': 0x5cc39d,
     'WORLD4': 0x5cc3de, 'SUBMIT_A': 0x514576, 'SUBMIT_B': 0x5cc4c6,
     # the wrapped pass prologues
-    'PASS0': 0x5b5f2e, 'PASS1': 0x4c468e, 'PASS2': 0x55d221,
-    'PASS3': 0x5495b1, 'PASS4': 0x5a1f3c, 'PASS5': 0x5a251b,
-    'PASS6': 0x58881e, 'PASS7': 0x588d85, 'PASS8': 0x4d0280,
-    'PASS9': 0x531f6a, 'PASS10': 0x4d9c3d, 'PASS11': 0x42cda6,
-    'PASS12': 0x460b70, 'PASS13': 0x460cf3, 'PASS14': 0x432fbe,
-    'PASS15': 0x433141, 'PASS16': 0x57f1b0, 'PASS17': 0x5829c3,
-    'PASS18': 0x4b6030, 'PASS19': 0x4b981f,
+    'PASS0': 0x5b5f2e, 'PASS1': 0x4c468e, 'PASS2': 0x5a251b,
+    'PASS3': 0x588d85, 'PASS4': 0x4d0280, 'PASS5': 0x4d9c3d,
     # addresses in written bytes: the coverage mask pointer, the FOV
     # block, and the F4 fall-through
     'MASKPTR': 0x6c8ce8, 'SPRITEMODE': 0x66c17c,
@@ -1844,43 +1839,28 @@ UI_FOV = 0x3aa0                             # a ported build's FOV block, when
                                             # its own is too short to hold it
 UI_OFF = 0x3b00                             # offscreen: guard, canvas, guard
 # Functions that draw HUD elements: everything they submit, directly or
-# through callees, is HUD (see hud_enter in ui.asm). They are the
-# functions that call the projection setup with the HUD focal lengths
-# (600 in game, 128 in the machine select). Which of them run was read
-# off the HIRES_DEBUG_STATES readout, over every mode: 1P, split, a
-# network match as host and as guest, the demo, the tutorial, draws and
-# time-ups. Six run: 0 and 1 (the in-game HUD - bars, timer, reticle,
-# weapon strips, all of it; A for player 1 and for both sides of a
-# network match, B for player 2), 5 and 7 (the machine select, likewise),
-# 10 (name entry), 8 (the attract demo). The other fourteen have never
-# been seen. Labels marked ? are static readings, not confirmed.
+# through callees, is HUD (see hud_enter in ui.asm). They call the
+# projection setup with the HUD focal lengths (600 in game, 128 in the
+# machine select). Twenty functions have that shape; these are the ones
+# the HIRES_DEBUG_STATES readout has seen run, over every mode - 1P,
+# split, a network match as host and as guest, the demo, the tutorial,
+# name entry, draws and time-ups. The other fourteen were wrapped from
+# v0.16.0 back and never ran; they are listed in docs/HIRES.md, *The
+# pass functions*. The first two must stay first (HUD_PASSES in
+# ui.asm).
 # VA and the length of the prologue displaced into the stub (push ebp;
 # mov ebp, esp; then sub esp, imm8/imm32 or push ebx; push esi).
 UI_PASS_FUNCS = [
-    (0x5b5f2e, 9), (0x4c468e, 9),           # in-game HUD, renderer A/B
-    (0x55d221, 6), (0x5495b1, 6),           # weapon strips? - dark with
-                                            # the strips on screen
-    (0x5a1f3c, 6), (0x5a251b, 6),           # machine select A: only the
-                                            # second runs
-    (0x58881e, 6), (0x588d85, 6),           # the same, B: only the second
-    (0x4d0280, 6), (0x531f6a, 6),           # A runs in the attract demo;
-                                            # neither in a round
-    (0x4d9c3d, 9), (0x42cda6, 9),           # name entry's mech (A seen;
-                                            # B by shape)
-    (0x460b70, 6), (0x460cf3, 5),           # read a title-machine global
-    (0x432fbe, 6), (0x433141, 5),           # and its 2P twin (0x1ae35a0 /
-                                            # 0x1ef9ec4)
-    (0x57f1b0, 6), (0x5829c3, 6),           # win/lose scene (0xc) phases 3
-                                            # and 2, renderer A (dispatcher
-                                            # 0x5813c7 on 0x1ccde88). Phases
-                                            # 0/1 ran; these did not, for a
-                                            # win, a loss, a draw or a
-                                            # time-up
-    (0x4b6030, 6), (0x4b981f, 6),           # the same, renderer B
-                                            # (dispatcher 0x4b8240)
+    (0x5b5f2e, 9), (0x4c468e, 9),           # in-game HUD, renderer A/B:
+                                            # bars, timer, reticle, weapon
+                                            # strips. A is player 1 and
+                                            # both sides of a network match
+    (0x5a251b, 6), (0x588d85, 6),           # machine select, A/B likewise
+    (0x4d0280, 6),                          # the attract demo's overlay
+    (0x4d9c3d, 9),                          # name entry's mech. The screen
+                                            # exists once, on 1P's inputs
+                                            # (nameentry.asm), so only A
 ]
-# Which entries have run is on the HIRES_DEBUG_STATES readout's second
-# line. Untraced entries are the A/B pairs below the first row.
 
 UI_OFF_SIZE = 4 * 1024 * 480 * 2            # guard, canvas, guard, copy
 

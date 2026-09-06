@@ -246,27 +246,9 @@ second line below it is a 24-bit mask of the UI_PASS_FUNCS entries that
 have run since launch, bit n for entry n, never cleared: a new bit names
 the screen that first showed it.
 
-What has run, over a full 1P game and a 2P match on retail: the 1P
-machine select lights bit 5 (0x5a251b), the round bit 0 (0x5b5f2e), the
-2P select bit 7 (0x588d85), the 2P round bit 1 (0x4c468e); the
-encounter, replay, win, lose and continue screens add nothing. Name
-entry lights bit 10 (0x4d9c3d); the attract demo bit 8 (0x4d0280). The
-splash, the movie, the tutorial, the ranking and the credits add
-nothing. A network match, host and guest, is the same as 1P: bits 5
-and 0, the remote player being renderer A on both machines. A draw and a
-time-up, 1P and split, add nothing. So bits 2/3 ("weapon strips"), 4/6,
-9, 11-19 have never been seen in any mode: the strips and the reticle
-are drawn from inside the in-game HUD pass, and the win/lose scene's
-phases 2 and 3 run for none of the four outcomes.
-
-The same screenshots give the versus scene numbers: 0x04 machine
-select, 0x08 encounter, 0x0a round, 0x0c win/lose (for a win, a loss and
-a draw), 0x0e continue, 0x15 the round at time-up - so 0x0c is the win
-and lose screen, as camskip.asm has it, and the "0x14, 0x15 win and
-lose" below are the time-up states. The first line's
-state pair reads 00 00 00 throughout a 1P game and populates only in
-versus, which is the "second pair missing" puzzle above with a pattern
-to it.
+Bit numbers follow the current UI_PASS_FUNCS: 0/1 the in-game HUD,
+2/3 the machine select, 4 the attract overlay, 5 name entry. *The
+pass functions* below has what the readout established.
 On video the line came out as `04 04 01 000000 154E 1CB9` - the second
 machine's pair missing, the rest intact - which is not understood; the
 tail is what the readout is for.
@@ -590,6 +572,47 @@ the tile loader rebases the block to its bank slot after the copy. So the
 recognition uses differences between cells, which the rebase preserves.
 HIRES_DEBUG_STATES shows the two cells it reads.
 
+### The pass functions
+
+Twenty functions call the projection setup with the HUD focal lengths.
+Through v0.16.0 all twenty were wrapped: six seen in the first traces and
+fourteen more "for the modes not traced". The readout, played through
+every mode on retail - a full 1P game, a split match, a network match
+as host and as guest, the attract demo, the tutorial, name entry, a
+draw, a time-up, the replay, the continue and the ranking - saw six run:
+
+| Function | Seen in |
+| --- | --- |
+| 0x5b5f2e / 0x4c468e | every round: player 1's HUD and player 2's - bars, timer, reticle, weapon strips, all of it; a network match uses A on both machines |
+| 0x5a251b / 0x588d85 | the machine select, likewise per player |
+| 0x4d0280 | the attract demo only |
+| 0x4d9c3d | name entry |
+
+The fourteen removed, with what was read about them statically, in
+case a mode turns up that draws them:
+
+- 0x55d221 / 0x5495b1: labelled "weapon strips"; dark with the strips
+  on screen, which are drawn from inside the HUD pass.
+- 0x5a1f3c / 0x58881e: the other half of each machine-select pair.
+- 0x531f6a: 0x4d0280's twin. 0x42cda6: 0x4d9c3d's; the initials screen
+  exists once, on player 1's inputs (nameentry.asm), so B never draws
+  it.
+- 0x460b70 / 0x432fbe and 0x460cf3 / 0x433141: the HUD pass's helpers,
+  reading a title-machine global (0x1ae35a0) and its 2P twin
+  (0x1ef9ec4).
+- 0x57f1b0 / 0x5829c3 and 0x4b6030 / 0x4b981f: phases 3 and 2 of the
+  win/lose scene 0xc, renderers A and B (dispatchers 0x5813c7 and
+  0x4b8240 on the phase word 0x1ccde88; the iris-wipe quads are theirs).
+  Phases 0 and 1 run for a win, a loss, a draw and a time-up; 2 and 3
+  run for none of them.
+
+Versus scene numbers, from the same screenshots: 0x04 machine select,
+0x08 encounter, 0x0a round, 0x0c win/lose (win, loss and draw), 0x0e
+continue, 0x15 the round at time-up - so 0x0c is the win and lose
+screen, as camskip.asm has it, and the 0x14, 0x15 of the split-state
+lists are the time-up states. The first line's state pair reads
+00 00 00 throughout a 1P game and populates only in versus.
+
 The scene tables: each renderer has a table of one frame handler per
 sub-state of the title machine, indexed by `[0x1ae3690] & 0x1f` -
 renderer A's at 0x5fb238 (read at 0x44b41e), renderer B's at 0x604818
@@ -828,21 +851,11 @@ row 950 of 1080, under a band in stock.
   are baked for the 1P view; split viewports want their own, keyed on
   D_LAYOUT like the split FOV factors. Needs the two compare pairs to
   read section data instead of immediates.
-- **The untraced pass functions.** Ten entries of UI_PASS_FUNCS have
-  never been seen running. Static reading pairs them A/B: 0x460b70 /
-  0x432fbe and their small companions 0x460cf3 / 0x433141 read a
-  title-machine global and its 2P twin; 0x4d9c3d / 0x42cda6 use the
-  select's focal length 128 at fixed coordinates, so a portrait screen;
-  0x57f1b0 / 0x5829c3 and 0x4b6030 / 0x4b981f are phases 3 and 2 of
-  the win/lose scene 0xc (dispatchers 0x5813c7 / 0x4b8240 on the phase
-  word 0x1ccde88), renderers A and B. Phases 0 and 1 are the win and
-  the loss and ran; 2 and 3 ran for none of the four outcomes. Over
-  every mode - 1P, split, network both sides, demo, tutorial, name
-  entry, draw, time-up - six entries run: 0, 1, 5, 7, 8, 10. The other
-  fourteen have no observed caller. Before they leave UI_PASS_FUNCS,
-  the F5 settings should be toggled once with the readout on - Field
-  Graphic Normal, Sky and the Texture boxes off, the top/bottom split -
-  since a setting could select a different draw path.
+- **The pass list after the cut.** Six entries remain (*The pass
+  functions*). One check still owed with the readout on: the F5
+  settings toggled once - Field Graphic Normal, Sky and the Texture
+  boxes off, the top/bottom split - in case a setting selects a
+  different draw path.
 - **JPRE, OEM and JP on video.** The three tables ship after lessons 6
   and 7; none has had the retail build's hours of play yet.
 - **Wider than 16:9.** Untested and partly blocked. The limits: width
@@ -863,7 +876,8 @@ Japanese rerelease (stamp 345107fa):
   0x6c4938, which is not it
 - the 0.95 hardware projection case was dropped in this revision; only
   the 1.0 store remains, at 0x1c1fef
-- PASS8/PASS9 were restructured (0x4cde03, 0x52e2ad) with 5-byte
+- The attract overlay (PASS4 now; 0x4d0280 and its unwrapped twin
+  0x531f6a) was restructured (0x4cde03, 0x52e2ad) with 5-byte
   prologues
 - 2D targets pre1 0x47ec80, post1 0x47f0a0, pre2 0x562400, post2
   0x562830
@@ -884,7 +898,7 @@ Japanese original (stamp 33120494):
 - the 0.95 projection case is absent, as in the rerelease; the 1.0
   store is at 0x1c6631
 - renderer A's row maths uses eax, as in the OEM (0x1c686c)
-- PASS8/PASS9 have the rerelease's 5-byte prologues
+- 0x4d0280 / 0x531f6a have the rerelease's 5-byte prologues
 
 All: prologue frame layouts and instruction encodings differ from retail
 even inside "exact" stream matches, so linear placement inside a matched
