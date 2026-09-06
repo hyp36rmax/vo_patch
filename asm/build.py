@@ -73,7 +73,7 @@ def frame_symbols():
     entries in the symbol table. Imported in bootstrap mode: a blob being
     added for the first time is not in the table yet."""
     os.environ['VONPATCHER_BOOTSTRAP'] = '1'
-    spec = importlib.util.spec_from_file_location('vopatch', TARGET)
+    spec = importlib.util.spec_from_file_location('vonpatcher', TARGET)
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)
     return {name: value for name, value in vp.RETAIL.symbols.items()
@@ -324,7 +324,7 @@ def main(check=False):
         with open(path, 'w', encoding='utf-8') as fh:
             fh.write(new)
         os.environ.pop('VONPATCHER_BOOTSTRAP', None)   # the real thing now
-        spec = importlib.util.spec_from_file_location('vopatch', path)
+        spec = importlib.util.spec_from_file_location('vonpatcher', path)
         vp = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(vp)
     check_link(vp, blobs)

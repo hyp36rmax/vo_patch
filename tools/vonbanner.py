@@ -190,7 +190,7 @@ def preview(canvas, path):
 def which_build(exe):
     """The Build for this v_on.exe, or for the .bak beside it, and the
     patcher module the tables live in. None for a file no build matches."""
-    spec = importlib.util.spec_from_file_location('vopatch', PATCHER)
+    spec = importlib.util.spec_from_file_location('vonpatcher', PATCHER)
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)
     for candidate in (exe, exe + '.bak'):

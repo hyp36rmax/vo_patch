@@ -46,7 +46,7 @@ def pristine(path, want):
 
 
 def load_patcher():
-    spec = importlib.util.spec_from_file_location('vopatch', PATCHER)
+    spec = importlib.util.spec_from_file_location('vonpatcher', PATCHER)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)             # runs _check_table
     return module
