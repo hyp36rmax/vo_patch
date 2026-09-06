@@ -2106,42 +2106,30 @@ def build_sites(w, h, sec_va, span_va, rowtab_va, pool, A=None):
                                   (0x5c8178, UI_FLUSH_B, 0x5dcc80)):
         sites.append((site - 0x400c00, b'\xe8' + u32(target - (site + 5)),
                       b'\xe8' + u32(sec_va + routine - (site + 5))))
-    # Credits roll: during the ending (sub-state 0x20) the tail of each
-    # engine's 2D post draw blacked rows 0..96 and 384..480 of the
-    # frame, one memset (0x47e580) per row - the letterbox. Both bands
-    # go (the jne past each block becomes a jmp: 0x480c74 engine 1,
-    # 0x567c84 engine 2), which works because the edge clipping the
-    # roll's tile walkers always asked for is wired up at the same
-    # time: the walkers push a visible row count for the window's top
-    # tile and the entering tile at its foot, but the shared blit
-    # (0x47fee0, both engines) discarded it and drew all 8 glyph rows -
+    # Credits roll. During the ending (sub-state 0x20) each engine's 2D
+    # post draw blacked frame rows 0..96 and 384..480, one memset
+    # (0x47e580) per row: the letterbox. Both bands go (jne -> jmp at
+    # 0x480c74 engine 1, 0x567c84 engine 2).
+    #
+    # The bands hid a blit bug. The roll's tile walkers push a visible
+    # row count for the window's top tile and the entering tile at its
+    # foot, but the shared blit (0x47fee0) drew all 8 glyph rows anyway:
     # the top tile redrew unscrolled at row 0 and the entering line
-    # popped in whole, which the bands existed to hide. The blit's
-    # entry jumps to ui.asm roll_blit, which honours the count, and the
-    # top edge's push is re-encoded as fine+8 (was 8-fine) so the two
-    # edges are distinguishable. Lines now slide in at the window's
-    # foot (row 400: the writer feeds the ring on a hand-timed
-    # schedule, so nothing exists below - see docs/HIRES.md) and out
-    # through the real row 0, with the scenery clean behind both.
-    # The roll starts from the bottom: the writer feeds the ring about
-    # two rows inside the old window (at its 0x31 draw cap, measured on
-    # video: a fed line lands ~0.6s after its ring row would enter),
-    # so instead of stretching the window down into the writer's
-    # workspace, the whole window moves down 13 rows - it begins 13
-    # ring rows earlier, showing the rows that scrolled past, draws 60
-    # rows, and the destination helper's cap rises from 0x31 to 0x3d.
-    # The bottom row (start+47) then trails the feed (start+48) by a
-    # full row, so a line is complete before it slides in at line 480,
-    # and lines leave through line 0 as before. 13 exactly: the writer
-    # composes an entering line over ring rows cursor..cursor+2, which
-    # sit at start-16..start-14 mod 64 - at 14 rows of shift the third
-    # compose row was the top display row and its glyph bottoms
-    # flashed at the screen's top edge (seen at 60 fps on video). At
-    # 13 the window excludes all three scratch rows, and a history row
-    # still has 3 rows of margin before the feed comes around to
-    # rewrite it. Plane B is untouched: the roll's text is all on
-    # plane A (B's uncapped 60-row window never shows a line below 400
-    # on screen).
+    # popped in whole. The blit's entry now jumps to ui.asm roll_blit,
+    # which honours the count; the top edge's push is re-encoded as
+    # fine+8 (was 8-fine) so the two edges can be told apart.
+    #
+    # The window then moves down 13 ring rows: it begins 13 rows
+    # earlier, draws 60 rows, and the destination helper's cap rises
+    # from 0x31 to 0x3d. The writer feeds the ring about two rows inside
+    # the old window (measured on video), so the bottom row (start+47)
+    # trails the feed (start+48) by a full row and a line is complete
+    # before it slides in at line 480. Why 13 exactly: the writer
+    # composes an entering line over ring rows cursor..cursor+2, at
+    # start-16..start-14 mod 64; at 14 rows of shift the third compose
+    # row was the top display row and its glyph bottoms flashed at the
+    # screen's top edge. Plane B is untouched: the roll's text is all on
+    # plane A. The full record is in docs/HIRES.md.
     sites += [(0x07f99b, bytes.fromhex('81e1ffff0000'),      # coarse row
                bytes.fromhex('83e90d83e13f')),               # -13 mod 64
               (0x16699b, bytes.fromhex('81e1ffff0000'),
@@ -2190,21 +2178,20 @@ def build_sites(w, h, sec_va, span_va, rowtab_va, pool, A=None):
     # 13-row window shift above moved it to line 328, so it is written
     # 13 rows earlier - cursor row 9 - and lands where stock had it.
     sites += [(0x189977, b'\x16', b'\x09')]
-    # Machine-select hangar: a platform mech is drawn while its angle is
-    # within a window of the camera's (0x59e3a1: 31.57 degrees to the
-    # left, 28.43 to the right, .data doubles), sized for a 4:3 view;
-    # in a wider one the next mech pops in at the edge. Both bounds are
-    # widened by the extra half field of view plus eight degrees for the
-    # mech's own width (stock's margin over its view). The game keeps
-    # palettes for the selection and the previous selection only (rows
-    # 1/3/5/7 and 9/11 of the colour planes) and loads them
+    # Machine-select hangar. A platform mech is drawn while its angle is
+    # within a window of the camera's (0x59e3a1: 31.57 degrees left,
+    # 28.43 right, .data doubles), sized for 4:3; in a wider view the
+    # next mech pops in at the edge. Both bounds are widened by the extra
+    # half field of view plus eight degrees for the mech's own width.
+    #
+    # The game keeps palettes for the selection and the previous one
+    # only (rows 1/3/5/7 and 9/11 of the colour planes), loaded
     # asynchronously, so a mech far enough right can come out in someone
-    # else's colours; past 28.43 degrees right of the camera - stock's
-    # draw bound, where colours stop being guaranteed - its shade is
-    # scaled to black instead, fading over the twelve degrees inside that
-    # edge, so the outermost mech is a silhouette that lights up as it
-    # turns in (ui.asm hangar_draw, wrapping the platform draw at
-    # 0x59e4ea).
+    # else's colours. Past 28.43 degrees right - stock's draw bound -
+    # its shade is scaled to black, fading over the twelve degrees
+    # inside that edge, so the outermost mech is a silhouette that lights
+    # up as it turns in (ui.asm hangar_draw, wrapping the platform draw
+    # at 0x59e4ea).
     f = 600 * 1.21875                    # focal times the 1P aspect
     margin = math.degrees(math.atan(w / (h / 480) / 2 / f)
                           - math.atan(320 / f))
@@ -2436,23 +2423,22 @@ HIRES_POLYS = 8000
 # health bars end by 95; the weapon strips start near 300. 0 turns it off.
 HIRES_HUD_BAND = 110
 # The HUD spread, in a round on a viewport wider than 4:3 (1P and
-# top/bottom split; side by side and 4:3 keep the stock layout): the
-# timer - the 2D layer's rows above HIRES_HUD_BAND left of the first
-# value (the timer box ends at 226, PLAYER starts at 235) and the in-game
-# HUD pass's polygons there - moves left by the frame's inset, keeping
-# its 4:3 distance from the left edge. PLAYER/ENEMY and the bars, right
-# of it, move so that the centre of the group (HIRES_HUD_BARS: the labels
-# start at 233, the bar frames end at 523) sits at 320. 2D rows from the
-# second value and columns from the third (the TOTAL time, at 402..418
-# and 436..556) move right by the inset. HUD frame units; None turns all
-# three off.
+# top/bottom split; side by side and 4:3 keep the stock layout). The
+# timer - 2D rows above HIRES_HUD_BAND left of the first value (the
+# timer box ends at 226, PLAYER starts at 235), and the in-game HUD
+# pass's polygons there - moves left by the frame's inset, keeping its
+# 4:3 distance from the left edge. PLAYER/ENEMY and the bars move so the
+# group's centre (HIRES_HUD_BARS: labels start at 233, bar frames end at
+# 523) sits at 320. The TOTAL time (2D rows from the second value,
+# columns from the third: 402..418 and 436..556) moves right by the
+# inset. HUD frame units; None turns all three off.
 HIRES_HUD_SPREAD = (230, 380, 420)
 HIRES_HUD_BARS = 378
-# Top/bottom split: the HUD scale side by side would use (the same HUD
-# size in both layouts) rather than the 4:3 that fits the half-height
-# viewport, capped so that these frame rows stay on screen - the timer
-# and bars start at 62, the weapon strips end by 320 - and never below
-# the fit. The rows outside are cut.
+# Top/bottom split: the HUD at side by side's scale (the same HUD size
+# in both layouts) rather than the 4:3 that fits the half-height
+# viewport. Capped so these frame rows stay on screen - the timer and
+# bars start at 62, the weapon strips end by 320 - and never below the
+# fit. The rows outside are cut.
 HIRES_HUD_TB_ROWS = (48, 432)
 # In a split game the split is drawn only while either player's machine is
 # in one of these sub-states: the rounds (9..0x0c), the result and continue

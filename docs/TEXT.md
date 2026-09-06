@@ -74,10 +74,10 @@ existing artwork so a new line matches the rest.
 There are two faces. The 24px body face covers everything the roll says, so
 a line set in it is harvested whole.
 
-The 11px capitals the title sets CYBER TROOPERS in are a real face rather
-than a reduction, but they exist only in that phrase, so anything outside
-`CYBERTOPS` is drawn: it is monoline 1px, and reducing a 2px stem lands on
-one or two pixels unevenly and reads as bold.
+The 11px capitals of CYBER TROOPERS are a real face, not a reduction, but
+exist only in that phrase. Anything outside `CYBERTOPS` is drawn by hand:
+the face is monoline 1px, and reducing a 2px stem lands unevenly on one or
+two pixels and reads as bold.
 
 Drawn widths come from the 24px capital at 11/17 - 13px wide there is 8
 here, 15 is 9 or 10, 17 is 11 - and edges step a column every three rows.
@@ -119,10 +119,10 @@ is why painting that file changes the logo and not the prompt.
 being 1 to 3. It sits at column 10, row 40 of the 82-wide tilemap at
 `0x1cc18ea`.
 
-Renaming it needs both halves, so it rides with **XInput gamepad support**:
-the patcher carries a 1bpp 336x24 bitmap, expands it into tiles at apply
-time, writes the indices into the executable with every other patch, and
-writes the tiles into the artwork afterwards. That file is backed up to
+Renaming it needs both halves, so it rides with **XInput gamepad
+support**. The patcher carries a 1bpp 336x24 bitmap and expands it into
+tiles at apply time. The indices go into the executable with every other
+patch; the tiles go into the artwork afterwards. That file is backed up to
 `.bak` and **Restore original** puts it back.
 
 The two halves have to match. The executable holds the indices and the

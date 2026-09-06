@@ -72,9 +72,9 @@ Game messages that are not frames - whatever the menus exchange between
 rounds - go into an 8 KB ring for `ReceiveDirectPlay` to hand back.
 
 The ring is bounded: a message that will not fit is dropped and counted
-rather than allowed to lap the reader, because a wrapped write puts a
-mid-message byte where a length belongs and everything read after that is
-garbage the game acts on.
+rather than allowed to lap the reader. A wrapped write would put a
+mid-message byte where a length belongs, and everything read after that
+is garbage the game acts on.
 
 If `vo-net.log` starts reporting dropped messages, the game is queueing
 faster than it drains and that is worth investigating rather than tuning
@@ -152,18 +152,17 @@ Ten unknown codes from one address inside a minute and its joins are ignored
 for ten minutes, so the code space cannot be swept. Joins only, since one
 address may be a whole carrier NAT.
 
-What else the server refuses, and why: a code with a character outside the
-alphabet, since it would only ever be a guess or a log line; a ninth open
-code from one address, so one machine cannot fill the table; a relayed
-datagram over 512 bytes, the game's largest. Codes come from `secrets`,
+What else the server refuses: a code with a character outside the
+alphabet (only ever a guess or a log line); a ninth open code from one
+address (so one machine cannot fill the table); a relayed datagram over
+512 bytes, the game's largest. Codes come from `secrets`,
 because the default generator can be predicted from a few hundred codes
 seen and a predicted code can be joined first.
 
 The relay cannot be turned into a general tunnel. Each direction of a code
-is a token bucket refilling at 250 packets a second - a 60 fps match spends
-about a quarter of that, so it never notices, while a pair trying to push bulk
-traffic is held to that rate times the 512-byte cap, about 125 KB/s per
-code, whatever they send.
+is a token bucket refilling at 250 packets a second. A 60 fps match spends
+about a quarter of that and never notices; bulk traffic is held to that
+rate times the 512-byte cap, about 125 KB/s per code.
 
 It is still a relay between the two endpoints a code registered and nothing
 else: it forwards to the other endpoint, never to a third party, so it
@@ -234,9 +233,9 @@ reproducing.
 
 **The wait yields.** `select()` sleeps until the packet lands instead of
 spinning on `recvfrom`. The original spun as well, but through DirectPlay,
-which blocks internally and hands the time back; swapping in non-blocking
-UDP inherited a busy-wait Sega never had, and on a modern scheduler it
-costs the render thread a frame here and there. Build with `-DVO_YIELD=0`
+which blocks internally and hands the time back. Non-blocking UDP
+inherited a busy-wait Sega never had, and on a modern scheduler it costs
+the render thread a frame here and there. Build with `-DVO_YIELD=0`
 to get the spin back and feel the difference.
 
 ## Building
