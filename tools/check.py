@@ -103,7 +103,7 @@ def build_name(exe):
     import hashlib
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        'vopatch', os.path.join(ROOT, 'v-on-patcher.py'))
+        'vonpatcher', os.path.join(ROOT, 'v-on-patcher.py'))
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)
     for candidate in (exe, exe + '.bak'):
