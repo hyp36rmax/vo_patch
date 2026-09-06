@@ -3,7 +3,7 @@ bits 32
 ; the template: the close-time deadzone read and save, the Defaults button,
 ; and the Quit case.
 ; The dialog procedure in asm/debugbox.asm stays a dispatcher and calls here
-; through a relative placeholder that vo_patch.py fills once the section's
+; through a relative placeholder that v-on-patcher.py fills once the section's
 ; address exists.
 ;
 ; Position independent: the section lands wherever the headers put it, so

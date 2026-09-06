@@ -5,7 +5,7 @@ are not strings at all.
 
 The tables give file offsets into the English retail `v_on.exe`, unless
 another file is named, because that is what the patch tables use; the other
-builds' offsets come from their site maps in `vo_patch.py`. Routines and
+builds' offsets come from their site maps in `v-on-patcher.py`. Routines and
 globals are named by virtual address, the way a debugger shows them: add
 `0x400c00` to a `.text` or `.rdata` offset and `0x401200` to a `.data` one.
 
@@ -106,7 +106,7 @@ Not text. 42x3 cells of 8x8 pixels, 16bpp RGB565.
 
 The artwork is `escrgame.bin` in the English retail and OEM builds and
 `jscrgame.bin` in both Japanese builds; the tiles this touches are in
-the same place in each, and each `Build` in `vo_patch.py` names its own.
+the same place in each, and each `Build` in `v-on-patcher.py` names its own.
 Addresses below are the retail build's.
 
 The loader adds `0x380` to every index at start-up, so the values in the
@@ -139,7 +139,7 @@ python3 tools/vonbanner.py /path/to/VIRTUAL-ON --text 'Press Start' --write
 ```
 
 That writes the game's files directly, which is enough to see it. To ship it,
-take the bitmap it produces and replace `BANNER_BITS` in `vo_patch.py`; the
+take the bitmap it produces and replace `BANNER_BITS` in `v-on-patcher.py`; the
 patcher expands it into tiles and the index table at import.
 
 The rendering depends on which font is installed, so it is generated once and

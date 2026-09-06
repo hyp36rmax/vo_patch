@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Virtual-On (PC, 1997) patcher. See README.md.
 
-    python3 vo_patch.py                 patch a copy of v_on.exe
-    python3 vo_patch.py --install CUE DIR   install from a disc image
-    python3 vo_patch.py --rip SRC DIR   rip the soundtrack, no window needed
-    python3 vo_patch.py --ddraw DIR     fetch cnc-ddraw into the game folder
-    python3 vo_patch.py --netplay DIR   install the UDP netplay DLL
-    python3 vo_patch.py --selfcheck     validate the patch tables and exit
-    python3 vo_patch.py --version
+    python3 v-on-patcher.py                 patch a copy of v_on.exe
+    python3 v-on-patcher.py --install CUE DIR   install from a disc image
+    python3 v-on-patcher.py --rip SRC DIR   rip the soundtrack, no window needed
+    python3 v-on-patcher.py --ddraw DIR     fetch cnc-ddraw into the game folder
+    python3 v-on-patcher.py --netplay DIR   install the UDP netplay DLL
+    python3 v-on-patcher.py --selfcheck     validate the patch tables and exit
+    python3 v-on-patcher.py --version
 
 The version is the VERSION line below and nowhere else, so there is nothing
 to keep in step with it.
 
-https://github.com/pairomaniac/vo_patch
+https://github.com/pairomaniac/v-on-patcher
 """
 
 import ctypes
@@ -2638,7 +2638,7 @@ def port_sites(sites, port, A, sec_va=None):
 
 
 def hires_install(buf, width, height, alt=HIRES_ALT):
-    """Patch buf (a bytearray of v_on.exe, stock or vo_patch'd) in place
+    """Patch buf (a bytearray of v_on.exe, stock or v-on-patcher'd) in place
     for width x height, with alt as the size F4 switches to. Raises
     ValueError on a size or byte mismatch. Returns the number of sites
     written."""
@@ -2755,12 +2755,15 @@ def hires_install(buf, width, height, alt=HIRES_ALT):
 # bug report than a number nobody bumped.
 VERSION = 'dev'
 # The tool's name where a file or a URL is: the repository, the executable,
-# the version resource's internal name, the User-Agent and the line the
-# patched game prints on its title screen.
-NAME = 'vo_patch'
+# the version resource's internal name and the User-Agent.
+NAME = 'v-on-patcher'
 # What people see: the window title, the About card, the file properties.
 LABEL = 'V-On Patcher'
-REPO_URL = 'https://github.com/pairomaniac/vo_patch'
+# What the patched game prints on its title screen. Still the old name: it
+# sits beside the credit roll's VO_PATCH line, and the two change together
+# with the roll's bitmaps.
+INGAME_NAME = 'vo_patch'
+REPO_URL = 'https://github.com/pairomaniac/v-on-patcher'
 
 EXE_SIZE = 6650880
 
@@ -5203,7 +5206,7 @@ BLOBS = {
 # Set by asm/build.py and tools/buildsites.py while they import this module
 # to regenerate it: a blob, label or site they are about to write does not
 # exist yet, and reads as empty rather than failing the import.
-BOOTSTRAP = bool(os.environ.get('VO_PATCH_BOOTSTRAP'))
+BOOTSTRAP = bool(os.environ.get('VONPATCHER_BOOTSTRAP'))
 EMPTY = (b'', (), {})
 
 
@@ -5502,7 +5505,7 @@ def version_text():
 
     No v in front of the number: a tag build reads 0.8.7 but a commit build
     reads a short SHA, and "vo_patch v1a2b3c4" is nonsense."""
-    return ('%s %s' % (NAME, VERSION))[:TITLEVER_LEN - 1]
+    return ('%s %s' % (INGAME_NAME, VERSION))[:TITLEVER_LEN - 1]
 
 
 def stamp_version(buf, build=RETAIL):
@@ -6500,7 +6503,7 @@ for _build in BUILDS.values():
         except KeyError:
             # A site the build's map has no entry for yet: tools/buildsites.py
             # is about to write one, and imports this module to do it.
-            if not os.environ.get('VO_PATCH_BOOTSTRAP'):
+            if not os.environ.get('VONPATCHER_BOOTSTRAP'):
                 raise
 
 
@@ -7294,7 +7297,7 @@ def writable(folder):
     redirect the write into VirtualStore: an unelevated write to a folder
     the user does not own arrives here as EACCES rather than appearing to
     succeed somewhere else."""
-    probe = os.path.join(folder, '.vo_patch-write-test')
+    probe = os.path.join(folder, '.v-on-patcher-write-test')
     try:
         with open(probe, 'wb') as fh:
             fh.write(b'x')
@@ -10641,18 +10644,18 @@ def probe_tk():
     return None
 
 
-USAGE = """vo_patch.py %s - Virtual-On (PC, 1997) patcher
+USAGE = """v-on-patcher.py %s - Virtual-On (PC, 1997) patcher
 
-  vo_patch.py                     open the patcher
-  vo_patch.py --install CUE DIR   copy the game out of a disc image into DIR
+  v-on-patcher.py                     open the patcher
+  v-on-patcher.py --install CUE DIR   copy the game out of a disc image into DIR
                                   (--language NAME picks the manual)
-  vo_patch.py --rip SOURCE DIR    rip the soundtrack; SOURCE is a .cue sheet
+  v-on-patcher.py --rip SOURCE DIR    rip the soundtrack; SOURCE is a .cue sheet
                                   or, on Linux, a CD drive. DIR holds v_on.exe
-  vo_patch.py --rip               list the drives it can see (Linux)
-  vo_patch.py --ddraw DIR         download cnc-ddraw into DIR (holds v_on.exe)
-  vo_patch.py --netplay DIR       install the UDP netplay DLL (--remove undoes)
-  vo_patch.py --selfcheck         validate the patch tables and exit
-  vo_patch.py --version
+  v-on-patcher.py --rip               list the drives it can see (Linux)
+  v-on-patcher.py --ddraw DIR         download cnc-ddraw into DIR (holds v_on.exe)
+  v-on-patcher.py --netplay DIR       install the UDP netplay DLL (--remove undoes)
+  v-on-patcher.py --selfcheck         validate the patch tables and exit
+  v-on-patcher.py --version
 """
 
 
@@ -10661,7 +10664,7 @@ def selfcheck():
 
     The tables are the whole patcher, and nothing else exercises them without
     a copy of the game, so this is what to run after editing one."""
-    lines = ['vo_patch.py %s' % VERSION]
+    lines = ['v-on-patcher.py %s' % VERSION]
     for build in BUILDS.values():
         sites, byte_count = _check_table(build)
         lines.append('%s: %d bytes, MD5 %s; %d patches, %d sites, %d bytes '
@@ -10683,7 +10686,7 @@ def selfcheck():
 def netplay_cli(argv):
     """--netplay GAMEDIR [--remove]."""
     if not argv or len(argv) > 2:
-        return 'Usage: vo_patch.py --netplay GAMEDIR [--remove]'
+        return 'Usage: v-on-patcher.py --netplay GAMEDIR [--remove]'
     gamedir = argv[0]
     if not os.path.isdir(gamedir):
         return 'Not a directory: %s' % gamedir
@@ -10709,7 +10712,7 @@ def netplay_cli(argv):
 def ddraw_cli(argv):
     """--ddraw GAMEDIR, for a machine with no display."""
     if len(argv) != 1:
-        return 'Usage: vo_patch.py --ddraw GAMEDIR'
+        return 'Usage: v-on-patcher.py --ddraw GAMEDIR'
     gamedir = argv[0]
     if not os.path.isdir(gamedir):
         return 'Not a directory: %s' % gamedir
@@ -10785,10 +10788,10 @@ def rip_cli(argv):
             return None
         found = list_devices()
         print('Drives visible here: %s' % (', '.join(found) or 'none'))
-        print('Rip one with: vo_patch.py --rip SOURCE GAMEDIR')
+        print('Rip one with: v-on-patcher.py --rip SOURCE GAMEDIR')
         return None
     if len(argv) != 2:
-        return 'Usage: vo_patch.py --rip SOURCE GAMEDIR'
+        return 'Usage: v-on-patcher.py --rip SOURCE GAMEDIR'
 
     source, gamedir = argv
     seen = [None]

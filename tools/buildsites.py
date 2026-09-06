@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Write a build's site map into vo_patch.py.
+"""Write a build's site map into v-on-patcher.py.
 
     python3 tools/buildsites.py NAME RETAIL.exe OTHER.exe [MAP.pkl]
 
-NAME is the Build's name in vo_patch.py (JPRE). For every site the table
+NAME is the Build's name in v-on-patcher.py (JPRE). For every site the table
 names by retail offset: where it is in the other build, through votrans.py,
 and the bytes that build has there. A site whose retail original is not
 what the retail file holds is one an earlier site in the same patch wrote,
@@ -20,14 +20,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
-TARGET = os.path.join(ROOT, 'vo_patch.py')
+TARGET = os.path.join(ROOT, 'v-on-patcher.py')
 
 
 def main():
     name, retail_path, jp_path = sys.argv[1], sys.argv[2], sys.argv[3]
     sys.argv = ['votrans', 'one'] + sys.argv[4:]
     import votrans                                       # noqa: E402
-    os.environ['VO_PATCH_BOOTSTRAP'] = '1'      # a site may be missing here
+    os.environ['VONPATCHER_BOOTSTRAP'] = '1'      # a site may be missing here
     spec = importlib.util.spec_from_file_location('vp', TARGET)
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)

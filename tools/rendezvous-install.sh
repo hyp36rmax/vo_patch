@@ -25,7 +25,7 @@ need_root() { [ "$(id -u)" = 0 ] || die "run this with sudo"; }
 checks() {
     command -v systemctl >/dev/null || die "no systemd on this machine"
     command -v python3 >/dev/null || die "python3 is not installed"
-    [ -f "$REPO/net/rendezvous.py" ] || die "run this from a vo_patch checkout"
+    [ -f "$REPO/net/rendezvous.py" ] || die "run this from a v-on-patcher checkout"
     python3 -c 'import sys; sys.exit(sys.version_info < (3, 6))' \
         || die "python3 is too old"
 }

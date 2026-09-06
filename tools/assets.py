@@ -19,7 +19,7 @@ ASSETS = os.path.join(os.path.dirname(HERE), 'assets')
 LOGO_SRC = 'VONPatcherLogo1.png'
 ICON_SRC = 'VONPatcherIcon.png'
 
-# Twice the height the window shows at 100% (LOGO_HEIGHT in vo_patch.py),
+# Twice the height the window shows at 100% (LOGO_HEIGHT in v-on-patcher.py),
 # so it holds up at 200% scaling and is subsampled below that.
 LOGO_HEIGHT = 192
 ICON_SIZE = 256

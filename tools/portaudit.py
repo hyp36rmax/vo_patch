@@ -72,7 +72,7 @@ def in_operand(i, off, ln):
 
 def main():
     import hiresport
-    import vo_patch_hires as hires
+    import vonpatcher_hires as hires
     pkl = sys.argv[1]
     r = hiresport.resolve(pkl)              # resets sys.argv for votrans
     for f in r['fails']:

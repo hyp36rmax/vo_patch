@@ -10,7 +10,7 @@
 # and the gui check. nasm rebuilds asm/ including asm/ui.asm, mingw
 # the netplay DLL, xvfb runs the gui check headlessly. None of
 # them is needed to run the patcher itself - the blobs are baked into
-# vo_patch.py as text.
+# v-on-patcher.py as text.
 set -e
 cd "$(dirname "$0")/.."
 
