@@ -105,7 +105,7 @@ Not text. 42x3 cells of 8x8 pixels, 16bpp RGB565.
 | Spare tiles | the same file, tile 24845, a run of 116 empty ones |
 
 The artwork is `escrgame.bin` in the English retail and OEM builds and
-`jscrgame.bin` in the Japanese rerelease; the tiles this touches are in
+`jscrgame.bin` in both Japanese builds; the tiles this touches are in
 the same place in each, and each `Build` in `vo_patch.py` names its own.
 Addresses below are the retail build's.
 

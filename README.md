@@ -681,8 +681,9 @@ unpatched game do not fit the new device list. The title artwork -
 `escrgame.bin`, or `jscrgame.bin` on the Japanese builds - is rewritten
 with the new title prompt, after a copy is kept as `.bak`.
 
-**Native widescreen** adds a section to `v_on.exe` for its own code and its
-off-screen canvas; nothing else on disk changes.
+Every run appends a section to `v_on.exe` for the patch code, and
+**No disc required**, **Disable menu bar** and **Native widescreen** each
+add one more; nothing else on disk changes.
 
 **Restore original** puts every backed-up file back - those three and the
 two roll files the credit line rewrites - keeping whatever the patched game

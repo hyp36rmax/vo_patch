@@ -136,8 +136,10 @@ crash address into a blob and label, is under
 
 **`tools/vonbanner.py`** redraws the title screen prompt. It rasterises text
 into the banner's 42x3 cells and, with `--write`, writes the game's own
-`v_on.exe` and `escrgame.bin`. It does not touch `vo_patch.py`: to ship a new
-wording, replace `BANNER_BITS` there with the bitmap it produces.
+`v_on.exe` and `escrgame.bin` - a retail or OEM folder; its offsets are
+retail's and it does not look for `jscrgame.bin`. It does not touch
+`vo_patch.py`: to ship a new wording, replace `BANNER_BITS` there with the
+bitmap it produces.
 
 ```bash
 python3 tools/vonbanner.py DIR --text 'Press Start'    # preview
@@ -349,6 +351,11 @@ git push && git push --tags
 
 gh run watch               # follow CI
 ```
+
+The workflow creates the release only if none exists, and always uploads
+to whatever is there. So the other order works too, and skips the
+generated-notes step below: `gh release create v0.8.4 --notes-file
+notes.md` makes the tag, and the tag build only attaches the zips.
 
 CI runs `verify` (ubuntu) and, only if it passes, `windows`, which stamps the
 version, installs PyInstaller from source with its bootloader compiled on the

@@ -8,11 +8,12 @@
 
 The game is not in the repository, so CI can only run the first form. The
 checks that need a real copy are skipped rather than failed when no game is
-given: selftest.py, the only thing that catches a wrong offset, and the
-banner and credit tests, the only proof that those read back as written.
-They are why the manual step before tagging still exists. Give every
-build's folder and each of those runs once per build, named; the patcher
-has tables for three, and a table can only be wrong on the build it is for.
+given: selftest.py, the only thing that catches a wrong offset, the
+banner and credit tests, the only proof that those read back as written,
+and uiemu, which runs the resolution blob on the retail file. They are why
+the manual step before tagging still exists. Give every build's folder and
+each of those runs once per build, named; the patcher has tables for four,
+and a table can only be wrong on the build it is for.
 
 Each check stays a script of its own; this only decides what to run and
 reports the result. --list prints them without running anything.
@@ -61,7 +62,8 @@ CHECKS = [
       'tools/guitest.py', 'tools/check.py', 'tools/buildsites.py',
       'tools/vomap.py', 'tools/votrans.py', 'tools/whereis.py',
       'tools/uibuild.py', 'tools/hiresport.py', 'tools/vo_patch_hires.py',
-      'tools/rvload.py', 'tools/uiemu.py', 'net/rendezvous.py'], False,
+      'tools/rvload.py', 'tools/uiemu.py', 'tools/portaudit.py',
+      'net/rendezvous.py'], False,
      False),
     ('tree', 'no uncommitted generated files',
      ['git', 'diff', '--exit-code', '--stat'], False, True),

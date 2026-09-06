@@ -14,9 +14,9 @@ The sources name no addresses. Everything in the game they touch is an
 each address goes and how (absolute, or relative to the instruction). What
 lands in vo_patch.py is the blob with those slots empty, the fixup list, and
 the offsets of its labels; vo_patch.link() fills the slots for a build from
-that build's CAVES and SYMBOLS tables. So one set of machine code serves every
+that build's caves and symbols tables. So one set of machine code serves every
 build, and the retail addresses live in one table in the patcher rather than
-in twenty-eight files here.
+in thirty files here.
 
 Besides matching the blobs, the check pass links every blob for every
 build and checks the pins the site table relies on. It runs vo_patch.py

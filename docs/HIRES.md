@@ -785,8 +785,8 @@ row 950 of 1080, under a band in stock.
   are baked for the 1P view; split viewports want their own, keyed on
   D_LAYOUT like the split FOV factors. Needs the two compare pairs to
   read section data instead of immediates.
-- **JPRE and OEM on video.** Both tables ship after lessons 6 and 7;
-  neither has had the retail build's hours of play yet.
+- **JPRE, OEM and JP on video.** The three tables ship after lessons 6
+  and 7; none has had the retail build's hours of play yet.
 - **Wider than 16:9.** Untested and partly blocked: the width limit of
   2040 (the mask stride immediates), the 1024-px canvas (OFF_PITCH and
   the cap in pre; the guard/copy layout in UI_OFF_SIZE follows it), the

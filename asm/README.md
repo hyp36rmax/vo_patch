@@ -149,8 +149,8 @@ edit anyway.
 
 ## What CI checks
 
-The `verify` job in `.github/workflows/build.yml` runs on every push to a
-work branch, every `v*` tag and every pull request, and the Windows build
+The `verify` job in `.github/workflows/build.yml` runs on every push to
+main, every `v*` tag and every pull request, and the Windows build
 will not start until it passes. It installs nasm and runs
 `python3 tools/check.py`, the same runner you would run locally:
 
@@ -168,7 +168,7 @@ self-consistent while the shipped patcher installs last week's code - nothing
 else in the project would notice.
 
 What CI cannot do is touch a real game, because it is not in the
-repository, so three checks are skipped there. Run them before tagging by
+repository, so four checks are skipped there. Run them before tagging by
 giving the runner a folder per build:
 
 ```
@@ -181,7 +181,8 @@ that catches a wrong offset: it verifies every `original` column against the
 real file, applies 350-odd combinations of patches, and compares the fully
 patched MD5 against `EXPECTED_ALL` in `tools/selftest.py`. `banner` and
 `credit` are the only proof that what the patcher writes into the artwork
-and the ending roll reads back as it was written.
+and the ending roll reads back as it was written; `uiemu` runs the
+resolution blob on the retail file only.
 
 ## Where the blobs go
 
@@ -485,10 +486,11 @@ contamination back off, but only when a pad was actually read that tick, so
 the keyboard path is untouched.
 
 Because it replaces the epilogue, its site overlaps the end of the XInput
-routine written by the site before it: `0x207702` expects the `5f5e5bc9c3`
-that `0x207460` wrote there, not anything from the original file. The site
-list is applied in order and `_check_table` enforces that relationship, so
-sorting that list by offset will fail at import rather than at write time.
+routine written by the site before it: the site at `('PADX', 'epilogue')`
+expects the `5f5e5bc9c3` that the `PADX` site wrote there, not anything
+from the original file. The site list is applied in order and
+`_check_table` enforces that relationship, so sorting that list by offset
+will fail at import rather than at write time.
 
 ## introwait.asm
 

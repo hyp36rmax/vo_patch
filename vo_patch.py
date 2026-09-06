@@ -2781,7 +2781,7 @@ EXE_SIZE = 6650880
 
 ORIGINAL_MD5 = 'a464b0ff32d5bab499f265e45658504e'
 
-RETAIL_HINT = ('Install from a retail disc image above, or pick a copy '
+RETAIL_HINT = ('Install from a disc image above, or pick a copy '
                'installed from one. Its v_on.exe alone will not do: the '
                'patcher writes to files beside it.')
 
@@ -3043,8 +3043,8 @@ RETAIL = Build('English retail', 'retail', ORIGINAL_MD5, EXE_SIZE,
     annex=ANNEX_BLOBS)
 
 
-# The Japanese rerelease: the same source through the same toolchain four
-# months on, with every address moved. See docs/NOTES.md, and tools/vomap.py
+# The Japanese rerelease: the same source six months on, through a newer
+# linker (3.10 against 3.0), with every address moved. See docs/NOTES.md, and tools/vomap.py
 # for how the addresses were found.
 JPRE_MD5 = 'd19320bdc3381a48228990907910a391'
 JPRE_SIZE = 6621696
@@ -3388,7 +3388,7 @@ OEM = Build('USA OEM', 'oem', OEM_MD5, OEM_SIZE, 0x3317246a, sections=(
 
 # The Japanese original, 1.04J (February 1997, four days before the OEM):
 # the oldest build, and laid out like the OEM - the same cpuid32.dll
-# processor check, every section one page lower. Its title artwork is the
+# processor check, every section but .text one page lower. Its title artwork is the
 # rerelease's, byte for byte.
 JP_MD5 = '9764d946ffc8cee94788707c91753478'
 JP_SIZE = 6644224
@@ -6130,10 +6130,10 @@ FEATURES = [
      'own inputs, and both bind sets are saved.\n'
      '\n'
      'The players on a pad profile take the connected pads in order,\n'
-     '1P first. A accepts, Select is the\n'
-     'camera, Start pauses, and the D-pad works the menus. A or Select\n'
-     'skips the win and lose screens between rounds; A skips the intro\n'
-     'movie. On-screen prompts name the button rather than a key.\n'
+     '1P first. A accepts, Select is the camera, Start pauses, and the\n'
+     'D-pad works the menus. A or Select skips the win and lose screens\n'
+     'between rounds; A skips the intro movie. On-screen prompts name\n'
+     'the button rather than a key.\n'
      '\n'
      'Stick deadzone\tEach player has one, 40% to start, set in the F11\n'
      '\tExtras dialog.\n'
@@ -6455,11 +6455,12 @@ ABOUT = ('credits',)
 
 
 def apply_order():
-    """Display order, except that nodisc has to be last: it appends a
-    section and chains the entry point, so it must see every other edit.
-    The menu bar patch appends a section too - the F11 template's - but
+    """Display order, except that nodisc and hires go last, in that
+    order: nodisc chains the entry point, so it must see every other edit
+    to it, and hires appends the section its sites are computed from. The
+    menu bar patch appends a section too - the F11 template's - but
     earlier is fine: each append places itself from the headers as they
-    are, so the two stack in whatever combination is ticked."""
+    are, so the sections stack in whatever combination is ticked."""
     keys = [k for k in ESSENTIAL + EXTRA + ABOUT
             if k not in ('nodisc', 'hires')]
     return keys + ['nodisc', 'hires']
@@ -8283,7 +8284,7 @@ class Patcher:
         build = backup_is_original(path + '.bak')
         if build:
             # The size cannot be part of this test: every patched file has
-            # the annex appended, and up to two more sections.
+            # the annex appended, and up to three more sections.
             # The build comes from the backup, so Restore looks for this
             # build's artwork rather than retail's.
             self.build = build
@@ -8830,8 +8831,6 @@ DONE = 'Done - %d patches written. Restore original puts v_on.exe.bak back.'
 FAILED = 'Nothing was written and the game is untouched - see the log below.'
 # DONE_NOSYNC is gone: Apply can no longer leave a sync patch out.
 READY = 'READY - %s. %d patches selected. Press Apply patches.'
-# Under 52 characters: the status bar cuts longer text, and the log below
-# names which patch.
 
 
 def win_dpi():
