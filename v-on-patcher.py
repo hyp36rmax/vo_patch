@@ -8661,10 +8661,10 @@ def describe(text):
 # From the game's artwork. The window paints itself with this rather than
 # following the desktop theme.
 PALETTE = {
-    'ink': '#0b1020',       # window
-    'card': '#151d33',      # panel
-    'head': '#1e2947',      # section header and status bar
-    'line': '#2c3960',      # borders
+    'ink': '#131b33',       # window
+    'card': '#1a2442',      # panel
+    'head': '#253156',      # section header and status bar
+    'line': '#364470',      # borders
     'text': '#e6ebf7',
     'dim': '#93a0c4',       # hints, disabled, the log
     'cyan': '#3fd8f0',      # headings, ticks, Apply
