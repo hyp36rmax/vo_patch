@@ -18,7 +18,7 @@ forwarding.
 <br />
 ...in a nutshell - the patch makes the game <i>just work ™️</i>
 <br /><br />
-<img height="700" alt="The patcher window" src="https://github.com/user-attachments/assets/a3344ff2-fa48-4961-b983-7019ab8dffa8" />
+<img height="700" alt="The patcher window" src="https://github.com/user-attachments/assets/e7273d44-0968-4864-8f37-5d3b899cc50d" />
 
 <h4 align="center">
   <a href="#quick-start">Quick start</a> &nbsp;·&nbsp;
