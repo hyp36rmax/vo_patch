@@ -14,12 +14,9 @@ Only the slash and the underscore are drawn here rather than harvested;
 neither appears anywhere in the roll. They follow the same metrics as the
 rest: 2px stems, caps spanning rows 0..16, descenders to 21.
 
-One harvested glyph is overridden after the fact: the small V's strokes
-ease inward (3,3,2,1,1 rows per step) in the title artwork, which reads
-rounder than the linear A and the drawn slash beside it. The committed
-bitmap carries a straightened V - two mirrored slashes, 2,2,2,2,2,1 -
-edited in place; a future --write will resurrect the eased one, so
-re-apply it if the line is ever rebuilt.
+The small V is drawn as two mirrored slashes (2,2,2,2,2,1 rows per step)
+rather than with the eased strokes of the title's own V, which read
+rounder than the linear A and the drawn slash beside it.
 
 Needs scrstfcg.bin, scrstfmp.bin and v_on.exe. None is in the repository, so
 this is a by-hand tool - the bitmaps it writes are committed.
@@ -36,7 +33,7 @@ import sys
 # capitals, which lands close: a derived CYBER TROOPERS comes out 140px
 # against the genuine 139.
 LINES = (('Patch by pairo', 42, 3, 24),
-         ('GITHUB.COM/PAIROMANIAC/VO_PATCH', 42, 2, 11))
+         ('GITHUB.COM/PAIROMANIAC/V-ON-PATCHER', 42, 2, 11))
 
 # The renderer places a block by its flag: below zero centres it at
 # (51 - w) >> 1, 0x63 pushes it flush right at 51 - w. These lines use the
@@ -199,7 +196,8 @@ def small_face(folder):
 #
 # Two deliberate departures, because the original's proportions assume a 2px
 # stroke: the A's apex is two pixels for one row rather than three, and the V
-# closes to a single pixel where the original's strokes stop one apart.
+# closes to a single pixel where the original's strokes stop one apart. The
+# hyphen is the 24px one at 11/17, on the E's crossbar row.
 SMALL_DRAWN = {
     'A': ["...##...", "..#..#..", "..#..#..", "..#..#..", ".#....#.",
           ".#....#.", ".#....#.", ".######.", "#......#", "#......#",
@@ -220,10 +218,11 @@ SMALL_DRAWN = {
     'U': ["#......#", "#......#", "#......#", "#......#", "#......#",
           "#......#", "#......#", "#......#", "#......#", ".#....#.",
           "..####.."],
-    'V': ["#.........#", "#.........#", "#.........#", ".#.......#.",
-          ".#.......#.", ".#.......#.", "..#.....#..", "..#.....#..",
-          "...#...#...", "....#.#....", ".....#....."],
+    'V': ["#.........#", "#.........#", ".#.......#.", ".#.......#.",
+          "..#.....#..", "..#.....#..", "...#...#...", "...#...#...",
+          "....#.#....", "....#.#....", ".....#....."],
     '.': ["."] * 10 + ["#"],
+    '-': ["...."] * 5 + ["####"] + ["...."] * 5,
     '/': [".....#", ".....#", "....#.", "....#.", "...#..", "...#..",
           "..#...", "..#...", ".#....", ".#....", "#....."],
 }
