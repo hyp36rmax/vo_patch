@@ -9,11 +9,15 @@
 The banner is 42x3 cells of 8x8 pixels, 16bpp RGB565, drawn from tile bank B.
 Two pieces change together:
 
-  escrgame.bin  0x21c000  the artwork, 128 bytes per tile
-  v_on.exe      0x269b60  126 entries of 16 bits, one tile index per cell
+  the title artwork  0x21c000  the artwork, 128 bytes per tile
+  v_on.exe           0x269b60  126 entries of 16 bits, one tile index per cell
 
 The executable's table holds indices relative to the bank; the loader adds
 0x380 to each at start-up, so the values written here are 0-based.
+
+The build is read off v_on.exe (or the .bak beside it, on a patched copy)
+through vo_patch.py's tables: the artwork is escrgame.bin or jscrgame.bin
+and the table offset is that build's. A file no build matches is refused.
 
 Everything is rendered from a font, so the result is consistent across the
 whole line and does not depend on what the original said.
@@ -22,6 +26,8 @@ Both files are backed up beside themselves on the first write.
 """
 
 import argparse
+import hashlib
+import importlib.util
 import os
 import shutil
 import sys
@@ -34,10 +40,12 @@ TILE_BASE = 17280            # its tile index within the file
 TILE_MAX = 109               # slots this banner owns
 SPILL_TILE = 24845           # a run of 116 empty tiles further into the file
 SPILL_MAX = 116              # anything past TILE_MAX goes there instead
-TABLE_OFF = 0x269B60         # v_on.exe, file offset of the index table
+TABLE_OFF = 0x269B60         # v_on.exe, retail's file offset of the table;
+                             # the other builds' come from their site maps
 COLS, ROWS = 42, 3
-EXE_SIZE = 6650880
-GAME_SIZE = 4194304
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PATCHER = os.path.join(os.path.dirname(HERE), 'vo_patch.py')
 
 # --- metrics measured from the original, so a new line sits the same -------
 INK = 0xFCA0                 # the orange it uses
@@ -178,6 +186,23 @@ def preview(canvas, path):
     return path
 
 
+def which_build(exe):
+    """The Build for this v_on.exe, or for the .bak beside it, and the
+    patcher module the tables live in. None for a file no build matches."""
+    spec = importlib.util.spec_from_file_location('vopatch', PATCHER)
+    vp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(vp)
+    for candidate in (exe, exe + '.bak'):
+        try:
+            with open(candidate, 'rb') as fh:
+                build = vp.BUILDS.get(hashlib.md5(fh.read()).hexdigest())
+        except OSError:
+            continue
+        if build:
+            return vp, build
+    return vp, None
+
+
 def backup(path):
     bak = path + '.banner-bak'
     if not os.path.exists(bak):
@@ -200,10 +225,18 @@ def main():
     args = ap.parse_args()
 
     exe = os.path.join(args.gamedir, 'v_on.exe')
-    asset = os.path.join(args.gamedir, 'escrgame.bin')
-    for p in (exe, asset):
-        if not os.path.exists(p):
-            sys.exit('not found: %s' % p)
+    if not os.path.exists(exe):
+        sys.exit('not found: %s' % exe)
+    vp, build = which_build(exe)
+    if build is None:
+        sys.exit('%s is not a build the patcher knows, and neither is its '
+                 '.bak' % exe)
+    art_name, art_size, _md5 = build.art
+    asset = os.path.join(args.gamedir, art_name)
+    if not os.path.exists(asset):
+        sys.exit('not found: %s' % asset)
+    table_off = vp.site_in(TABLE_OFF, build)
+    print('build: %s (%s at 0x%x)' % (build.name, art_name, table_off))
 
     if args.restore:
         n = 0
@@ -250,8 +283,8 @@ def main():
         return
 
     d = bytearray(open(asset, 'rb').read())
-    if len(d) != GAME_SIZE:
-        sys.exit('escrgame.bin is %d bytes, expected %d' % (len(d), GAME_SIZE))
+    if len(d) != art_size:
+        sys.exit('%s is %d bytes, expected %d' % (art_name, len(d), art_size))
     backup(asset)
     for i, raw in enumerate(tiles):
         o = tile_dest(i)
@@ -260,14 +293,11 @@ def main():
         o = tile_dest(i)
         d[o:o + 128] = b'\x00' * 128
     open(asset, 'wb').write(d)
-    print('wrote %d tiles to escrgame.bin' % len(tiles))
+    print('wrote %d tiles to %s' % (len(tiles), art_name))
 
     e = bytearray(open(exe, 'rb').read())
-    if len(e) != EXE_SIZE:
-        print('warning: v_on.exe is %d bytes, expected %d (already patched?)'
-              % (len(e), EXE_SIZE))
     backup(exe)
-    e[TABLE_OFF:TABLE_OFF + COLS * ROWS * 2] = \
+    e[table_off:table_off + COLS * ROWS * 2] = \
         np.array(table, dtype='<u2').tobytes()
     open(exe, 'wb').write(e)
     print('wrote %d table entries to v_on.exe' % len(table))

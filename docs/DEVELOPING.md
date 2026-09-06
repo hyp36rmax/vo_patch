@@ -136,8 +136,8 @@ crash address into a blob and label, is under
 
 **`tools/vonbanner.py`** redraws the title screen prompt. It rasterises text
 into the banner's 42x3 cells and, with `--write`, writes the game's own
-`v_on.exe` and `escrgame.bin` - a retail or OEM folder; its offsets are
-retail's and it does not look for `jscrgame.bin`. It does not touch
+`v_on.exe` and title artwork - `escrgame.bin` or `jscrgame.bin`, at that
+build's table offset, read off the file or its `.bak`. It does not touch
 `vo_patch.py`: to ship a new wording, replace `BANNER_BITS` there with the
 bitmap it produces.
 
