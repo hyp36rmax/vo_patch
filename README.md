@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/VONPatcherLogo3.png" alt="V-ON Patcher" width="520" />
+  <img src="assets/VONPatcherLogo1.png" alt="V-ON Patcher" width="640" />
 </p>
 
 # vo_patch
