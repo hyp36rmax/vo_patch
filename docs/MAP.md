@@ -1,0 +1,178 @@
+# Map
+
+Where things are: in the repository, inside `vo_patch.py`, and inside the
+patched `v_on.exe`. The other documents say how things work; this one says
+where to look. Addresses are the English retail build's; the OEM and
+Japanese original are one page lower outside `.text`, the rerelease is by
+table (NOTES.md, *The builds*).
+
+## 1. The repository
+
+| Path | What |
+| --- | --- |
+| `vo_patch.py` | the patcher: tables, blobs, installer, ripper, netplay setup, window, CLI |
+| `vo_patch.spec` | PyInstaller spec for the Windows exe |
+| `asm/` | assembly sources for the blobs, `build.py` links them into `vo_patch.py` |
+| `asm/ui.asm` | the widescreen blob, built separately by `tools/uibuild.py` |
+| `net/` | `dpctrl.c` the netplay DLL, `rendezvous.py` the matchcode server |
+| `tools/` | the checks (`check.py` runs them all) and the by-hand tools |
+| `maps/` | per-build function maps and port tables, from `tools/maps.sh` |
+| `docs/` | this and the other documents; `docs/README.md` is the index |
+| `.github/workflows/build.yml` | CI: the checks, the two zips, the release |
+
+## 2. `vo_patch.py`
+
+Ten regions, in file order. Line numbers as of v0.16.0; they drift, the
+order does not.
+
+| Lines | Region | Starts with |
+| --- | --- | --- |
+| 1–37 | version, constants, PE helpers | `VERSION` |
+| 38–2640 | widescreen: the layouts, `UI_CODE`, the site builder | `# The resolution patch` |
+| 2641–2779 | widescreen apply: `hires_install`, section append, F4 table | `def hires_install` |
+| 2780–2858 | disc images table, `Build` class, annex order | `DISC_IMAGES` |
+| 2859–3549 | the four builds: symbols, caves, site maps | `RETAIL = Build(` |
+| 3550–5406 | the blobs, `BLOBS`, and `link()` | `BLOBS = {` |
+| 5407–5816 | banner and credit bitmaps, tile expansion | `LEVERS_CODE` |
+| 5817–6536 | the patch table: `FEATURES`, `BY_KEY`, labels, tips, apply order | `FEATURES = [` |
+| 6537–7383 | ripping (`RAW = 2352`) and installing (`LOGICAL = 2048`) | `# --- ripping` |
+| 7385–8214 | netplay setup, `SYNC_SITES`, cnc-ddraw, CD audio | `# --- netplay` |
+| 8215–8832 | `Patcher`: reading a file, applying, restoring, the window's strings | `class Patcher` |
+| 8833–10798 | the window (`run_tk`), the CLI, `main` | `def run_tk` |
+
+## 3. `v_on.exe`
+
+### Stock sections
+
+| Section | VA | Size | Raw | What |
+| --- | --- | --- | --- | --- |
+| `.text` | `0x401000` | `0x1f3e3e` | 2.0 MB | the code, one function per routine, MSVC 4 |
+| `.rdata` | `0x5f5000` | `0x498e8` | 0.3 MB | constants, strings, handler tables; zero runs are not free |
+| `.data` | `0x63f000` | `0x301db28` | 3.9 MB on disk | initialised data to `0xa02c00`, then 44 MB of zero-initialised state |
+| `.idata` | `0x365d000` | `0x1196` | | imports; the IAT the DLLs are called through |
+| `.rsrc` | `0x365f000` | `0x9658` | | the dialog templates: F5, F7, the bind pages, the debug menu |
+| `.reloc` | `0x3669000` | `0x4b7e8` | | relocations, unused: the image loads at its base |
+
+### The code, as far as it is mapped
+
+What the patches needed to find, in address order. The rest of `.text` -
+most of it - has no name yet: the 3D geometry, physics, AI, the ending
+cutscene, the sound engine's core and the DirectPlay session code are
+untouched and unmapped. `maps/` has the per-build function maps for the
+region around each site.
+
+| Range | What is there | Touched by |
+| --- | --- | --- |
+| `0x423000–0x433200` | engine 1's enemy marker angle windows (`0x4230e9`), viewport setup, the F5 dialog (`0x427fc1` the speed radios, `0x427ec4` its flags, `0x42823c` OK) | framerate, hires |
+| `0x442e50–0x443100` | keyboard profile stubs and the 1P keyboard handler | padxinput |
+| `0x4489d6` | the credit sequence a finished game reaches | credits |
+| `0x458d89` | sound: the sample rate | sound |
+| `0x460b70–0x460d00` | no name yet | hires |
+| `0x475ad0–0x484200` | **engine 1, 2D side**: `0x47e580` row memset, `0x47fee0` the tile blit both engines share, `0x480520` plane A draw, `0x480c74` the 2D post draw; `0x478b5a` the round-loss path | continuefix, hires, credits roll |
+| `0x495aa0–0x498200` | the F7 device page and the bind pages: `0x495e23` the joystick check, `0x4966e9` the twelve-bind page, `0x497c70`–`0x4980d9` the fill, store and preselect loops | padxinput |
+| `0x4b6030–0x4c4700` | **engine 1, 3D side**: `0x4bc5ea`–`0x4c16da` the round-loss teardown, `0x4c3f40` the chase camera | continuefix, hires |
+| `0x4cd8c3`, `0x4ceeeb` | text: cursor (column, row) and print (text) | overlay, version line |
+| `0x4d6cc8` | the initials screen's trigger tests | nameentry |
+| `0x508530` | the cpuid32.dll processor check | nocpucheck |
+| `0x50b8d7–0x50c100` | `v_on.ini` load and save, and the defaults: `0x50bbc4` sets the frame divisor, `0x50bcc1` the load's join, `0x50c0c6` the save's read | framerate, defaults, hires, netplay fingerprint |
+| `0x51444d–0x514576` | projection setups: the HUD passes' setup calls go through here | hires |
+| `0x531f6a`, `0x548760–0x5495b1`, `0x55d221` | no name yet | hires |
+| `0x54e842` | the intro movie's placement | movie |
+| `0x560000–0x568000` | **engine 2, 2D side**: `0x567520` plane A draw, `0x567c84` the 2D post draw | hires, credits roll |
+| `0x5719c9` | sound: Fei-Yen's hypermode | sound |
+| `0x57858c` | the four arena walls' bearing | read only |
+| `0x57f1b0`, `0x5829c3` | the demo and tutorial frame drivers | hires |
+| `0x5806bc` | engine 2's chase camera | read only |
+| `0x588800–0x58a600` | the title and ending screens: `0x58a146` a sound site, `0x58a570` the SEGA card | sound, hires |
+| `0x58ecd0–0x58f700` | the ending driver (frame counter `0x1ad09f0`) | hires |
+| `0x59081f` | the title machine's credits handler, a phase machine on `0x1ad0964` | credits, movie |
+| `0x59e3a1–0x59e500` | the machine-select hangar: the angle window, the platform draw | hires |
+| `0x5a1f3c–0x5a2600` | no name yet | hires |
+| `0x5b1520` | the intro movie's exit path: stopped by deactivation | activate |
+| `0x5b1833`, `0x5b1871` | `v_on.ini` line helpers: write (key, value), find (key) | ini blobs |
+| `0x5bcce3–0x5bcf00` | the 2P keyboard stubs and handler | padxinput |
+| `0x5be399–0x5be600` | engine 2's enemy marker angle windows | hires |
+| `0x5c56a2–0x5c6900` | **the window and DirectDraw**: `0x5c56a2` recreate the surfaces, `0x5c597e` the window procedure pointer, `0x5c5eac` the message pump, `0x5c6326` set active, `0x5c63aa` the idle pass, `0x5c64e7` movie, `0x5c67c5`/`0x5c680b` the built-in dialogs' pause and resume | activate, debugbox, padxinput, movie, credits |
+| `0x5c7541–0x5c9800` | **the main loop**: the timer, `0x5c82d4` the CD check, `0x5c88ac` mode setup and the framebuffer globals, `0x5c8ca0` the font build, `0x5c9a98` the pause text | framerate, nodisc, hires |
+| `0x5cc39d–0x5e2b00` | **the renderers' back end**: projection setups, `0x5ce180` coverage-mask tables, the 2D quad submits and the clippers of both engines | hires, lockline |
+| `0x5fc0a0`, `0x5fdac8`, `0x606938`, `0x621ff0` | `.rdata`: layout constants, the credit-roll strings | hires, credits |
+
+### The data
+
+| Address | What | Touched by |
+| --- | --- | --- |
+| `0x66ad60–0x66db00` | the device list (`0x66d418`), the gamepad's shipped binds (`0x66d600`), key names | padxinput |
+| `0x6bc94c` | loop mode: 1 two players, 2 network | every F-key hook |
+| `0x6bcc60`, `0x6bcd54` | sound and credits constants | sound, credits |
+| `0x6bf560–0x6bf5c0` | framebuffer: mode (`0x6bf560`), surfaces-exist (`0x6bf570`), picture origin and size (`0x6bf578`, `0x6bf5b8`), flags (`0x6bf598`), viewport 2 base (`0x6bf5b0`) | activate, hires |
+| `0x6c84c8`–`0x6c8600` | draw-skip flags, `0x6c84d0` frames per draw, `0x6c854c` viewport origins | framerate, hires |
+| `0x6c866c` | the font cache | hires (F4) |
+| `0x92f8ba`, `0x940168`, `0x941968` | the three photo backdrops' tile maps (64x48 words), byte-identical in all four builds | hires (recognised, not written) |
+| `0xbe4308` | the F5 speed choice | framerate |
+| `0x1ad0964`, `0x1ad09f0` | credits phase, ending frame counter | credits |
+| `0x1add128` | the inactive flag the loop idles on | activate |
+| `0x1ae3690` | the title state machine (sub-state `0x20` is the credits) | credits |
+| `0x1ae5f40`, `0x1ae5f5c` | the primary surface and the back buffer | overlay |
+| `0x1ef8a90`, `0x1ef9eb0` | the 2P / main-game state machine: mode, sub-state | padxinput, camskip |
+| `0x3651540`, `0x3651554` | the committed device pick, the joystick-present flag | padxinput |
+| `0x365cb9c`, `0x365cba0` | the tail of `.data`, unused by the game: a recreate owed, its return address | activate |
+| `0x365d594` | IAT: `IsIconic` | activate |
+| `0x365f9ac`, `0x366774e` | `.rsrc`: the F5 labels, the F7 device list | framerate, padxinput |
+
+### What the patcher adds
+
+Everything the patcher writes outside the sites above goes into sections
+appended after `.reloc`. Addresses are for every patch on at 1080p; the
+first is there on every run, the other three only with their patch.
+
+| Section | VA | Size | Appended by | Holds |
+| --- | --- | --- | --- | --- |
+| `.vojp` | `0x36b5000` | `0x1400` | every run | the annex: every blob but the two below, in `ANNEX_BLOBS` order |
+| `.voxt` | `0x36b7000` | `0x40c` | Disable menu bar | the F11 dialog template, then `voxt.asm` |
+| `.vocd` | `0x36b8000` | `0xbac` | No disc required | `vocd.asm` and its track table |
+| `.vohr` | `0x36b9000` | `0x4f0830` | Native widescreen | `UI_CODE`, the mask spans, the row table, the polygon pool, then the off-screen canvas (virtual, not on disk) |
+
+The annex, blob by blob:
+
+| VA | Blob | Bytes | From |
+| --- | --- | --- | --- |
+| `0x36b5000` | TIMER | 62 | `timer.asm` - the entry point chains here |
+| `0x36b5040` | DEBUGBOX | 256 | `debugbox.asm` |
+| `0x36b5140` | PADX, then LEVERS at `0x36b5533` | 1011 + 51 | `padxinput.asm`, `levers.asm` |
+| `0x36b5570` | TWIN | 164 | `twinstick.asm` |
+| `0x36b5620` | INTROWAIT | 136 | `introwait.asm` |
+| `0x36b56b0` | KBPAGE, BINDLIST, BINDMAP, BINDBLOCK | 51, 92, 103, 87 | the bind page |
+| `0x36b5820` | INISAVE, INILOAD, BLOCKCUR, INIPARSE | 86, 79, 65, 91 | the ini path |
+| `0x36b5980` | PAGESEC, PAGESEL, COMMITDEV, INIALL, DEVORDER | 60, 88, 66, 88, 54 | the F7 page |
+| `0x36b5b10` | F11PAUSE | 85 | `f11pause.asm` |
+| `0x36b5b70` | MOVIE | 542 | `movie.asm` |
+| `0x36b5d90` | CREDITS, NAMEENTRY, CAMSKIP | 99, 55, 34 | the ending |
+| `0x36b5e70` | OVERLAY, TITLEVER | 147, 109 | on-screen text |
+| `0x36b5f80` | PAD_COND … PAD_INIKEYS | 128, 128, 106, 71, 48, 72 | `padtables.py` |
+| `0x36b61c0` | EXTRAS_DATA | 60 | the F11 dialog's data |
+| `0x36b6200` | ACTIVATE | 217 | `activate.asm` |
+| `0x36b62e0` | LOCKLINE | 178 | `lockline.asm` |
+
+`tools/whereis.py` turns a crash address into one of these names.
+
+### Sites by patch
+
+Where each patch writes, as address ranges; a run means several sites
+within 16 KB of each other.
+
+| Patch | Sites | Where |
+| --- | --- | --- |
+| nocpucheck | 1 | `0x508530` |
+| framerate | 18 | the entry point, `0x427fc1–0x4281e2`, `0x50bbbe–0x50bc02`, `0x5c7541–0x5c97d3`, `.rsrc`, the annex |
+| continuefix | 10 | `0x478b5a–0x47dc4a`, `0x4bc5ea–0x4c16da` |
+| lockline | 27 | `0x5d2fcc–0x5d79a0`, `0x5ddeac–0x5e2a80`, the annex |
+| dinput | 1 | found by bytes: the `SetCooperativeLevel` flags push |
+| activate | 5 | `0x5b1520`, `0x5c56a2–0x5c6326`, the annex |
+| hires | 277 | 40 runs from `0x4230e9` to `0x6c85f0`; the table above marks them |
+| padxinput | 90 | `0x442ea8`, `0x495aa0–0x49813a`, `0x5bcd3b`, `0x5c5eac–0x5c5f0e`, `.data 0x66ad60–0x66da8c`, `.rsrc`, the annex |
+| nodisc | 1 | `0x5c82d4`, plus its section |
+| debugbox | 6 | `0x5c5942–0x5c597e`, the annex, plus its section |
+| defaults | 6 | `0x50b8d7–0x50bdc4` |
+| sound | 5 | `0x458d89`, `0x5719c9`, `0x58a146–0x58a152`, `0x6bcc60` |
+| movie | 10 | the PE header, `0x4d6cc8`, `0x54e842`, `0x590825`, `0x5c64e7`, `0x6c8878`, the annex |
+| credits | 5 | `0x5c6500`, `.rdata 0x5fdac8`, `0x6bcd54`, the annex |
