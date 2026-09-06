@@ -56,9 +56,7 @@ a = Analysis(
     [SOURCE],
     pathex=[],
     binaries=[],
-    datas=[('net/dpctrl.dll', '.'),    # netplay DLL, read at install time
-           ('assets/logo.png', 'assets'),
-           ('assets/icon.png', 'assets')],
+    datas=[('net/dpctrl.dll', '.')],   # netplay DLL, read at install time
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

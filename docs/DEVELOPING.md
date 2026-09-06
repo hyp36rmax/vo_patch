@@ -164,10 +164,11 @@ Edit `LINES` at the top to change what it says. The result goes between the
 `CREDITLINE BLOB` markers - not the `CREDITS BLOB` ones, which belong to
 `asm/credits.asm` and are a different thing entirely.
 
-**`tools/assets.py`** scales the artwork in `assets/` down to what the
-patcher ships: `logo.png` for the top of the window, `icon.png` for the
-window icon and `icon.ico` for the exe. It needs Pillow. Run it after
-replacing an original and commit the result.
+**`tools/assets.py`** bakes the artwork in `assets/` into the patcher: the
+logo and the window icon go between the `ASSETS BLOB` markers in
+`v-on-patcher.py` as base64 PNG, reduced to 256 colours, and `icon.ico` is
+written for the exe. It needs Pillow. Run it after replacing an original
+and commit the result.
 
 ```bash
 python3 tools/assets.py
