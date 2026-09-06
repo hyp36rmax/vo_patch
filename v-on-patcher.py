@@ -2930,6 +2930,7 @@ RETAIL = Build('English retail', 'retail', ORIGINAL_MD5, EXE_SIZE,
     'SELSET': 0x004980d9,          # search loop exit, then set the selection
     'CURSOR': 0x004cd8c3,          # (column, row), cdecl
     'PRINT': 0x004ceeeb,           # (text), cdecl, from the cursor
+    'CDSTOP': 0x0040e16a,          # CD audio stop, cdecl, no arguments
     'WRITELINE': 0x005b1833,       # (key, value): one v_on.ini line
     'FINDLINE': 0x005b1871,        # (key) -> value text, 0 if absent
     'EXIT2P': 0x005bcd57,          # and the 2P one
@@ -3106,6 +3107,7 @@ JPRE = Build('Japanese rerelease', 'jpre', JPRE_MD5, JPRE_SIZE, 0x345107fa,
     'SELSET': 0x00496c36,          # search loop exit, then set the selection
     'CURSOR': 0x004cb463,          # (column, row), cdecl
     'PRINT': 0x004cca8b,           # (text), cdecl, from the cursor
+    'CDSTOP': 0x0040e0bd,          # CD audio stop, cdecl, no arguments
     'WRITELINE': 0x005ac4f3,       # (key, value): one v_on.ini line
     'FINDLINE': 0x005ac531,        # (key) -> value text, 0 if absent
     'EXIT2P': 0x005b76c7,          # and the 2P one
@@ -3275,6 +3277,7 @@ OEM = Build('USA OEM', 'oem', OEM_MD5, OEM_SIZE, 0x3317246a, sections=(
     'SELSET': 0x00497f74,          # search loop exit, then set the selection
     'CURSOR': 0x004cd763,   # func
     'PRINT': 0x004ced8b,   # func
+    'CDSTOP': 0x0040e0cf,   # func
     'WRITELINE': 0x005b1303,   # func
     'FINDLINE': 0x005b1341,   # func
     'EXIT2P': 0x005bc827,   # insn
@@ -3443,6 +3446,7 @@ JP = Build('Japanese original', 'jp', JP_MD5, JP_SIZE,
     'SELSET': 0x00498074,          # search loop exit, then set the selection
     'CURSOR': 0x004cd843,   # func
     'PRINT': 0x004cee6b,   # func
+    'CDSTOP': 0x0040e0cf,   # func
     'WRITELINE': 0x005b06d3,   # func
     'FINDLINE': 0x005b0711,   # func
     'EXIT2P': 0x005bbbf7,   # insn
@@ -4447,7 +4451,8 @@ BLOBS = {
         '6a0c50ff15000000004783ff0272daeb453d1101000075450fb74d108d51ae83'
         'fa01763283f902740d83f954740881f9419c000075308b5508e8eaeaeaea85c0'
         '74146a00516811010000ff3500000000ff1500000000b801000000eb0231c05f'
-        '5e5b5dc2100083f9517513833d000000000475086a1f8f0500000000ebd8ebc2'
+        '5e5b5dc2100083f9517518833d0000000004750d6a1f8f0500000000e8fcffff'
+        'ffebd3ebbd'
     ), (
         (0x18, 'abs', 'GAMEMODE', 0),
         (0x20, 'abs', 'USER32', 0),
@@ -4464,48 +4469,49 @@ BLOBS = {
         (0xd2, 'abs', 'POSTMSG', 0),
         (0xed, 'abs', 'MODE', 0),
         (0xf8, 'abs', 'SUBMODE', 0),
+        (0xfd, 'rel', 'CDSTOP', -4),
     ), {
         'hook': 0x0,
         'dlgproc': 0x4f,
         'credits': 0xe6,
     }),
     'PADX': (bytes.fromhex(
-        '6877030000e81501000083c404e9fcffffff689f030000e80301000083c404e9'
-        'fcffffffe806000000ff2500000000609ce8df02000083f8010f86d500000031'
-        'f683fe020f83ca000000680000000056ff150000000085c00f85b00000000fb7'
-        '1d000000008d14b5000000000fb72a66891a89d825100300003d100300007548'
-        '803d060000001e723f803d070000001e723689e825100300003d10030000746e'
-        '833d00000000027465c70500000000ffffffff833d00000000017552c7050000'
-        '0000ffffffffeb4631ff83ff02733f8d0cbd170100000fb70189da21c221e839'
-        'c27428b80001000085d2750b807903007419b8010100006a000fb651025250ff'
-        '3500000000ff150000000047ebbc46e92dffffff9d61c3100072000010200055'
-        '89e583ec045356578b5d08c745fc00000000e8de01000083f80174448b03ba00'
-        '000000e83b01000085c07534c745fc010000000fb70500000000a90010000074'
-        '0b8b5318c60280e8fcffffff0fb70500000000a92000000074068b5324c60280'
-        '8b4320ffd0837dfc000f84c801000031f683fe0c0f83a1000000833d00000000'
-        '047512833d00000000087c09833d000000000c7e0f83fe04747b83fe05747683'
-        'fe077f778b53040fb604722de0000000726383f810735e8d3cc5000000000fb6'
-        '070fb757028b4f0483f800741783f801741d83f802742c0fb6820000000039c8'
-        '772eeb310fbf8200000000f7d8eb070fbf82000000008b0b3b048d000000007f'
-        '0feb120fb7050000000085c87502eb05e82500000046e956ffffff31f683fe04'
-        '0f83110100000fb705000000000fa3f07305e80300000046ebe38b53100fb60c'
-        '32f7d18b53080fb70221c86689028b53140fb60c32f7d18b530c0fb70221c866'
-        '8902c35389c366833d00000000007505e83b0000000fb683000000003c057318'
-        '485250ff150000000085c0742166c705000000000000eb11fe05000000007509'
-        '66c705000000000000b8010000005bc356575389d366c70500000000050531f6'
-        '31ff8b04bd000000004883f801771a83fe04731b5356ff15000000004685c075'
-        'ee89f08887000000004783ff0272d389da5b5f5ec3a10000000085c075385631'
-        'f683fe0373258b04b55c03000050ff150000000085c0750346ebe66868030000'
-        '50ff150000000085c07505b801000000a3000000005ec35f5e5bc9c3c7030000'
-        'd5030000e303000058496e707574476574537461746500000000000000000000'
-        '0000000000000000000000000000000000000000000000000000000000000001'
+        '687c030000e81a01000083c404e9fcffffff68a4030000e80801000083c404e9'
+        'fcffffffe806000000ff2500000000609ce8e402000083f8010f86da00000031'
+        'f683fe020f83cf000000680000000056ff150000000085c00f85b50000000fb7'
+        '1d000000008d14b5000000000fb72a66891a89d825100300003d10030000754d'
+        '803d060000001e7244803d070000001e723b89e825100300003d100300007473'
+        '833d0000000002746ac70500000000ffffffffe8fcffffff833d000000000175'
+        '52c70500000000ffffffffeb4631ff83ff02733f8d0cbd1c0100000fb70189da'
+        '21c221e839c27428b80001000085d2750b807903007419b8010100006a000fb6'
+        '51025250ff3500000000ff150000000047ebbc46e928ffffff9d61c310007200'
+        '001020005589e583ec045356578b5d08c745fc00000000e8de01000083f80174'
+        '448b03ba00000000e83b01000085c07534c745fc010000000fb70500000000a9'
+        '00100000740b8b5318c60280e8fcffffff0fb70500000000a92000000074068b'
+        '5324c602808b4320ffd0837dfc000f84c801000031f683fe0c0f83a100000083'
+        '3d00000000047512833d00000000087c09833d000000000c7e0f83fe04747b83'
+        'fe05747683fe077f778b53040fb604722de0000000726383f810735e8d3cc500'
+        '0000000fb6070fb757028b4f0483f800741783f801741d83f802742c0fb68200'
+        '00000039c8772eeb310fbf8200000000f7d8eb070fbf82000000008b0b3b048d'
+        '000000007f0feb120fb7050000000085c87502eb05e82500000046e956ffffff'
+        '31f683fe040f83110100000fb705000000000fa3f07305e80300000046ebe38b'
+        '53100fb60c32f7d18b53080fb70221c86689028b53140fb60c32f7d18b530c0f'
+        'b70221c8668902c35389c366833d00000000007505e83b0000000fb683000000'
+        '003c057318485250ff150000000085c0742166c705000000000000eb11fe0500'
+        '000000750966c705000000000000b8010000005bc356575389d366c705000000'
+        '00050531f631ff8b04bd000000004883f801771a83fe04731b5356ff15000000'
+        '004685c075ee89f08887000000004783ff0272d389da5b5f5ec3a10000000085'
+        'c075385631f683fe0373258b04b56103000050ff150000000085c0750346ebe6'
+        '686d03000050ff150000000085c07505b801000000a3000000005ec35f5e5bc9'
+        'c3cc030000da030000e803000058496e70757447657453746174650000000000'
         '0000000000000000000000000000000000000000000000000000000000000000'
-        '0000000000000078696e707574315f342e646c6c0078696e707574315f332e64'
-        '6c6c0078696e707574395f315f302e646c6c00'
+        '0000000001000000000000000000000000000000000000000000000000000000'
+        '00000000000000000000000078696e707574315f342e646c6c0078696e707574'
+        '315f332e646c6c0078696e707574395f315f302e646c6c00'
     ), (
-        (0x1, 'abs', '.', 887),
+        (0x1, 'abs', '.', 892),
         (0xe, 'rel', 'EXIT1P', -4),
-        (0x13, 'abs', '.', 927),
+        (0x13, 'abs', '.', 932),
         (0x20, 'rel', 'EXIT2P', -4),
         (0x2b, 'abs', 'PEEKMSG', 0),
         (0x4b, 'abs', 'PSTATE', 0),
@@ -4516,81 +4522,82 @@ BLOBS = {
         (0x8b, 'abs', 'PSTATE', 7),
         (0xa2, 'abs', 'GAMEMODE', 0),
         (0xab, 'abs', 'MODE', 0),
-        (0xb5, 'abs', 'GAMEMODE', 0),
-        (0xbe, 'abs', 'MODE2', 0),
-        (0xd2, 'abs', '.', 279),
-        (0x101, 'abs', 'HWND', 0),
-        (0x107, 'abs', 'POSTMSG', 0),
-        (0x13f, 'abs', 'STATE', 0),
-        (0x156, 'abs', 'BTN', 0),
-        (0x168, 'rel', 'CAMSKIP', -4),
-        (0x16f, 'abs', 'BTN', 0),
-        (0x19c, 'abs', 'MODE', 0),
-        (0x1a5, 'abs', 'SUBMODE', 0),
-        (0x1ae, 'abs', 'SUBMODE', 0),
-        (0x1da, 'abs', 'COND', 0),
-        (0x1fa, 'abs', 'BTN', 0),
-        (0x207, 'abs', 'BTN', 0),
-        (0x212, 'abs', 'BTN', 0),
-        (0x21b, 'abs', 'DZTHR1', 0),
-        (0x226, 'abs', 'BTN', 0),
-        (0x249, 'abs', 'BTN', 0),
-        (0x289, 'abs', 'PADIDX', 0),
-        (0x298, 'abs', 'PADIDX', 0),
-        (0x2a5, 'abs', 'XIFN', 0),
-        (0x2b0, 'abs', 'PADIDX', 0),
-        (0x2ba, 'abs', 'PADRETRY', 0),
-        (0x2c3, 'abs', 'PADIDX', 0),
-        (0x2d8, 'abs', 'PADIDX', 0),
-        (0x2e5, 'abs', 'DEVICES', 0),
-        (0x2f8, 'abs', 'XIFN', 0),
-        (0x305, 'abs', 'PADIDX', 0),
-        (0x316, 'abs', 'XIFN', 0),
-        (0x329, 'abs', '.', 860),
-        (0x330, 'abs', 'LOADLIB', 0),
-        (0x33c, 'abs', '.', 872),
-        (0x343, 'abs', 'GETPROC', 0),
-        (0x351, 'abs', 'XIFN', 0),
-        (0x35c, 'abs', '.', 967),
-        (0x360, 'abs', '.', 981),
-        (0x364, 'abs', '.', 995),
-        (0x37b, 'abs', 'BINDS1', 0),
-        (0x37f, 'abs', 'LEV1A', 0),
-        (0x383, 'abs', 'LEV1B', 0),
-        (0x387, 'abs', 'MASK1A', 0),
-        (0x38b, 'abs', 'MASK1B', 0),
-        (0x38f, 'abs', 'ACCEPT1', 0),
-        (0x393, 'abs', 'SCR1', 0),
-        (0x397, 'abs', 'KBD1P', 0),
-        (0x39b, 'abs', 'CAMERA1', 0),
-        (0x3a3, 'abs', 'BINDS2', 0),
-        (0x3a7, 'abs', 'LEV2A', 0),
-        (0x3ab, 'abs', 'LEV2B', 0),
-        (0x3af, 'abs', 'MASK2A', 0),
-        (0x3b3, 'abs', 'MASK2B', 0),
-        (0x3b7, 'abs', 'ACCEPT2', 0),
-        (0x3bb, 'abs', 'SCR2', 0),
-        (0x3bf, 'abs', 'KBD2P', 0),
-        (0x3c3, 'abs', 'CAMERA2', 0),
+        (0xb4, 'rel', 'CDSTOP', -4),
+        (0xba, 'abs', 'GAMEMODE', 0),
+        (0xc3, 'abs', 'MODE2', 0),
+        (0xd7, 'abs', '.', 284),
+        (0x106, 'abs', 'HWND', 0),
+        (0x10c, 'abs', 'POSTMSG', 0),
+        (0x144, 'abs', 'STATE', 0),
+        (0x15b, 'abs', 'BTN', 0),
+        (0x16d, 'rel', 'CAMSKIP', -4),
+        (0x174, 'abs', 'BTN', 0),
+        (0x1a1, 'abs', 'MODE', 0),
+        (0x1aa, 'abs', 'SUBMODE', 0),
+        (0x1b3, 'abs', 'SUBMODE', 0),
+        (0x1df, 'abs', 'COND', 0),
+        (0x1ff, 'abs', 'BTN', 0),
+        (0x20c, 'abs', 'BTN', 0),
+        (0x217, 'abs', 'BTN', 0),
+        (0x220, 'abs', 'DZTHR1', 0),
+        (0x22b, 'abs', 'BTN', 0),
+        (0x24e, 'abs', 'BTN', 0),
+        (0x28e, 'abs', 'PADIDX', 0),
+        (0x29d, 'abs', 'PADIDX', 0),
+        (0x2aa, 'abs', 'XIFN', 0),
+        (0x2b5, 'abs', 'PADIDX', 0),
+        (0x2bf, 'abs', 'PADRETRY', 0),
+        (0x2c8, 'abs', 'PADIDX', 0),
+        (0x2dd, 'abs', 'PADIDX', 0),
+        (0x2ea, 'abs', 'DEVICES', 0),
+        (0x2fd, 'abs', 'XIFN', 0),
+        (0x30a, 'abs', 'PADIDX', 0),
+        (0x31b, 'abs', 'XIFN', 0),
+        (0x32e, 'abs', '.', 865),
+        (0x335, 'abs', 'LOADLIB', 0),
+        (0x341, 'abs', '.', 877),
+        (0x348, 'abs', 'GETPROC', 0),
+        (0x356, 'abs', 'XIFN', 0),
+        (0x361, 'abs', '.', 972),
+        (0x365, 'abs', '.', 986),
+        (0x369, 'abs', '.', 1000),
+        (0x380, 'abs', 'BINDS1', 0),
+        (0x384, 'abs', 'LEV1A', 0),
+        (0x388, 'abs', 'LEV1B', 0),
+        (0x38c, 'abs', 'MASK1A', 0),
+        (0x390, 'abs', 'MASK1B', 0),
+        (0x394, 'abs', 'ACCEPT1', 0),
+        (0x398, 'abs', 'SCR1', 0),
+        (0x39c, 'abs', 'KBD1P', 0),
+        (0x3a0, 'abs', 'CAMERA1', 0),
+        (0x3a8, 'abs', 'BINDS2', 0),
+        (0x3ac, 'abs', 'LEV2A', 0),
+        (0x3b0, 'abs', 'LEV2B', 0),
+        (0x3b4, 'abs', 'MASK2A', 0),
+        (0x3b8, 'abs', 'MASK2B', 0),
+        (0x3bc, 'abs', 'ACCEPT2', 0),
+        (0x3c0, 'abs', 'SCR2', 0),
+        (0x3c4, 'abs', 'KBD2P', 0),
+        (0x3c8, 'abs', 'CAMERA2', 0),
     ), {
         'entry1p': 0x0,
         'entry2p': 0x12,
         'pump': 0x24,
         'pollpads': 0x2f,
-        'keytab': 0x117,
-        'keytab_end': 0x11f,
-        'tick': 0x11f,
-        'apply': 0x25a,
-        'padpoll': 0x283,
-        'resolve': 0x315,
-        'epilogue': 0x357,
-        'dlltab': 0x35c,
-        'procname': 0x368,
-        'block1': 0x377,
-        'block2': 0x39f,
-        'dll14': 0x3c7,
-        'dll13': 0x3d5,
-        'dll910': 0x3e3,
+        'keytab': 0x11c,
+        'keytab_end': 0x124,
+        'tick': 0x124,
+        'apply': 0x25f,
+        'padpoll': 0x288,
+        'resolve': 0x31a,
+        'epilogue': 0x35c,
+        'dlltab': 0x361,
+        'procname': 0x36d,
+        'block1': 0x37c,
+        'block2': 0x3a4,
+        'dll14': 0x3cc,
+        'dll13': 0x3da,
+        'dll910': 0x3e8,
     }),
     'LEVERS': (bytes.fromhex(
         '837dfc0074288b53088b4b0cf60280750df601407508800a708009b0eb10f602'

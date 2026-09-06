@@ -14,6 +14,7 @@ bits 32
 
 extern MODE                     ; game state; 4 is a match in progress
 extern SUBMODE                  ; and its sub-state, 0x1f the ending
+extern CDSTOP                   ; the game's CD-audio stop, cdecl, no args
 extern HWND                     ; the game's window
 extern ORIGWNDPROC              ; the handler the hook falls through to
 
@@ -168,8 +169,10 @@ dlgproc:
 ; it replaces. Out of line from when the dialog procedure ran to the end
 ; of the blob. 0x1f is the state that sets the ending up and steps to the
 ; credits itself; it only means that during a match, so pressing this
-; anywhere else does nothing. Quit goes through asm/voxt.asm with Close,
-; since it has to end the dialog before the game tears the window down.
+; anywhere else does nothing. The match music would otherwise play on
+; into the ending until its own track starts, so it is stopped too. Quit
+; goes through asm/voxt.asm with Close, since it has to end the dialog
+; before the game tears the window down.
 credits:
     cmp     ecx, CMD_CREDITS
     jne     .fwd
@@ -177,6 +180,7 @@ credits:
     jne     .done
     push    0x1f                        ; two bytes shorter than the mov
     pop     dword [SUBMODE]
+    call    CDSTOP
 .done:
     jmp     dlgproc.handled
 .fwd:

@@ -41,6 +41,8 @@ extern CAMSKIP                  ; camskip.asm, called from the tick
 
 extern GAMEMODE                 ; 1 with two players, 2 in a network match
 extern MODE2                    ; the second player's mode word
+extern CDSTOP                   ; the game's own CD-audio stop, cdecl, no
+                                ; arguments; a no-op if nothing is playing
 extern MODE                     ; game state and sub-state. The pair the
 extern SUBMODE                  ; stock keyboard handler gates its bind
                                 ; slots on; see the tick.
@@ -112,7 +114,8 @@ pollpads:
     ; own tick, run only in two-player mode: it gets the same. Not in a
     ; network match, as the F keys. While the combination is down no key
     ; is posted for this pad: Start alone would pause the game, and a
-    ; paused game never runs the tick.
+    ; paused game never runs the tick. The teardown leaves the music
+    ; running until the title starts its own, so it is stopped here.
     mov     eax, ebx
     and     eax, RESETMASK
     cmp     eax, RESETMASK
@@ -128,6 +131,7 @@ pollpads:
     cmp     dword [GAMEMODE], 2
     je      .nextpad
     mov     dword [MODE], -1
+    call    CDSTOP
     cmp     dword [GAMEMODE], 1
     jne     .nextpad
     mov     dword [MODE2], -1

@@ -195,7 +195,7 @@ The offsets and internals of every patch are in [NOTES.md](docs/NOTES.md).
 - **Disable menu bar (Extras menu on F11)** - hides the menu bar. The
   Debug options move to a new F11 dialog: No shot, SE, CD, Kill 1P, Kill 2P,
   Scorekeeping and Quit Game. **Credits** is new: it jumps to the credit
-  roll from any match. Motion has moved to F5. With the gamepad patch on,
+  roll from any match, stopping the match music. Motion has moved to F5. With the gamepad patch on,
   F11 also sets each player's [stick deadzone](#stick-deadzone). Like the
   other F keys, it does nothing during an internet match. Every other menu
   was already on a key:
@@ -379,6 +379,7 @@ fire left and right, RT fires both, LB dashes, A jumps, X guards.
 
 **Soft reset:** hold **LB + RB + LT + RT + Start** together and the game
 returns to the title screen from wherever it is, on either player's pad.
+The music stops until the title starts its own.
 Like the F keys, it does nothing during an internet match.
 
 ### Twin-stick (XInput)
