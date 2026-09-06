@@ -58,40 +58,45 @@ order does not.
 What the patches needed to find, in address order. The rest of `.text` -
 most of it - has no name yet: the 3D geometry, physics, AI, the ending
 cutscene, the sound engine's core and the DirectPlay session code are
-untouched and unmapped. `maps/` has the per-build function maps for the
+untouched and unmapped. The fourteen functions the widescreen patch
+once wrapped and no longer does are listed with their addresses in
+HIRES.md, *The pass functions*. `maps/` has the per-build function maps for the
 region around each site.
 
 | Range | What is there | Touched by |
 | --- | --- | --- |
-| `0x423000–0x433200` | engine 1's enemy marker angle windows (`0x4230e9`), viewport setup, the F5 dialog (`0x427fc1` the speed radios, `0x427ec4` its flags, `0x42823c` OK) | framerate, hires |
+| `0x422f20–0x433200` | renderer B's stage-object angle windows (`0x422f20`: solid or meshed model by camera yaw; the compares at `0x4230e9`–`0x423317`), viewport setup, the F5 dialog (`0x427fc1` the speed radios, `0x427ec4` its flags, `0x42823c` OK) | framerate, hires |
 | `0x442e50–0x443100` | keyboard profile stubs and the 1P keyboard handler | padxinput |
 | `0x4489d6` | the credit sequence a finished game reaches | credits |
 | `0x458d89` | sound: the sample rate | sound |
-| `0x460b70–0x460d00` | no name yet | hires |
-| `0x475ad0–0x484200` | **engine 1, 2D side**: `0x47e580` row memset, `0x47fee0` the tile blit both engines share, `0x480520` plane A draw, `0x480c74` the 2D post draw; `0x478b5a` the round-loss path | continuefix, hires, credits roll |
+| `0x475930` | renderer B's enemy marker and off-screen arrow; its bearing-window compares at `0x475ad0`, `0x475c38` | hires |
+| `0x478b5a–0x484200` | **engine 1, 2D side**: `0x47e580` row memset, `0x47fee0` the tile blit both engines share, `0x480520` plane A draw, `0x480c74` the 2D post draw; `0x478b5a` the round-loss path | continuefix, hires, credits roll |
 | `0x495aa0–0x498200` | the F7 device page and the bind pages: `0x495e23` the joystick check, `0x4966e9` the twelve-bind page, `0x497c70`–`0x4980d9` the fill, store and preselect loops | padxinput |
 | `0x4b6030–0x4c4700` | **engine 1, 3D side**: `0x4bc5ea`–`0x4c16da` the round-loss teardown, `0x4c3f40` the chase camera | continuefix, hires |
 | `0x4cd8c3`, `0x4ceeeb` | text: cursor (column, row) and print (text) | overlay, version line |
+| `0x4d0280` | the attract demo's overlay, a HUD pass (`UI_PASS_FUNCS` 4) | hires |
 | `0x4d6cc8` | the initials screen's trigger tests | nameentry |
+| `0x4d9c3d` | name entry's mech, a HUD pass (`UI_PASS_FUNCS` 5) | hires |
 | `0x508530` | the cpuid32.dll processor check | nocpucheck |
 | `0x50b8d7–0x50c100` | `v_on.ini` load and save, and the defaults: `0x50bbc4` sets the frame divisor, `0x50bcc1` the load's join, `0x50c0c6` the save's read | framerate, defaults, hires, netplay fingerprint |
 | `0x51444d–0x514576` | projection setups: the HUD passes' setup calls go through here | hires |
-| `0x531f6a`, `0x548760–0x5495b1`, `0x55d221` | no name yet | hires |
+| `0x5485c0` | renderer A's enemy marker and off-screen arrow; its bearing-window compares at `0x548760`, `0x5488c8` | hires |
 | `0x54e842` | the intro movie's placement | movie |
 | `0x560000–0x568000` | **engine 2, 2D side**: `0x567520` plane A draw, `0x567c84` the 2D post draw | hires, credits roll |
 | `0x5719c9` | sound: Fei-Yen's hypermode | sound |
 | `0x57858c` | the four arena walls' bearing | read only |
 | `0x57f1b0`, `0x5829c3` | the demo and tutorial frame drivers | hires |
 | `0x5806bc` | engine 2's chase camera | read only |
-| `0x588800–0x58a600` | the title and ending screens: `0x58a146` a sound site, `0x58a570` the SEGA card | sound, hires |
+| `0x588800–0x58a600` | the title and ending screens: `0x588d85` player 2's machine-select pass (`UI_PASS_FUNCS` 3), `0x58a146` a sound site, `0x58a570` the SEGA card | sound, hires |
 | `0x58ecd0–0x58f700` | the ending driver (frame counter `0x1ad09f0`) | hires |
 | `0x59081f` | the title machine's credits handler, a phase machine on `0x1ad0964` | credits, movie |
 | `0x59e3a1–0x59e500` | the machine-select hangar: the angle window, the platform draw | hires |
-| `0x5a1f3c–0x5a2600` | no name yet | hires |
+| `0x5a251b` | player 1's machine-select pass (`UI_PASS_FUNCS` 2) | hires |
 | `0x5b1520` | the intro movie's exit path: stopped by deactivation | activate |
 | `0x5b1833`, `0x5b1871` | `v_on.ini` line helpers: write (key, value), find (key) | ini blobs |
 | `0x5bcce3–0x5bcf00` | the 2P keyboard stubs and handler | padxinput |
-| `0x5be399–0x5be600` | engine 2's enemy marker angle windows | hires |
+| `0x5be1d0–0x5be600` | renderer A's stage-object angle windows (`0x5be1d0`; compares at `0x5be399`–`0x5be5c7`) | hires |
+| `0x5b5f2e`, `0x4c468e` | the in-game HUD passes, renderers A and B (`UI_PASS_FUNCS` 0, 1): bars, timer, reticle, weapon strips | hires |
 | `0x5c56a2–0x5c6900` | **the window and DirectDraw**: `0x5c56a2` recreate the surfaces, `0x5c597e` the window procedure pointer, `0x5c5eac` the message pump, `0x5c6326` set active, `0x5c63aa` the idle pass, `0x5c64e7` movie, `0x5c67c5`/`0x5c680b` the built-in dialogs' pause and resume | activate, debugbox, padxinput, movie, credits |
 | `0x5c7541–0x5c9800` | **the main loop**: the timer, `0x5c82d4` the CD check, `0x5c88ac` mode setup and the framebuffer globals, `0x5c8ca0` the font build, `0x5c9a98` the pause text | framerate, nodisc, hires |
 | `0x5cc39d–0x5e2b00` | **the renderers' back end**: projection setups, `0x5ce180` coverage-mask tables, the 2D quad submits and the clippers of both engines | hires, lockline |
@@ -169,7 +174,7 @@ within 16 KB of each other.
 | lockline | 27 | `0x5d2fcc–0x5d79a0`, `0x5ddeac–0x5e2a80`, the annex |
 | dinput | 1 | found by bytes: the `SetCooperativeLevel` flags push |
 | activate | 5 | `0x5b1520`, `0x5c56a2–0x5c6326`, the annex |
-| hires | 277 | 40 runs from `0x4230e9` to `0x6c85f0`; the table above marks them |
+| hires | 263 | 40 runs from `0x422f20` to `0x6c85f0`; the table above marks them |
 | padxinput | 90 | `0x442ea8`, `0x495aa0–0x49813a`, `0x5bcd3b`, `0x5c5eac–0x5c5f0e`, `.data 0x66ad60–0x66da8c`, `.rsrc`, the annex |
 | nodisc | 1 | `0x5c82d4`, plus its section |
 | debugbox | 6 | `0x5c5942–0x5c597e`, the annex, plus its section |
