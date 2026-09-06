@@ -95,6 +95,7 @@ region around each site.
 | `0x5c56a2–0x5c6900` | **the window and DirectDraw**: `0x5c56a2` recreate the surfaces, `0x5c597e` the window procedure pointer, `0x5c5eac` the message pump, `0x5c6326` set active, `0x5c63aa` the idle pass, `0x5c64e7` movie, `0x5c67c5`/`0x5c680b` the built-in dialogs' pause and resume | activate, debugbox, padxinput, movie, credits |
 | `0x5c7541–0x5c9800` | **the main loop**: the timer, `0x5c82d4` the CD check, `0x5c88ac` mode setup and the framebuffer globals, `0x5c8ca0` the font build, `0x5c9a98` the pause text | framerate, nodisc, hires |
 | `0x5cc39d–0x5e2b00` | **the renderers' back end**: projection setups, `0x5ce180` coverage-mask tables, the 2D quad submits and the clippers of both engines | hires, lockline |
+| `0x5fb238`, `0x604818` | `.rdata`: the scene tables, one frame handler per title-machine sub-state, renderers A and B; indexed by `[0x1ae3690] & 0x1f` | read only |
 | `0x5fc0a0`, `0x5fdac8`, `0x606938`, `0x621ff0` | `.rdata`: layout constants, the credit-roll strings | hires, credits |
 
 ### The data

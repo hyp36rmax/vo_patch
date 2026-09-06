@@ -161,6 +161,7 @@ D_LAYOUT  equ 0x1e8c            ; 0 1P or single, 1 side by side, 2 top/bottom
 D_SPLITST equ 0x1e90            ; 64-bit mask of the sub-states drawn split
                               ; (patcher)
 D_DEBUG   equ 0x1e98            ; 1: print both machines' states on the frame
+D_PASSSEEN equ 0x1e9c           ; bit per UI_PASS_FUNCS entry seen since launch
                               ; (patcher, HIRES_DEBUG_STATES)
 D_DBGSTR  equ 0x1ea0            ; the text, 32 bytes: "MM SS MM SS SH
                               ; XXYYFF AAAA BBBB" fills 31
@@ -550,6 +551,12 @@ hud_enter_here:
     sub ecx, ebx
     sub ecx, STUBS+5
     mov [ebx+D_PASSFN], ecx
+    mov eax, ecx                    ; note the stub's index for the readout
+    mov cl, STUB_LEN
+    div cl
+    movzx eax, al
+    bts dword [ebx+D_PASSSEEN], eax
+    mov eax, [ebx+D_SP]
 enter_nested:
     mov ecx, [ebx+D_DEPTH]
     mov [ebx+D_RETD+eax*4], ecx     ; depth to come back to
@@ -1631,6 +1638,23 @@ dbg_draw:
     push 1
     push 0x0000ff00
     push 40
+    push 300
+    lea eax, [ebx+D_DBGSTR]
+    push eax
+    mov eax, DRAW
+    call eax
+    add esp, 20
+    lea edi, [ebx+D_DBGSTR]         ; second line: the pass functions seen
+    mov eax, [ebx+D_PASSSEEN]       ; since launch, as a 24-bit mask, bit n
+    push eax                        ; for UI_PASS_FUNCS[n]; never cleared
+    shr eax, 16
+    call dbg_hex
+    pop eax
+    call dbg_word
+    mov byte [edi], 0
+    push 1
+    push 0x0000ff00
+    push 80                         ; the row under the first line
     push 300
     lea eax, [ebx+D_DBGSTR]
     push eax

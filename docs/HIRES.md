@@ -241,7 +241,32 @@ than the split flag. When the layout changes, polygons already submitted
 that frame keep the old placement for that one frame.
 HIRES_DEBUG_STATES prints both machines' states on the frame through the
 game's GDI text: MODE SUBMODE, MODE2 SUBMODE2, D_SHOW, then margins'
-tile scroll x, y and fine y and the two photo cells it read, in hex.
+tile scroll x, y and fine y and the two photo cells it read, in hex. A
+second line below it is a 24-bit mask of the UI_PASS_FUNCS entries that
+have run since launch, bit n for entry n, never cleared: a new bit names
+the screen that first showed it.
+
+What has run, over a full 1P game and a 2P match on retail: the 1P
+machine select lights bit 5 (0x5a251b), the round bit 0 (0x5b5f2e), the
+2P select bit 7 (0x588d85), the 2P round bit 1 (0x4c468e); the
+encounter, replay, win, lose and continue screens add nothing. Name
+entry lights bit 10 (0x4d9c3d); the attract demo bit 8 (0x4d0280). The
+splash, the movie, the tutorial, the ranking and the credits add
+nothing. A network match, host and guest, is the same as 1P: bits 5
+and 0, the remote player being renderer A on both machines. A draw and a
+time-up, 1P and split, add nothing. So bits 2/3 ("weapon strips"), 4/6,
+9, 11-19 have never been seen in any mode: the strips and the reticle
+are drawn from inside the in-game HUD pass, and the win/lose scene's
+phases 2 and 3 run for none of the four outcomes.
+
+The same screenshots give the versus scene numbers: 0x04 machine
+select, 0x08 encounter, 0x0a round, 0x0c win/lose (for a win, a loss and
+a draw), 0x0e continue, 0x15 the round at time-up - so 0x0c is the win
+and lose screen, as camskip.asm has it, and the "0x14, 0x15 win and
+lose" below are the time-up states. The first line's
+state pair reads 00 00 00 throughout a 1P game and populates only in
+versus, which is the "second pair missing" puzzle above with a pattern
+to it.
 On video the line came out as `04 04 01 000000 154E 1CB9` - the second
 machine's pair missing, the rest intact - which is not understood; the
 tail is what the readout is for.
@@ -565,6 +590,13 @@ the tile loader rebases the block to its bank slot after the copy. So the
 recognition uses differences between cells, which the rebase preserves.
 HIRES_DEBUG_STATES shows the two cells it reads.
 
+The scene tables: each renderer has a table of one frame handler per
+sub-state of the title machine, indexed by `[0x1ae3690] & 0x1f` -
+renderer A's at 0x5fb238 (read at 0x44b41e), renderer B's at 0x604818
+(read at 0x4e4cdf). Entry 0xa is the round, entry 0xc the phased
+sequence above. The six "frame drivers" that call the enemy marker are
+reached from these handlers.
+
 ### Machine select (the hangar)
 
 A platform mech is drawn while its angle is within a window of the
@@ -619,8 +651,10 @@ Not the marker, though they read the same way:
   bearing per quadrant;
 - 0x4c5772's 0x1000/0x2000 buckets at 0x4c692f quantise a heading into
   stick directions;
-- 0x57f1b0 and 0x5829c3 are the demo and tutorial frame drivers, whose
-  four 0x4a729f quads are the iris wipe.
+- 0x57f1b0 and 0x5829c3 are two of the four phase drivers of scene 0xc
+  (see *Queued work*), whose four 0x4a729f quads are the iris wipe;
+  first read as the demo and tutorial, but neither runs in either (the
+  readout).
 
 ### Ending
 
@@ -794,6 +828,21 @@ row 950 of 1080, under a band in stock.
   are baked for the 1P view; split viewports want their own, keyed on
   D_LAYOUT like the split FOV factors. Needs the two compare pairs to
   read section data instead of immediates.
+- **The untraced pass functions.** Ten entries of UI_PASS_FUNCS have
+  never been seen running. Static reading pairs them A/B: 0x460b70 /
+  0x432fbe and their small companions 0x460cf3 / 0x433141 read a
+  title-machine global and its 2P twin; 0x4d9c3d / 0x42cda6 use the
+  select's focal length 128 at fixed coordinates, so a portrait screen;
+  0x57f1b0 / 0x5829c3 and 0x4b6030 / 0x4b981f are phases 3 and 2 of
+  the win/lose scene 0xc (dispatchers 0x5813c7 / 0x4b8240 on the phase
+  word 0x1ccde88), renderers A and B. Phases 0 and 1 are the win and
+  the loss and ran; 2 and 3 ran for none of the four outcomes. Over
+  every mode - 1P, split, network both sides, demo, tutorial, name
+  entry, draw, time-up - six entries run: 0, 1, 5, 7, 8, 10. The other
+  fourteen have no observed caller. Before they leave UI_PASS_FUNCS,
+  the F5 settings should be toggled once with the readout on - Field
+  Graphic Normal, Sky and the Texture boxes off, the top/bottom split -
+  since a setting could select a different draw path.
 - **JPRE, OEM and JP on video.** The three tables ship after lessons 6
   and 7; none has had the retail build's hours of play yet.
 - **Wider than 16:9.** Untested and partly blocked. The limits: width
