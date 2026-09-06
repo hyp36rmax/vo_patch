@@ -2,7 +2,7 @@
   <img src="assets/VONPatcherLogo1.png" alt="V-ON Patcher" width="640" />
 </p>
 
-# vo_patch
+# V-On Patcher - vo_patch
 
 Gets *Cyber Troopers Virtual-On* (PC, 1997) running properly on a modern
 system. It installs the game from a disc image and fixes the crashes, the

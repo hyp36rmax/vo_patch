@@ -2754,12 +2754,12 @@ def hires_install(buf, width, height, alt=HIRES_ALT):
 # source checkout has no version of its own, and saying so is more use in a
 # bug report than a number nobody bumped.
 VERSION = 'dev'
-# One name for the tool, everywhere it is shown: the window, the About card,
-# the version resource, the line the patched game prints on its own title
-# screen, and the docs. It was three before - "Virtual-On patcher" on the
-# window, vo-patch on the executable, vo_patch in the version resource - and
-# a bug report could name any of them.
+# The tool's name where a file or a URL is: the repository, the executable,
+# the version resource's internal name, the User-Agent and the line the
+# patched game prints on its title screen.
 NAME = 'vo_patch'
+# What people see: the window title, the About card, the file properties.
+LABEL = 'V-On Patcher'
 REPO_URL = 'https://github.com/pairomaniac/vo_patch'
 
 EXE_SIZE = 6650880
@@ -8675,7 +8675,7 @@ PALETTE = {
 # The version is in the title because it is the only place a Windows user
 # who double-clicked the exe can see it, and it is the first thing worth
 # knowing about a bug report.
-TITLE = '%s %s' % (NAME, VERSION)
+TITLE = '%s %s' % (LABEL, VERSION)
 # How long after the last resize event the static widgets are redrawn, in
 # milliseconds. See App._nudge.
 NUDGE_MS = 60
