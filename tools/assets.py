@@ -16,7 +16,7 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(os.path.dirname(HERE), 'assets')
 
-LOGO_SRC = 'VONPatcherLogo3.png'
+LOGO_SRC = 'VONPatcherLogo1.png'
 ICON_SRC = 'VONPatcherIcon.png'
 
 # Twice the height the window shows at 100% (LOGO_HEIGHT in vo_patch.py),
