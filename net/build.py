@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Compile net/dpctrl.c to net/dpctrl.dll and record its hashes in
-v-on-patcher.py.
+vo_patch.py.
 
 The DLL is a file in the repository: the release build ships it beside the
 exe (PyInstaller's _internal/), a source checkout reads it from net/. The
@@ -9,7 +9,7 @@ patcher checks the file against NETPLAY_DLL_SHA before installing it.
     python3 net/build.py            compile, write the DLL and the hashes
     python3 net/build.py --check    is the DLL current? writes nothing
 
---check compares a hash of dpctrl.c against the one recorded in v-on-patcher.py
+--check compares a hash of dpctrl.c against the one recorded in vo_patch.py
 and the DLL file against its recorded hash, rather than recompiling: two
 mingw versions do not produce identical output from identical source, so a
 byte comparison would fail on any machine but the one that last ran this.
@@ -26,7 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SRC = os.path.join(HERE, 'dpctrl.c')
 DEF = os.path.join(HERE, 'dpctrl.def')
-TARGET = os.path.join(ROOT, 'v-on-patcher.py')
+TARGET = os.path.join(ROOT, 'vo_patch.py')
 DLL = os.path.join(HERE, 'dpctrl.dll')
 
 CC = 'i686-w64-mingw32-gcc'
@@ -76,7 +76,7 @@ def compile_dll(workdir):
 
 
 def render(blob, sha):
-    """The hash block as it appears in v-on-patcher.py."""
+    """The hash block as it appears in vo_patch.py."""
     dll_sha = hashlib.sha256(blob).hexdigest()
     return (
         "%s\n"
@@ -115,7 +115,7 @@ def main(argv):
     with open(TARGET, encoding='utf-8') as f:
         text = f.read()
     if BEGIN not in text or END not in text:
-        sys.exit('markers not found in v-on-patcher.py')
+        sys.exit('markers not found in vo_patch.py')
 
     sha = source_hash()
 
@@ -130,7 +130,7 @@ def main(argv):
         want = recorded(text, 'NETPLAY_DLL_SHA')
         got = file_hash(DLL)
         if got != want:
-            print('net/dpctrl.dll is not the file v-on-patcher.py expects.')
+            print('net/dpctrl.dll is not the file vo_patch.py expects.')
             print('  recorded: %s' % want)
             print('  file:     %s' % (got or 'missing'))
             print('Run: python3 net/build.py')

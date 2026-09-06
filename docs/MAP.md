@@ -1,6 +1,6 @@
 # Map
 
-Where things are: in the repository, inside `v-on-patcher.py`, and inside the
+Where things are: in the repository, inside `vo_patch.py`, and inside the
 patched `v_on.exe`. The other documents say how things work; this one says
 where to look. Addresses are the English retail build's; the OEM and
 Japanese original are one page lower outside `.text`, the rerelease is by
@@ -10,9 +10,9 @@ table (NOTES.md, *The builds*).
 
 | Path | What |
 | --- | --- |
-| `v-on-patcher.py` | the patcher: tables, blobs, installer, ripper, netplay setup, window, CLI |
-| `v-on-patcher.spec` | PyInstaller spec for the Windows exe |
-| `asm/` | assembly sources for the blobs, `build.py` links them into `v-on-patcher.py` |
+| `vo_patch.py` | the patcher: tables, blobs, installer, ripper, netplay setup, window, CLI |
+| `vo_patch.spec` | PyInstaller spec for the Windows exe |
+| `asm/` | assembly sources for the blobs, `build.py` links them into `vo_patch.py` |
 | `asm/ui.asm` | the widescreen blob, built separately by `tools/uibuild.py` |
 | `net/` | `dpctrl.c` the netplay DLL, `rendezvous.py` the matchcode server |
 | `tools/` | the checks (`check.py` runs them all) and the by-hand tools |
@@ -20,7 +20,7 @@ table (NOTES.md, *The builds*).
 | `docs/` | this and the other documents; `docs/README.md` is the index |
 | `.github/workflows/build.yml` | CI: the checks, the two zips, the release |
 
-## 2. `v-on-patcher.py`
+## 2. `vo_patch.py`
 
 Ten regions, in file order. Line numbers as of v0.16.0; they drift, the
 order does not.

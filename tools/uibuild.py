@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the resolution patch's UI_CODE from asm/ui.asm into v-on-patcher.py.
+"""Build the resolution patch's UI_CODE from asm/ui.asm into vo_patch.py.
 
     python3 tools/uibuild.py
 
@@ -9,7 +9,7 @@ asm/build.py: label offsets are read out of a dd table appended in a
 temporary copy, and the blob and every offset constant derived from it
 (UI_CALLS, UI_STUBS, UI_WORLD, UI_SUBMIT, UI_HUD_ENTER, UI_INSERT_A/B,
 UI_HANGAR_DRAW, UI_FRAME, UI_FLUSH_A/B, UI_F4) are written into
-v-on-patcher.py. UI_REFS - every game-address dword in the blob, by position,
+vo_patch.py. UI_REFS - every game-address dword in the blob, by position,
 from its own disassembly - is regenerated with capstone.
 tools/hiresport.py must be rerun after this for the non-retail tables.
 
@@ -27,7 +27,7 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 UI = os.path.join(ROOT, 'asm', 'ui.asm')
-HIRES = os.path.join(ROOT, 'v-on-patcher.py')
+HIRES = os.path.join(ROOT, 'vo_patch.py')
 
 LABELS = ['world_a', 'world_a2', 'world_b', 'world_b2', 'submit_a',
           'submit_b', 'hud_enter', 'stub1', 'stub2', 'stub3', 'stub4',
@@ -83,7 +83,7 @@ def assemble(src_asm):
 
 def fingerprint_check(src_asm):
     import hashlib
-    import vonpatcher_hires as hires
+    import vo_patch_hires as hires
     digest = hashlib.sha256(normalized(src_asm).encode()).hexdigest()
     if digest == hires.UI_ASM_SHA:
         print('asm/ui.asm matches the committed blob (by fingerprint; '
@@ -118,7 +118,7 @@ def main():
     blob, offs = assemble(src_asm)
     if check:
         sys.path.insert(0, HERE)
-        import vonpatcher_hires as hires
+        import vo_patch_hires as hires
         if hires.UI_CODE == blob:
             print('asm/ui.asm matches the committed blob')
             return

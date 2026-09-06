@@ -15,7 +15,7 @@ everyone's saved binds.
 
 import struct
 
-# Where the tables land is the build's business (the annex in v-on-patcher.py).
+# Where the tables land is the build's business (the annex in vo_patch.py).
 # The pointers between them are fixups on PAD_NAMES.
 FIRST_ID = 0xe0         # a bind byte this or over is a pad input
 
@@ -79,7 +79,7 @@ SIMPLEDEF = bytes.fromhex(
 def build():
     """-> inc text, then (blob, fixups, labels) for the condition table,
     the bind list, the names, the device list, the Simple defaults and the
-    ini keys. A fixup is (offset, kind, symbol, addend) as in link() in v-on-patcher.py;
+    ini keys. A fixup is (offset, kind, symbol, addend) as in vo_patch.link;
     the symbol is ('PAD_NAMES', offset) for a pointer into the names."""
     # Two string blobs: the inputs' names and the deadzone keys in one, the
     # profile names in another. A pointer names its blob.

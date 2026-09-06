@@ -43,7 +43,7 @@ extern F11CHECKS                ; asm/f11pause.asm's tail: the check boxes
 ANNEXREL    equ 0xEAEAEAEA      ; a placeholder: the rel32 to asm/voxt.asm,
                                 ; the code at the end of the .voxt section,
                                 ; whose address only exists at apply time -
-                                ; v-on-patcher.py computes and fills it
+                                ; vo_patch.py computes and fills it
 VK_F11      equ 0x7a
 extern F11WRAP                  ; asm/f11pause.asm
 extern GAMEMODE                 ; 2 during a network match, when every F-key

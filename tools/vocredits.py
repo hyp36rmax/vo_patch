@@ -8,7 +8,7 @@ blank gaps, and matching the runs against the transcript gives a glyph for
 each letter in the game's own hand.
 
     python3 tools/vocredits.py /path/to/VIRTUAL-ON            # preview
-    python3 tools/vocredits.py /path/to/VIRTUAL-ON --write    # into v-on-patcher.py
+    python3 tools/vocredits.py /path/to/VIRTUAL-ON --write    # into vo_patch.py
 
 Only the slash and the underscore are drawn here rather than harvested;
 neither appears anywhere in the roll. They follow the same metrics as the
@@ -315,7 +315,7 @@ def main(folder, write):
                                    for x in range(pad, pad + px)))
 
     if not write:
-        print('\npreview only; pass --write to update v-on-patcher.py')
+        print('\npreview only; pass --write to update vo_patch.py')
         return 0
 
     text = []
@@ -326,14 +326,14 @@ def main(folder, write):
                     "CREDIT%d_BITS = bytes.fromhex(\n%s\n)"
                     % (n, cells, n, cells_h, n, body))
     path = os.path.join(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))), 'v-on-patcher.py')
+        os.path.abspath(__file__))), 'vo_patch.py')
     src = open(path, encoding='utf-8').read()
     head = '# CREDITLINE BLOB BEGIN - tools/vocredits.py\n'
     tail = '# CREDITLINE BLOB END'
     a, b = src.index(head) + len(head), src.index(tail)
     open(path, 'w', encoding='utf-8').write(
         src[:a] + '\n\n'.join(text) + '\n' + src[b:])
-    print('\nwrote the bitmaps into v-on-patcher.py')
+    print('\nwrote the bitmaps into vo_patch.py')
     return 0
 
 

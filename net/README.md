@@ -8,7 +8,7 @@ using it see [README.md](../README.md); for testing it see
 ```
 dpctrl.c            the implementation
 dpctrl.def          export names, undecorated, as the game imports them
-build.py            compiles it and bakes the result into v-on-patcher.py
+build.py            compiles it and bakes the result into vo_patch.py
 rendezvous.py       the matchcode server, runs anywhere with a public address
 rendezvous.service  a systemd unit for it
 ```
@@ -247,12 +247,12 @@ python3 net/build.py --check    # is the DLL current? no compiler needed
 
 `net/dpctrl.dll` is committed: the release build ships it beside the exe
 (PyInstaller's `_internal/`), a source checkout reads it from here, and the
-patcher checks it against the hash `build.py` recorded in `v-on-patcher.py`
+patcher checks it against the hash `build.py` recorded in `vo_patch.py`
 before installing it. The linker is pinned (no timestamp, fixed image base)
 so the same mingw produces the same bytes.
 
 `--check` compares a hash of `dpctrl.c` against the one recorded in
-`v-on-patcher.py`, and the DLL file against its recorded hash, rather than
+`vo_patch.py`, and the DLL file against its recorded hash, rather than
 recompiling and diffing bytes: two mingw versions do not produce identical
 output from identical source.
 

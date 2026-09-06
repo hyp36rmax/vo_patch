@@ -3,7 +3,7 @@
 
     python3 tools/hiresport.py MAP.pkl
 
-Prints a python dict for PORT in v-on-patcher.py: every site offset translated, the
+Prints a python dict for vo_patch.PORT: every site offset translated, the
 build's own original bytes per site, and every named address hires embeds
 in code or writes. A site in a function vomap could not match is found by
 signature: its retail bytes with game-range immediates wildcarded, which
@@ -211,7 +211,7 @@ def resolve(pkl):
     stamp and other (the build's executable path)."""
     sys.argv = ['votrans', 'one', pkl]
     import votrans                                       # noqa: E402
-    import vonpatcher_hires as hires                       # noqa: E402
+    import vo_patch_hires as hires                       # noqa: E402
     other = open(votrans.M['other'], 'rb').read()
     retail = open(votrans.M['retail'], 'rb').read()
     place, resolve_va = build_resolvers(votrans, retail, other)
@@ -353,7 +353,7 @@ def resolve(pkl):
 
 
     # Every named address hires bakes into new bytes, the ui blob, or its
-    # hook tables. Parsed out of v-on-patcher.py's ADDR dict so the two cannot
+    # hook tables. Parsed out of vo_patch.py's ADDR dict so the two cannot
     # drift: this script only translates what the runtime will ask for.
     va_map = {}
     targets = {('ADDR:' + n): v for n, v in hires.ADDR.items()}

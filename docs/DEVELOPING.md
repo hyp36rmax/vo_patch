@@ -1,4 +1,4 @@
-# Developing v-on-patcher
+# Developing vo_patch
 
 How to build, what to run before pushing, and what each check is for. For
 using the patcher see [README.md](../README.md); for what the patches do see
@@ -7,13 +7,13 @@ using the patcher see [README.md](../README.md); for what the patches do see
 ## The four layers
 
 ```
-asm/*.asm    ──nasm──►  hex strings in v-on-patcher.py  ──PyInstaller──►  v-on-patcher-X.Y.Z-win.zip
+asm/*.asm    ──nasm──►  hex strings in vo_patch.py  ──PyInstaller──►  vo_patch-X.Y.Z-win.zip
 net/dpctrl.c ──mingw─►  net/dpctrl.dll                     CI builds this  (exe + _internal/)
   you edit             asm/build.py, net/build.py
                        write these
 ```
 
-`v-on-patcher.py` cannot read `asm/` at runtime, so the machine code is baked in
+`vo_patch.py` cannot read `asm/` at runtime, so the machine code is baked in
 as text between marker comments; `asm/build.py` is the only thing that puts
 it there. The netplay DLL is a file, `net/dpctrl.dll`, that `net/build.py`
 compiles and the release ships beside the exe.
@@ -37,7 +37,7 @@ needs pip. The script checks and prints; the actual install is one `apt` or
 
 `nasm` is needed only to rebuild `asm/`, `asm/ui.asm` included, mingw only
 to rebuild the netplay DLL. Neither is needed to run the patcher or to
-build the exe: the machine code is in `v-on-patcher.py` as text, the DLL is
+build the exe: the machine code is in `vo_patch.py` as text, the DLL is
 committed as `net/dpctrl.dll`.
 
 `python3-pyflakes` is the `lint` check; `python3-capstone` (4.x or 5.x)
@@ -77,10 +77,10 @@ python3 tools/uibuild.py          # only if you touched asm/ui.asm - the resolut
                                   # MD5s: HIRES.md, Rebuilding
 
 python3 tools/check.py            # the checks CI runs, in two seconds
-python3 v-on-patcher.py               # does the window still open?
+python3 vo_patch.py               # does the window still open?
 ```
 
-All three build scripts rewrite blobs inside `v-on-patcher.py`, so `git diff`
+All three build scripts rewrite blobs inside `vo_patch.py`, so `git diff`
 after one shows the hex changing and nothing else. If it shows more, something else
 moved too.
 
@@ -110,7 +110,7 @@ wrong on the build it is for; before tagging, give all four.
 | `tables` | patch tables, blobs and the banner bitmap: lengths, bounds, collisions between patches, the intra-patch overlap the XInput routine relies on |
 | `asm` | `asm/` reassembles to the committed blobs, every blob links for every build, and the two placeholders the apply-time sections fill occur exactly once each |
 | `ui` | `asm/ui.asm` matches the committed resolution blob: reassembled with nasm when it is installed (always, on CI), by the recorded fingerprint of the source when it is not |
-| `net` | `net/dpctrl.dll` was built from the current `net/dpctrl.c`, by hash - two mingw versions do not produce identical bytes - and is the file `v-on-patcher.py` expects |
+| `net` | `net/dpctrl.dll` was built from the current `net/dpctrl.c`, by hash - two mingw versions do not produce identical bytes - and is the file `vo_patch.py` expects |
 | `disc` | `disctest.py`: the disc reader, on ISO9660 images the test builds itself - one per sector layout, plus a cue that names the wrong one. Extraction is byte-exact, the `ssp.ini` rules give the retail and OEM file lists, and every refusal names what is wrong. Needs no game and no disc, so CI runs it |
 | `gui` | `guitest.py`: the window, opened under xvfb and driven without its loop - which button is offered for which source, that a copy holds both down until it finishes, and that the two columns end level whatever is open. None of these raise on their own, so each asserts the property. Needs a display; with none it skips and prints a note rather than passing quietly |
 | `lint` | pyflakes |
@@ -138,7 +138,7 @@ crash address into a blob and label, is under
 into the banner's 42x3 cells and, with `--write`, writes the game's own
 `v_on.exe` and title artwork - `escrgame.bin` or `jscrgame.bin`, at that
 build's table offset, read off the file or its `.bak`. It does not touch
-`v-on-patcher.py`: to ship a new wording, replace `BANNER_BITS` there with the
+`vo_patch.py`: to ship a new wording, replace `BANNER_BITS` there with the
 bitmap it produces.
 
 ```bash
@@ -157,7 +157,7 @@ drawn, as ASCII art in `SMALL_DRAWN`, to the proportions in
 
 ```bash
 python3 tools/vocredits.py DIR             # preview, as ASCII art
-python3 tools/vocredits.py DIR --write     # into v-on-patcher.py
+python3 tools/vocredits.py DIR --write     # into vo_patch.py
 ```
 
 Edit `LINES` at the top to change what it says. The result goes between the
@@ -205,12 +205,12 @@ python3 tools/buildsites.py JP   retail.exe jp.exe jp.pkl
 ```
 
 The order of the edits does not matter: both tools import the patcher in
-bootstrap mode (`VONPATCHER_BOOTSTRAP`), where a blob, label, symbol or site
+bootstrap mode (`VO_PATCH_BOOTSTRAP`), where a blob, label, symbol or site
 that does not exist yet reads as empty instead of failing the import.
 
 ## Adding a build
 
-A build is a `Build` in `v-on-patcher.py`: its sections, where each blob goes,
+A build is a `Build` in `vo_patch.py`: its sections, where each blob goes,
 what every symbol the blobs name resolves to, its title artwork, and for
 any build but retail a site map and an annex. The tables come from the
 retail executable and the new one side by side, none of which is
@@ -261,7 +261,7 @@ refused at connect.
 
 A patch that changes the simulation - anything that alters what the game
 computes from a given input - needs two entries: one per build in
-`fp_builds` in `dpctrl.c`, and one in `SYNC_SITES` in `v-on-patcher.py`, which
+`fp_builds` in `dpctrl.c`, and one in `SYNC_SITES` in `vo_patch.py`, which
 warns when the add-on is installed beside an executable an older release
 patched without it.
 
@@ -365,11 +365,11 @@ notes.md` makes the tag, and the tag build only attaches the zips.
 
 CI runs `verify` (ubuntu) and, only if it passes, `windows`, which stamps the
 version, installs PyInstaller from source with its bootloader compiled on the
-runner, builds `dist/v-on-patcher/` (the exe with its `_internal/` folder: the
+runner, builds `dist/vo_patch/` (the exe with its `_internal/` folder: the
 runtime, the libraries, `dpctrl.dll`), checks the bundle, runs `--selfcheck`
 on the exe, prints its checksum and VirusTotal link, and attaches two zips to
-the release: `v-on-patcher-vX.Y.Z-win.zip`, the folder with the exe at its top,
-and `v-on-patcher-vX.Y.Z-python.zip`, the LF-normalised script with
+the release: `vo_patch-vX.Y.Z-win.zip`, the folder with the exe at its top,
+and `vo_patch-vX.Y.Z-python.zip`, the LF-normalised script with
 `net/dpctrl.dll`.
 
 The exe is unsigned, and scanners have opinions about an unsigned program
@@ -503,10 +503,10 @@ that our bytes overwrote; a fault inside a blob is the blob's.
 ## Useful commands
 
 ```bash
-python3 v-on-patcher.py --help
-python3 v-on-patcher.py --install CUE DIR  # install the game from a disc image
-python3 v-on-patcher.py --rip          # list CD drives (Linux)
-python3 v-on-patcher.py --netplay DIR  # install the UDP netplay DLL
+python3 vo_patch.py --help
+python3 vo_patch.py --install CUE DIR  # install the game from a disc image
+python3 vo_patch.py --rip          # list CD drives (Linux)
+python3 vo_patch.py --netplay DIR  # install the UDP netplay DLL
 python3 tools/check.py --list      # what the checks are
 python3 tools/check.py --only asm  # run one of them
 
@@ -519,5 +519,5 @@ python3 tools/votrans.py sites MAP.pkl        # and read addresses across
 ```
 
 `DIR` is the game folder. Without `--write` both only preview; with it
-`vocredits.py` writes into `v-on-patcher.py` and `vonbanner.py` writes the game's
+`vocredits.py` writes into `vo_patch.py` and `vonbanner.py` writes the game's
 files.

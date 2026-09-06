@@ -33,7 +33,7 @@ EXPECTED_ALL = {
 }
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PATCHER = os.path.join(os.path.dirname(HERE), 'v-on-patcher.py')
+PATCHER = os.path.join(os.path.dirname(HERE), 'vo_patch.py')
 
 
 def pristine(path, vp):

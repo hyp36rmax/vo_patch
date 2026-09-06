@@ -43,7 +43,7 @@ def colours(force=None):
 
 CHECKS = [
     ('tables', 'patch tables, blobs and the banner bitmap',
-     [PY, 'v-on-patcher.py', '--selfcheck'], False, False),
+     [PY, 'vo_patch.py', '--selfcheck'], False, False),
     ('asm', 'asm/ sources match the committed blobs',
      [PY, 'asm/build.py', '--check'], False, False),
     ('ui', 'asm/ui.asm matches the committed resolution blob',
@@ -55,13 +55,13 @@ CHECKS = [
     ('gui', 'the window, driven headlessly',
      [PY, 'tools/guitest.py', '{game}'], False, False),
     ('lint', 'pyflakes',
-     [PY, '-m', 'pyflakes', 'v-on-patcher.py', 'asm/build.py', 'asm/layout.py',
+     [PY, '-m', 'pyflakes', 'vo_patch.py', 'asm/build.py', 'asm/layout.py',
       'asm/padtables.py', 'asm/dialogs.py', 'net/build.py',
       'tools/selftest.py', 'tools/bannertest.py', 'tools/vonbanner.py',
       'tools/credittest.py', 'tools/vocredits.py', 'tools/disctest.py',
       'tools/guitest.py', 'tools/check.py', 'tools/buildsites.py',
       'tools/vomap.py', 'tools/votrans.py', 'tools/whereis.py',
-      'tools/uibuild.py', 'tools/hiresport.py', 'tools/vonpatcher_hires.py',
+      'tools/uibuild.py', 'tools/hiresport.py', 'tools/vo_patch_hires.py',
       'tools/rvload.py', 'tools/uiemu.py', 'tools/portaudit.py',
       'net/rendezvous.py'], False,
      False),
@@ -103,7 +103,7 @@ def build_name(exe):
     import hashlib
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        'vopatch', os.path.join(ROOT, 'v-on-patcher.py'))
+        'vopatch', os.path.join(ROOT, 'vo_patch.py'))
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)
     for candidate in (exe, exe + '.bak'):

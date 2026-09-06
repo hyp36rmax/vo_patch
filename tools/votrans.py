@@ -162,7 +162,7 @@ MANUAL, MANUAL_VA = HAND.get(hashlib.md5(exeB.d).hexdigest(), ({}, {}))
 if __name__ == '__main__':
     what = sys.argv[1]
     if what == 'sites':
-        spec = importlib.util.spec_from_file_location('vp', os.path.join(ROOT, 'v-on-patcher.py'))
+        spec = importlib.util.spec_from_file_location('vp', os.path.join(ROOT, 'vo_patch.py'))
         vp = importlib.util.module_from_spec(spec); spec.loader.exec_module(vp)
         ok = bad = 0
         for key, label, tip, sites in vp.FEATURES:
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     elif what == 'symbols':
         # RETAIL's symbols as the other build would have them, to paste into
         # a new Build; what could not be resolved is listed for the hand
-        spec = importlib.util.spec_from_file_location('vp', os.path.join(ROOT, 'v-on-patcher.py'))
+        spec = importlib.util.spec_from_file_location('vp', os.path.join(ROOT, 'vo_patch.py'))
         vp = importlib.util.module_from_spec(spec); spec.loader.exec_module(vp)
         unresolved = []
         for name, value in vp.RETAIL.symbols.items():

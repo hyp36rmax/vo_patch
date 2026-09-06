@@ -2,7 +2,7 @@
   <img src="assets/VONPatcherLogo1.png" alt="V-ON Patcher" width="640" />
 </p>
 
-# V-On Patcher
+# V-On Patcher - vo_patch
 
 Gets *Cyber Troopers Virtual-On* (PC, 1997) running properly on a modern
 system. It installs the game from a disc image and fixes the crashes, the
@@ -36,9 +36,9 @@ forwarding.
 
 ## Quick start
 
-**Download** `v-on-patcher-*-win.zip` from the
-[latest release](https://github.com/pairomaniac/v-on-patcher/releases/latest),
-unzip it anywhere and run `v-on-patcher-*.exe`; the `_internal` folder beside it
+**Download** `vo_patch-*-win.zip` from the
+[latest release](https://github.com/pairomaniac/vo_patch/releases/latest),
+unzip it anywhere and run `vo_patch-*.exe`; the `_internal` folder beside it
 has to stay. It is unsigned, so SmartScreen calls it an unknown publisher the
 first time you run it. If a virus scanner objects, see
 [Virus warnings](#virus-warnings). On Linux, see
@@ -80,7 +80,7 @@ thing they warn about. To allow it in Defender: Windows Security → Virus &
 threat protection → Protection history → the entry for the file → Allow,
 then run it again.
 
-If you would rather not run it, `v-on-patcher.py` does everything the download
+If you would rather not run it, `vo_patch.py` does everything the download
 does - see [Running the Python script](#running-the-python-script). Each
 release is built on GitHub from this repository, and the build log lists the
 file's checksum if you want to check that yours matches.
@@ -106,8 +106,8 @@ plain text.
 Or from a terminal:
 
 ```bash
-python3 v-on-patcher.py --install VIRTUAL-ON.cue ~/games/VIRTUAL-ON
-python3 v-on-patcher.py --install VIRTUAL-ON.cue ~/games/VIRTUAL-ON --language GERMAN
+python3 vo_patch.py --install VIRTUAL-ON.cue ~/games/VIRTUAL-ON
+python3 vo_patch.py --install VIRTUAL-ON.cue ~/games/VIRTUAL-ON --language GERMAN
 ```
 
 ### If you have the disc, not an image
@@ -453,8 +453,8 @@ forwarding, no VPN. Direct IP is still there for LAN play.
   Or from a terminal:
 
     ```bash
-    python3 v-on-patcher.py --netplay path/to/game            # install
-    python3 v-on-patcher.py --netplay path/to/game --remove   # put the stock one back
+    python3 vo_patch.py --netplay path/to/game            # install
+    python3 vo_patch.py --netplay path/to/game --remove   # put the stock one back
     ```
 
 - **Both players need Fix frame rate and Fix crash on round loss.** Each
@@ -553,9 +553,9 @@ image the disc first, as in
 Or from a terminal:
 
 ```bash
-python3 v-on-patcher.py --rip VIRTUAL-ON.cue /path/to/VIRTUAL-ON
-python3 v-on-patcher.py --rip /dev/sr0       /path/to/VIRTUAL-ON   # Linux
-python3 v-on-patcher.py --rip                # list drives (Linux)
+python3 vo_patch.py --rip VIRTUAL-ON.cue /path/to/VIRTUAL-ON
+python3 vo_patch.py --rip /dev/sr0       /path/to/VIRTUAL-ON   # Linux
+python3 vo_patch.py --rip                # list drives (Linux)
 ```
 
 The directory is the one holding `v_on.exe`; `music\` is created inside it.
@@ -602,7 +602,7 @@ the shaders. The same button then reads **Remove**, which deletes them again
 but keeps `ddraw.ini`. From a terminal:
 
 ```bash
-python3 v-on-patcher.py --ddraw path/to/game
+python3 vo_patch.py --ddraw path/to/game
 ```
 
 It comes straight from
@@ -694,12 +694,12 @@ draws the title prompt as scrambled letters.
 
 ## Running the Python script
 
-The patcher is one Python script, `v-on-patcher.py`; the Windows download is
+The patcher is one Python script, `vo_patch.py`; the Windows download is
 that script frozen into an exe. On Linux, or if you would rather not run
 an unsigned exe, run the script itself. Two ways to get it:
 
-- `v-on-patcher-*-python.zip` from the
-  [latest release](https://github.com/pairomaniac/v-on-patcher/releases/latest):
+- `vo_patch-*-python.zip` from the
+  [latest release](https://github.com/pairomaniac/vo_patch/releases/latest):
   the script with the netplay DLL beside it in `net/`, nothing else.
 - A checkout of this repository; the same two files are in the same places.
 
@@ -709,7 +709,7 @@ which also works, but carries the development tree with it.
 Windows, with Python from python.org - Tk ships with it, nothing else needed:
 
 ```
-py v-on-patcher.py
+py vo_patch.py
 ```
 
 On Linux, Tk usually needs installing:
@@ -718,17 +718,17 @@ On Linux, Tk usually needs installing:
 sudo apt install python3-tk        # Debian, Ubuntu, Mint
 sudo dnf install python3-tkinter   # Fedora, RHEL
 sudo pacman -S tk                  # Arch, EndeavourOS
-python3 v-on-patcher.py
+python3 vo_patch.py
 ```
 
 Everything the patcher does is also available without a window:
 
 ```bash
-python3 v-on-patcher.py --install CUE DIR  # the game, out of a disc image
-python3 v-on-patcher.py --rip SOURCE DIR   # soundtrack, from a cue sheet or drive
-python3 v-on-patcher.py --ddraw DIR        # fetch and install cnc-ddraw
-python3 v-on-patcher.py --netplay DIR      # install the UDP netplay DLL
-python3 v-on-patcher.py --selfcheck        # validate the patch tables
+python3 vo_patch.py --install CUE DIR  # the game, out of a disc image
+python3 vo_patch.py --rip SOURCE DIR   # soundtrack, from a cue sheet or drive
+python3 vo_patch.py --ddraw DIR        # fetch and install cnc-ddraw
+python3 vo_patch.py --netplay DIR      # install the UDP netplay DLL
+python3 vo_patch.py --selfcheck        # validate the patch tables
 ```
 
 ## Working on the patcher
@@ -736,12 +736,12 @@ python3 v-on-patcher.py --selfcheck        # validate the patch tables
 [docs/README.md](docs/README.md) maps the developer documentation.
 
 To build the Windows binary yourself, `pip install pyinstaller` and run
-`pyinstaller v-on-patcher.spec`. It builds `dist/v-on-patcher/`, the exe with its
-`_internal` folder, as `v-on-patcher-dev.exe` - releases take their version from
+`pyinstaller vo_patch.spec`. It builds `dist/vo_patch/`, the exe with its
+`_internal` folder, as `vo_patch-dev.exe` - releases take their version from
 the git tag, and a source tree has none.
 
 To change the machine code the patches install, see [asm/](asm/);
-`asm/build.py` builds it into the hex strings in `v-on-patcher.py`. Never edit
+`asm/build.py` builds it into the hex strings in `vo_patch.py`. Never edit
 those by hand.
 
 ## AI Disclaimer

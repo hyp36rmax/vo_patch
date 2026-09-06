@@ -16,7 +16,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location(
-    'vp', os.path.join(os.path.dirname(HERE), 'v-on-patcher.py'))
+    'vp', os.path.join(os.path.dirname(HERE), 'vo_patch.py'))
 vp = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(vp)
 

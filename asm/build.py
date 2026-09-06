@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the blobs in ../v-on-patcher.py, or check that they still match.
+"""Build the blobs in ../vo_patch.py, or check that they still match.
 
 Machine code comes from the .asm files through nasm; the tables and dialog
 templates come from the .py modules beside them, which pack them from a
@@ -12,17 +12,17 @@ readable description.
 The sources name no addresses. Everything in the game they touch is an
 `extern`, and nasm assembles them as ELF objects whose relocations say where
 each address goes and how (absolute, or relative to the instruction). What
-lands in v-on-patcher.py is the blob with those slots empty, the fixup list, and
-the offsets of its labels; link() in v-on-patcher.py fills the slots for a build from
+lands in vo_patch.py is the blob with those slots empty, the fixup list, and
+the offsets of its labels; vo_patch.link() fills the slots for a build from
 that build's caves and symbols tables. So one set of machine code serves every
 build, and the retail addresses live in one table in the patcher rather than
 in thirty files here.
 
 Besides matching the blobs, the check pass links every blob for every
-build and checks the pins the site table relies on. It runs v-on-patcher.py
+build and checks the pins the site table relies on. It runs vo_patch.py
 --selfcheck afterwards, which is where the site table is validated.
 
-v-on-patcher.py carries the assembled bytes because it ships as a single file that
+vo_patch.py carries the assembled bytes because it ships as a single file that
 has to run from a fresh checkout with nothing installed. So this writes them
 in when the assembly changes, and --check catches assembly edited without them
 being regenerated.
@@ -42,7 +42,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-TARGET = os.path.join(ROOT, 'v-on-patcher.py')
+TARGET = os.path.join(ROOT, 'vo_patch.py')
 
 sys.path.insert(0, HERE)
 import dialogs                                            # noqa: E402
@@ -72,7 +72,7 @@ def frame_symbols():
     functions our stubs read, as name -> offset. They are the negative
     entries in the symbol table. Imported in bootstrap mode: a blob being
     added for the first time is not in the table yet."""
-    os.environ['VONPATCHER_BOOTSTRAP'] = '1'
+    os.environ['VO_PATCH_BOOTSTRAP'] = '1'
     spec = importlib.util.spec_from_file_location('vopatch', TARGET)
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)
@@ -206,7 +206,7 @@ def replace(text, name, body):
                      lambda m: m.group(1) + body + m.group(2),
                      text, flags=re.S)
     if n != 1:
-        raise SystemExit('%s BLOB markers not found in v-on-patcher.py' % name)
+        raise SystemExit('%s BLOB markers not found in vo_patch.py' % name)
     return new
 
 
@@ -320,10 +320,10 @@ def main(check=False):
     # Import the patcher as it will be written, which links every blob for
     # the retail build on the way in.
     with tempfile.TemporaryDirectory() as tmp:
-        path = os.path.join(tmp, 'v-on-patcher.py')
+        path = os.path.join(tmp, 'vo_patch.py')
         with open(path, 'w', encoding='utf-8') as fh:
             fh.write(new)
-        os.environ.pop('VONPATCHER_BOOTSTRAP', None)   # the real thing now
+        os.environ.pop('VO_PATCH_BOOTSTRAP', None)   # the real thing now
         spec = importlib.util.spec_from_file_location('vopatch', path)
         vp = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(vp)
@@ -340,12 +340,12 @@ def main(check=False):
     if check:
         if new != src:
             raise SystemExit('asm/ does not match the blobs in '
-                             'v-on-patcher.py.\nRun: python3 asm/build.py')
-        print('asm/ matches v-on-patcher.py (%s)' % sizes)
+                             'vo_patch.py.\nRun: python3 asm/build.py')
+        print('asm/ matches vo_patch.py (%s)' % sizes)
     else:
         with open(TARGET, 'w', encoding='utf-8') as fh:
             fh.write(new)
-        print('written to v-on-patcher.py (%s)' % sizes)
+        print('written to vo_patch.py (%s)' % sizes)
 
     # The tables are what actually gets written to somebody's executable, so
     # never report success without running their checks too.
