@@ -7,7 +7,8 @@ bits 32
 ; 70 per cent speed.
 ;
 ; AddressOfEntryPoint at 0xa8 names this address, and nodisc chains it in
-; turn, which is why that patch is applied last.
+; turn, which is why that patch is applied after every other edit to the
+; executable's code - only the widescreen section append comes later.
 
 extern ORIGENTRY                ; the entry point this replaces
 extern LOADLIB                  ; LoadLibraryA

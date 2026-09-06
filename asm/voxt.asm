@@ -1,13 +1,15 @@
 bits 32
 ; The F11 dialog's long tails, riding at the end of the .voxt section after
-; the template: the close-time deadzone read and save, and the Quit case.
+; the template: the close-time deadzone read and save, the Defaults button,
+; and the Quit case.
 ; The dialog procedure in asm/debugbox.asm stays a dispatcher and calls here
 ; through a relative placeholder that vo_patch.py fills once the section's
 ; address exists.
 ;
 ; Position independent: the section lands wherever the headers put it, so
 ; every call to fixed code goes through a register and there is no org.
-; In: ecx = the command id (IDCANCEL or CMD_QUIT), edx = the dialog hwnd.
+; In: ecx = the command id (IDCANCEL, ID_DZDEF or CMD_QUIT), edx = the
+; dialog hwnd.
 ; Out: eax = 0 for handled, 1 to post - with ecx the command to post.
 ; Runs inside the dialog procedure's frame, which saved ebx, esi and edi.
 

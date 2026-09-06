@@ -161,7 +161,7 @@ seen and a predicted code can be joined first.
 
 The relay cannot be turned into a general tunnel. Each direction of a code
 is a token bucket refilling at 250 packets a second - a 60 fps match spends
-a third of that, so it never notices, while a pair trying to push bulk
+about a quarter of that, so it never notices, while a pair trying to push bulk
 traffic is held to that rate times the 512-byte cap, about 125 KB/s per
 code, whatever they send.
 

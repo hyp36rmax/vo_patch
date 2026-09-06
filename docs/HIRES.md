@@ -552,7 +552,7 @@ to it on 0x6bea88/0x6bea8c), sub-states 2 and 6 (0x4b1b87, 0x4b1f99,
 block 1) and the network cards 0x4d54c1 and its neighbours, which pick
 one of the three at random. 0x4d1328 leaves plane B's scroll y at
 0x4000 (tile row 0). Each block has 1088..1804 distinct tiles; the
-splash has 287. The maps are identical in the JPRE and OEM builds, which
+splash has 287. The maps are byte-identical in all four builds, which
 is why the recognition is by cell content rather than by address. The
 copy is a plain memcpy, yet the ring reads back with every index
 lowered by one constant (0xe32 on the select, another on the encounter

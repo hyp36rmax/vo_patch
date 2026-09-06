@@ -50,7 +50,8 @@ def main():
     data = open(path, 'rb').read()
     secs = sections(data)
 
-    # every blob's place: caves, the annex, and the two apply-time sections
+    # every blob's place: caves, the annex, and the three apply-time
+    # sections - .voxt, .vocd and the widescreen patch's .vohr
     places = {}
     for name in vp.BLOBS:
         try:
@@ -64,18 +65,27 @@ def main():
     vocd = next((va for n, va, vs, ro in secs if n == '.vocd'), None)
     if vocd is not None:
         places['VOCD'] = vocd
+    vohr = next((va for n, va, vs, ro in secs if n == '.vohr'), None)
+    if vohr is not None:
+        places['UI_CODE'] = vohr
+    # the widescreen blob's named offsets, as its labels
+    ui_labels = {name[3:].lower(): getattr(vp, name) for name in dir(vp)
+                 if name.startswith('UI_') and isinstance(getattr(vp, name), int)
+                 and getattr(vp, name) < len(vp.UI_CODE)}
 
     for arg in sys.argv[2:]:
         va = int(arg, 16)
         hit = None
         for name, at in places.items():
             length = len(vp.BLOBS[name][0]) if name in vp.BLOBS else (
-                len(vp.EXTRAS_TPL) if name == 'EXTRAS_TPL' else len(vp.VOCD_CODE))
+                len(vp.EXTRAS_TPL) if name == 'EXTRAS_TPL' else
+                len(vp.UI_CODE) if name == 'UI_CODE' else len(vp.VOCD_CODE))
             if at <= va < at + length:
                 hit = (name, at)
         if hit:
             name, at = hit
-            labels = vp.BLOBS[name][2] if name in vp.BLOBS else {}
+            labels = (vp.BLOBS[name][2] if name in vp.BLOBS else
+                      ui_labels if name == 'UI_CODE' else {})
             before = [(o, l) for l, o in labels.items() if o <= va - at]
             near = max(before)[1] + '+0x%x' % (va - at - max(before)[0]) \
                 if before else '+0x%x' % (va - at)

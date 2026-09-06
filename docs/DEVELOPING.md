@@ -438,6 +438,7 @@ gh release delete v0.8.4 --yes     # if a release was created
 | a table that is well-formed and wrong | nothing | only playing the game |
 | the netplay DLL misbehaving on a real link | nothing | only two machines |
 | the matchcode punch or relay failing | nothing | two machines on two networks |
+| a real pressing's image failing to install | nothing - `disc` builds its own images | only `--install` on the real cue, per pressing |
 
 ## Troubleshooting
 

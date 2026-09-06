@@ -40,8 +40,8 @@ extern DZTHR1
 extern DZSTR1
 
 extern F11CHECKS                ; asm/f11pause.asm's tail: the check boxes
-ANNEXREL    equ 0xEAEAEAEA      ; a placeholder: the rel32 to asm/voxt.asm's
-                                ; annex at the end of the .voxt section,
+ANNEXREL    equ 0xEAEAEAEA      ; a placeholder: the rel32 to asm/voxt.asm,
+                                ; the code at the end of the .voxt section,
                                 ; whose address only exists at apply time -
                                 ; vo_patch.py computes and fills it
 VK_F11      equ 0x7a
@@ -134,9 +134,10 @@ dlgproc:
     cmp     ecx, CMD_QUIT
     jne     credits
 .tail:
-    ; Close and Quit are the long paths - the deadzone read, the ini save,
-    ; the teardown order - and live in asm/voxt.asm at the end of the
-    ; template's section. The annex says what to do with its answer.
+    ; Close, Defaults and Quit are the long paths - the deadzone read,
+    ; the ini save, the reseed, the teardown order - and live in
+    ; asm/voxt.asm at the end of the template's section. Its answer says
+    ; whether the command is still to be posted.
     mov     edx, dword [ebp + 8]
     db      0xe8                        ; call rel32; nasm would subtract the
     dd      ANNEXREL                    ; site from a plain call, and the
@@ -167,8 +168,8 @@ dlgproc:
 ; it replaces. Out of line from when the dialog procedure ran to the end
 ; of the blob. 0x1f is the state that sets the ending up and steps to the
 ; credits itself; it only means that during a match, so pressing this
-; anywhere else does nothing. The Quit case that lived above this is
-; gone with its button - the window X quits the game the same way.
+; anywhere else does nothing. Quit goes through asm/voxt.asm with Close,
+; since it has to end the dialog before the game tears the window down.
 credits:
     cmp     ecx, CMD_CREDITS
     jne     .fwd

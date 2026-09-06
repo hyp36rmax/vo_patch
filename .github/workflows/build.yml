@@ -106,6 +106,7 @@ jobs:
       # banner   the only check that proves the title prompt reads back as
       #          it was written, since the artwork is not here either
       # credit   the same proof for the credit line in the ending roll
+      # uiemu    the resolution blob run under Unicorn, on the retail file
 
   # Builds on every push to a branch above, on a tag, and on demand from
   # the Actions tab. Pull requests are left out: the push that follows the
