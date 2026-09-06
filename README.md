@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/VONPatcherLogo3.png" alt="V-ON Patcher" width="520" />
+</p>
+
 # vo_patch
 
 Gets *Cyber Troopers Virtual-On* (PC, 1997) running properly on a modern
@@ -757,7 +761,8 @@ Some of the byte edits come from the original VO_Patch 0.43 (2008) by
 [UE2A-GEL](https://jaguarandi.xxxxxxxx.jp/). Rights to the game belong to
 SEGA. `LICENSE` (MIT) covers the patcher, its tools and its documentation -
 not the game, not the bytes quoted from it, and not the letterforms traced
-from its artwork. Special thanks to SirRockEmSockEm for the in-game shots.
+from its artwork. Special thanks to SirRockEmSockEm for the logo, the icon
+and the in-game shots.
 
 Bug reports and patches are welcome as issues and pull requests. For
 anything else - a disc image of a build the patcher does not know, or a

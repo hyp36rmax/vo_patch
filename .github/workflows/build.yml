@@ -185,6 +185,7 @@ jobs:
           ls dist/vo_patch/_internal/_tkinter*.pyd || { echo 'tkinter was not bundled'; exit 1; }
           ls dist/vo_patch/_internal/certifi/cacert.pem || { echo 'certifi CA list was not bundled'; exit 1; }
           ls dist/vo_patch/_internal/dpctrl.dll || { echo 'netplay DLL was not bundled'; exit 1; }
+          ls dist/vo_patch/_internal/assets/logo.png || { echo 'logo was not bundled'; exit 1; }
           echo "$(find dist/vo_patch -type f | wc -l) files, tkinter, CA list and DLL present"
 
       # The listing cannot see inside the PYZ, so an over-eager entry in

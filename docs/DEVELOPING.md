@@ -164,6 +164,15 @@ Edit `LINES` at the top to change what it says. The result goes between the
 `CREDITLINE BLOB` markers - not the `CREDITS BLOB` ones, which belong to
 `asm/credits.asm` and are a different thing entirely.
 
+**`tools/assets.py`** scales the artwork in `assets/` down to what the
+patcher ships: `logo.png` for the top of the window, `icon.png` for the
+window icon and `icon.ico` for the exe. It needs Pillow. Run it after
+replacing an original and commit the result.
+
+```bash
+python3 tools/assets.py
+```
+
 ## Where the blobs live
 
 Every blob but two is in the annex: a section, `.vojp`, appended before

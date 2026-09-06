@@ -8690,6 +8690,23 @@ ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 # in this window was chosen against it, so those numbers stay written as the
 # pixel counts they were and scaled by how far the real font has moved.
 BASE_EM = 6.8
+# The logo across the top of the window, in pixels at 100%. The shipped
+# file is drawn at twice this; tools/assets.py makes it.
+LOGO_HEIGHT = 96
+LOGO_NAME = 'logo.png'
+ICON_NAME = 'icon.png'
+
+
+def asset_path(name):
+    """A file from assets/: the frozen build's _internal/assets/, or the
+    checkout's. None when it is not there, so the released .py runs
+    without them."""
+    if getattr(sys, 'frozen', False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(base, 'assets', name)
+    return path if os.path.isfile(path) else None
 
 
 def scaled(value, em):
@@ -9144,10 +9161,12 @@ def run_tk():
             root.protocol('WM_DELETE_WINDOW', self._close)
 
             self._styles()
+            self._icon(root)
 
             outer = ttk.Frame(root, style='Ink.TFrame')
             outer.pack(fill='both', expand=True)
             self._statusbar(outer)                  # pinned before the body
+            self._logo_h = self._logo(outer)        # fixed above it
             body = self._body(outer)
 
             # In the order the work is done: installing first, since with
@@ -9276,7 +9295,8 @@ def run_tk():
             # most time looking at.
             row = self.small.metrics('linespace')
             self.cap = min(max(self.px(360),
-                               parent.winfo_screenheight() - self.px(150)),
+                               parent.winfo_screenheight() - self.px(150)
+                               - self._logo_h),
                            row * 56)
             self.inner.bind('<Configure>', self._fit)
             self.canvas.bind('<Configure>', self._fit)
@@ -10334,6 +10354,40 @@ def run_tk():
                                 command=self.log_box.yview)
             bar.pack(side='right', fill='y')
             self.log_box.configure(yscrollcommand=bar.set)
+
+        def _icon(self, root):
+            path = asset_path(ICON_NAME)
+            if not path:
+                return
+            try:
+                # Kept on self: Tk does not own the image.
+                self._icon_image = tk.PhotoImage(file=path)
+                root.iconphoto(True, self._icon_image)
+            except tk.TclError:
+                pass
+
+        def _logo(self, parent):
+            """The logo across the top. Returns the height it takes, which
+            the content cap allows for; 0 when the file is not shipped."""
+            path = asset_path(LOGO_NAME)
+            if not path:
+                return 0
+            try:
+                image = tk.PhotoImage(file=path)
+            except tk.TclError:
+                return 0
+            # Shipped at twice the size shown at 100%: whole-number
+            # subsampling is all Tk offers.
+            factor = max(1, int(round(image.height()
+                                      / float(self.px(LOGO_HEIGHT)))))
+            if factor > 1:
+                image = image.subsample(factor)
+            self._logo_image = image
+            gap = self.px(12)
+            label = tk.Label(parent, image=image, background=PALETTE['ink'],
+                             borderwidth=0, highlightthickness=0)
+            label.pack(side='top', pady=(gap, 0))
+            return image.height() + gap
 
         def _statusbar(self, parent):
             bar = ttk.Frame(parent, style='Bar.TFrame',

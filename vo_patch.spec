@@ -56,7 +56,9 @@ a = Analysis(
     [SOURCE],
     pathex=[],
     binaries=[],
-    datas=[('net/dpctrl.dll', '.')],   # netplay DLL, read at install time
+    datas=[('net/dpctrl.dll', '.'),    # netplay DLL, read at install time
+           ('assets/logo.png', 'assets'),
+           ('assets/icon.png', 'assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -95,6 +97,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/icon.ico',
     version=str(_version_file),
 )
 coll = COLLECT(
