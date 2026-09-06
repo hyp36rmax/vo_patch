@@ -58,7 +58,7 @@ REBASE = 0xe32                  # what the select's loader took off block 2
 class Emu:
     def __init__(self, exe):
         from unicorn import Uc, UC_ARCH_X86, UC_MODE_32
-        import vo_patch as vp
+        import vonpatcher_hires as vp
         import uibuild
         self.vp = vp
         buf = bytearray(exe)

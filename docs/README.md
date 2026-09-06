@@ -6,7 +6,7 @@ working on the patcher.
 
 | Read | For |
 | --- | --- |
-| [MAP.md](MAP.md) | where things are: the repository, the regions of `vo_patch.py`, and the executable's layout - stock sections, the game's code and data as far as it is mapped, the sections the patcher appends, the annex blob by blob, sites by patch |
+| [MAP.md](MAP.md) | where things are: the repository, the regions of `v-on-patcher.py`, and the executable's layout - stock sections, the game's code and data as far as it is mapped, the sections the patcher appends, the annex blob by blob, sites by patch |
 | [DEVELOPING.md](DEVELOPING.md) | setup, the daily loop, the checks and what each catches, adding a blob, a site or a build, netplay development, releasing, troubleshooting |
 | [NOTES.md](NOTES.md) | how each patch works inside the game: the patch table with every site, the builds and how their offsets map, and a section per patch on what the game does and why the change is what it is |
 | [TEXT.md](TEXT.md) | the three ways the game draws text, where each string the patcher touches lives, and how the title banner and the credit line are made |

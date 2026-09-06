@@ -369,7 +369,7 @@ out of a dd table appended in a temporary copy of the source - appending
 shifts nothing.
 
 uibuild splices the blob and every derived offset constant into
-vo_patch.py, and regenerates UI_REFS: every game-address dword in the
+v-on-patcher.py, and regenerates UI_REFS: every game-address dword in the
 blob by exact position, from its own disassembly (capstone), excluding
 call/jmp rel32s (those are fixed per site). `tools/uibuild.py --check` is
 in the check pipeline; it reassembles when nasm is present - always, on
@@ -916,7 +916,7 @@ spot.
     python3 tools/portaudit.py maps/jpre.pkl
                                         # instruction shapes at every site
     # splice maps/jpre_port.txt, maps/oem_port.txt and maps/jp_port.txt
-    # between the PORT TABLES markers in vo_patch.py, replacing what is there
+    # between the PORT TABLES markers in v-on-patcher.py, replacing what is there
     python3 tools/selftest.py RETAIL.exe   # and JPRE, OEM, JP: the digests
     # go into EXPECTED_ALL in tools/selftest.py
 
@@ -925,8 +925,8 @@ list every blob reference by position (UI_REFS), and the positions
 move. An immediate in the game's address range comes out as a FAIL in
 maps/*_port.txt; shift or add such values at runtime instead.
 
-tools/vo_patch_hires.py is the import shim the tools use to read the
-tables out of vo_patch.py. tools/uibuild.py --check runs in
+tools/vonpatcher_hires.py is the import shim the tools use to read the
+tables out of v-on-patcher.py. tools/uibuild.py --check runs in
 tools/check.py, and so does tools/uiemu.py when a retail exe is given.
 It runs the blob under Unicorn: the game's own plane B walker with a
 photo block in the ring as the loader leaves it, the HUD spread, the

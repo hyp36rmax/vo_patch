@@ -1,7 +1,7 @@
 # asm
 
 Source for the machine code the patches install, and for the tables and
-dialog templates that go with it. `vo_patch.py` carries the finished bytes, so
+dialog templates that go with it. `v-on-patcher.py` carries the finished bytes, so
 nobody running the patcher or building the exe needs nasm. Only someone
 editing this directory does.
 
@@ -44,7 +44,7 @@ and release workflow see [DEVELOPING.md](../docs/DEVELOPING.md).
 | `layout.py` | data blob layout and string table, shared by `vocd.asm` and the blob |
 | `padtables.py` | gamepad: what each pad input is, what it is called, the F7 device list |
 | `dialogs.py` | the F11 Extras template and its tables, and the F5 frame rate labels |
-| `build.py` | builds every blob in `../vo_patch.py`, from the `.asm` and `.py` sources above |
+| `build.py` | builds every blob in `../v-on-patcher.py`, from the `.asm` and `.py` sources above |
 
 The prefix is the patch each file ships in, which is not always the obvious
 one: `camskip.asm` goes out with **XInput gamepad support** because the tick
@@ -54,7 +54,7 @@ with **Intro, loading and ending screens**.
 
 ## How the assembly gets into the patcher
 
-`vo_patch.py` never reads these files. It carries the finished machine code as
+`v-on-patcher.py` never reads these files. It carries the finished machine code as
 hex strings, because it ships as a single file - bundled into the exe, or
 downloaded on its own - and has to run from a fresh checkout with nothing
 installed.
@@ -81,7 +81,7 @@ Three regions, and `build.py` fails if a pair is missing:
 Each `BLOBS` entry is `(code, fixups, labels)`. The code has its address
 slots empty. A fixup says which slot holds which symbol, absolute or
 relative to the end of the slot. The labels are the source's labels as
-offsets, for another blob or the site table to name. `vo_patch.py`
+offsets, for another blob or the site table to name. `v-on-patcher.py`
 links each one for the build being patched - `link('PADX', build)`, which
 `blob('PADX')` in the site table resolves to as the patch is applied - and
 that is what gets written.
@@ -98,11 +98,11 @@ No `.asm` file names an address in the game. Every place it touches is an
 the file as an ELF object, whose relocations say which bytes want which
 symbol.
 
-`build.py` reads those out and writes them into `vo_patch.py` beside the
+`build.py` reads those out and writes them into `v-on-patcher.py` beside the
 code as the fixup list.
 
 The addresses themselves live in one place per build, the `symbols` table
-of its `Build` in `vo_patch.py`: a virtual address for a place in the game,
+of its `Build` in `v-on-patcher.py`: a virtual address for a place in the game,
 or `(blob, label)` for a place in one of ours. Where a blob goes is the
 build's `annex` list, or for the two places the game itself reaches, its
 `caves` table.
@@ -135,14 +135,14 @@ that comes to, and a blob that grows only needs rebuilding.
 sudo dnf install nasm            # or: sudo apt install nasm
 
 vim asm/vocd.asm                 # 1. edit an .asm file, or a .py one
-python3 asm/build.py             # 2. rebuild the blobs in vo_patch.py
-git diff                         # 3. vo_patch.py's hex strings changed
+python3 asm/build.py             # 2. rebuild the blobs in v-on-patcher.py
+git diff                         # 3. v-on-patcher.py's hex strings changed
 ```
 
-Step 2 also runs `vo_patch.py --selfcheck`, which validates the patch tables,
+Step 2 also runs `v-on-patcher.py --selfcheck`, which validates the patch tables,
 so a run that prints `tables OK` has verified both halves.
 
-You never edit the hex in `vo_patch.py` yourself. The generated regions carry
+You never edit the hex in `v-on-patcher.py` yourself. The generated regions carry
 a GENERATED banner saying so, and the next `build.py` run would overwrite the
 edit anyway.
 
@@ -783,7 +783,7 @@ pairs of projection slots. How it was found is in
 
 ## titlever.asm
 
-Prints `vo_patch <version>` in the bottom right of the title screen.
+Prints `v-on-patcher <version>` in the bottom right of the title screen.
 
 The game's own tile font, the one the menu items on that screen are set in:
 `0x4cd8c3` puts the cursor at a cell and `0x4ceeeb` prints through it, the

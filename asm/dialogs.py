@@ -19,7 +19,7 @@ import struct
 
 TEMPLATE = 0xE7E7E7E7   # a placeholder: the template lives in its own
                         # appended section, whose address only exists at
-                        # apply time - vo_patch.py fills it in the way it
+                        # apply time - v-on-patcher.py fills it in the way it
                         # fills .vocd's, at apply_extras_template()
 # Its strings and tables are the EXTRAS_DATA blob in the annex; the
 # check-box flags are game globals, as fixups.

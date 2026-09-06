@@ -1,7 +1,7 @@
 bits 32
 ; Native widescreen: the 2D layer drawn into an offscreen canvas and
 ; composited onto the viewport; HUD polygons projected at 640x480 and
-; rescaled at insert. Built into vo_patch.py by tools/uibuild.py, whose
+; rescaled at insert. Built into v-on-patcher.py by tools/uibuild.py, whose
 ; --check guards drift. docs/HIRES.md has the design and the porting
 ; record.
 ;
@@ -69,7 +69,7 @@ bits 32
 ; Data is ebx-relative after call/pop. The patcher writes D_MODEW/
 ; D_MODEH, D_ROWTAB, D_KSBS, D_SCALE/D_HUD, the float constants,
 ; D_CMOON, D_PINTH, D_SPLITC/D_BOTROW/D_BOTCOL, D_SPLITST, D_DEBUG and
-; D_F4TAB; see the UI_ constants in vo_patch.py.
+; D_F4TAB; see the UI_ constants in v-on-patcher.py.
 FB_PTR    equ 0x6bf5a8            ; locked surface pointer
 FB_PITCH  equ 0x6bf5ac
 FB_ROW    equ 0x6bf5b0            ; current row pointer

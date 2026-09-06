@@ -16,7 +16,7 @@ The executable's table holds indices relative to the bank; the loader adds
 0x380 to each at start-up, so the values written here are 0-based.
 
 The build is read off v_on.exe (or the .bak beside it, on a patched copy)
-through vo_patch.py's tables: the artwork is escrgame.bin or jscrgame.bin
+through v-on-patcher.py's tables: the artwork is escrgame.bin or jscrgame.bin
 and the table offset is that build's. A file no build matches is refused.
 
 Everything is rendered from a font, so the result is consistent across the
@@ -46,7 +46,7 @@ TABLE_OFF = 0x269B60         # v_on.exe, retail's file offset of the table;
 COLS, ROWS = 42, 3
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PATCHER = os.path.join(os.path.dirname(HERE), 'vo_patch.py')
+PATCHER = os.path.join(os.path.dirname(HERE), 'v-on-patcher.py')
 
 # --- metrics measured from the original, so a new line sits the same -------
 INK = 0xFCA0                 # the orange it uses

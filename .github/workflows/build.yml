@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  # vo_patch.py carries the assembled bytes rather than assembling on demand,
+  # v-on-patcher.py carries the assembled bytes rather than assembling on demand,
   # so the assembly and the blobs in the script can drift apart and everything
   # will still look fine: the repository is self-consistent and the shipped
   # patcher installs last week's code. This job is the only thing that
@@ -161,32 +161,32 @@ jobs:
           fi
           python - "$version" <<'EOF'
           import pathlib, re, sys
-          src = pathlib.Path('vo_patch.py')
+          src = pathlib.Path('v-on-patcher.py')
           text, n = re.subn(r"^VERSION = '.*'$", "VERSION = '%s'" % sys.argv[1],
                             src.read_text(encoding='utf-8'), count=1, flags=re.M)
           if n != 1:
-              raise SystemExit('no VERSION line in vo_patch.py')
+              raise SystemExit('no VERSION line in v-on-patcher.py')
           src.write_text(text, encoding='utf-8', newline='\n')
           EOF
-          grep '^VERSION = ' vo_patch.py
+          grep '^VERSION = ' v-on-patcher.py
 
-      # Everything about the build lives in vo_patch.spec, including the
+      # Everything about the build lives in v-on-patcher.spec, including the
       # version, which it reads out of the script.
-      - run: pyinstaller vo_patch.spec --noconfirm
+      - run: pyinstaller v-on-patcher.spec --noconfirm
 
       # A frozen build fails at import time or not at all, so check the
       # bundle: no tkinter and the exe is dead on arrival.
       - name: Inspect the bundle
         shell: bash
         run: |
-          ls -l dist/ dist/vo_patch/
-          pyi-archive_viewer -l -b dist/vo_patch/*.exe > listing.txt
+          ls -l dist/ dist/v-on-patcher/
+          pyi-archive_viewer -l -b dist/v-on-patcher/*.exe > listing.txt
           grep -q 'pyi_rth__tkinter' listing.txt || { echo 'no Tk runtime hook'; exit 1; }
-          ls dist/vo_patch/_internal/_tkinter*.pyd || { echo 'tkinter was not bundled'; exit 1; }
-          ls dist/vo_patch/_internal/certifi/cacert.pem || { echo 'certifi CA list was not bundled'; exit 1; }
-          ls dist/vo_patch/_internal/dpctrl.dll || { echo 'netplay DLL was not bundled'; exit 1; }
-          ls dist/vo_patch/_internal/assets/logo.png || { echo 'logo was not bundled'; exit 1; }
-          echo "$(find dist/vo_patch -type f | wc -l) files, tkinter, CA list and DLL present"
+          ls dist/v-on-patcher/_internal/_tkinter*.pyd || { echo 'tkinter was not bundled'; exit 1; }
+          ls dist/v-on-patcher/_internal/certifi/cacert.pem || { echo 'certifi CA list was not bundled'; exit 1; }
+          ls dist/v-on-patcher/_internal/dpctrl.dll || { echo 'netplay DLL was not bundled'; exit 1; }
+          ls dist/v-on-patcher/_internal/assets/logo.png || { echo 'logo was not bundled'; exit 1; }
+          echo "$(find dist/v-on-patcher -type f | wc -l) files, tkinter, CA list and DLL present"
 
       # The listing cannot see inside the PYZ, so an over-eager entry in
       # EXCLUDES looks fine there and dies at the exe's own import line -
@@ -200,7 +200,7 @@ jobs:
       - name: The exe starts
         shell: bash
         run: |
-          timeout 60 dist/vo_patch/vo_patch-*.exe --selfcheck
+          timeout 60 dist/v-on-patcher/v-on-patcher-*.exe --selfcheck
           echo 'the exe runs and its tables check out'
 
       # To the log, not an asset: a checksum beside its own binary proves
@@ -210,7 +210,7 @@ jobs:
       - name: Checksum
         shell: bash
         run: |
-          cd dist/vo_patch && sha256sum *.exe
+          cd dist/v-on-patcher && sha256sum *.exe
           echo "VirusTotal: https://www.virustotal.com/gui/file/$(sha256sum *.exe | cut -c1-64)"
 
       # Linux users run the script, so ship it too. Strip CR or the shebang
@@ -220,15 +220,15 @@ jobs:
         run: |
           python - <<'EOF'
           import pathlib, re, shutil
-          src = pathlib.Path('vo_patch.py')
+          src = pathlib.Path('v-on-patcher.py')
           text = src.read_bytes().replace(b'\r\n', b'\n')
           version = re.search(rb"^VERSION = '(.*)'$", text, re.M).group(1).decode()
-          pathlib.Path('dist/vo_patch-%s.py' % version).write_bytes(text)
+          pathlib.Path('dist/v-on-patcher-%s.py' % version).write_bytes(text)
           shutil.copy('net/dpctrl.dll', 'dist/dpctrl.dll')
-          print('staged vo_patch-%s.py and dpctrl.dll' % version)
+          print('staged v-on-patcher-%s.py and dpctrl.dll' % version)
           EOF
-          if grep -q $'\r' dist/vo_patch-*.py; then
-            echo 'a CR survived - ./vo_patch.py would not run on Linux'
+          if grep -q $'\r' dist/v-on-patcher-*.py; then
+            echo 'a CR survived - ./v-on-patcher.py would not run on Linux'
             exit 1
           fi
           ls -l dist/
@@ -239,9 +239,9 @@ jobs:
         shell: bash
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
-            echo "artifact=vo_patch-$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+            echo "artifact=v-on-patcher-$GITHUB_REF_NAME" >> "$GITHUB_ENV"
           else
-            echo "artifact=vo_patch-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+            echo "artifact=v-on-patcher-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
           fi
 
       # Two zips: -win with the exe and _internal/ at its top, -python with
@@ -253,10 +253,10 @@ jobs:
           cd dist && python -c "
           import os, zipfile
           with zipfile.ZipFile('$artifact-win.zip', 'w', zipfile.ZIP_DEFLATED) as z:
-              for root, _dirs, files in os.walk('vo_patch'):
+              for root, _dirs, files in os.walk('v-on-patcher'):
                   for f in files:
                       p = os.path.join(root, f)
-                      z.write(p, os.path.relpath(p, 'vo_patch'))
+                      z.write(p, os.path.relpath(p, 'v-on-patcher'))
           with zipfile.ZipFile('$artifact-python.zip', 'w', zipfile.ZIP_DEFLATED) as z:
               for f in os.listdir('.'):
                   if f.endswith('.py'):
