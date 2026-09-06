@@ -83,10 +83,10 @@ A build is a `Build` in `vo_patch.py`: its sections, where each blob goes,
 what every symbol the blobs name resolves to there, its title artwork, and
 for a build other than retail a site map and an annex.
 
-The site map is that build's offset and original bytes for every site the
-table names by retail offset, or `None` where the build has no such code; a
-site one build has and retail has not is written the other way round, as
-`In(md5, offset)`.
+The site map gives, for every site the table names by retail offset, that
+build's offset and original bytes, or `None` where the build has no such
+code. A site one build has and retail has not is written the other way
+round, as `In(md5, offset)`.
 
 The blobs are one set of bytes for all builds, linked from the build's
 tables when the patcher loads, and the site table's hooks and blob sites
@@ -106,10 +106,10 @@ Two things are the same in every build:
   any patch and filled through the site table. The annex's place is fixed
   by the file's headers, so it links at import; `.voxt` and `.vocd` land
   after it. Only the F7 device list and the levers tail, which the game
-  reaches itself, are written in place. A run of zeros in `.rdata` is not
-  used: one long enough for a blob is the NULL tail of a handler table -
-  a code pointer just before it, and the game calling through the slots -
-  or a constant that happens to be zero, and both have crashed the game.
+  reaches itself, are written in place. Runs of zeros in `.rdata` are not
+  used: one long enough for a blob is the NULL tail of a handler table the
+  game calls through, or a constant that happens to be zero. Both have
+  crashed the game.
 - The patcher's scratch - the XInput state, the recreate flags, the two
   bytes the ending screens track a press with - sits in the page slack
   past `.data`'s VirtualSize. Nothing in the file references it; it is
@@ -227,10 +227,10 @@ position polling, so a finished track goes quiet, as it did with the disc.
 That is little enough to answer from WAV files instead, which a routine in a
 new `.vocd` section does.
 
-The routine and its data are 3 KB, more than the annex is for, so the
-executable gets a section of its own, and the entry point is repointed at
-the setup thunk, which chains to whatever it was before - hence this patch
-running after all the others.
+The routine and its data are 3 KB, more than the annex is for, so they get
+a section of their own. The entry point is repointed at the setup thunk,
+which chains to whatever it was before; that is why this patch runs after
+the others.
 
 #### Getting called
 
@@ -279,12 +279,11 @@ read a null primary at `0x5c650b`, then a null `IDirectSound` at
 `0x58a244`.
 
 Making the exit recreate anyway - the `jne` at `0x5b1520` becomes a `jmp` -
-is half the fix. That recreate runs the moment the stop is noticed, with the
-window still in the background, and a DirectDraw that will not give
-exclusive mode to a background window returns from `0x5c56a2` with a plain
-primary and no back buffer, and a zero result nobody reads. So
-`asm/activate.asm` covers the other half, three hooks at the entries of the
-game's own functions:
+is half the fix. That recreate runs the moment the stop is noticed, with
+the window still in the background. DirectDraw will not give exclusive
+mode to a background window, so `0x5c56a2` returns a plain primary with no
+back buffer, and a zero result nobody reads. `asm/activate.asm` covers the
+other half, with three hooks at the entries of the game's own functions:
 
 | Hook | Does |
 | --- | --- |
@@ -439,17 +438,16 @@ keyboard page passed a hardcoded player 0, resetting 1P's binds from the 2P
 side; the other two pages pass the current player, so this one is corrected
 to match.
 
-*Twin-stick* adds no logic at all. The tick is a bind -> condition -> lever
-mask engine, and the arcade scheme is just a different set of binds and
-masks: each of the twelve slots drives one lever direction or button instead
-of a named action, so the thumbsticks land straight in the two lever words.
-It is mostly tables. It binds nothing, so it takes the page-table entry
-that opens no dialog, which also disposes of the `0x3651554 == 1` check
-that made **Next** refuse without a joystick attached. Jump and guard are
-lever gestures rather than buttons - both levers spread outward, both
-squeezed inward - so they share the words movement writes to, and neither
-came out while moving. A second routine after each tick sorts that out, and
-only when a pad was read, so the keyboard path is untouched.
+*Twin-stick* adds no logic. The tick is a bind -> condition -> lever mask
+engine, and the arcade scheme is a different set of binds and masks: each
+of the twelve slots drives one lever direction or button instead of a named
+action, so the thumbsticks land straight in the two lever words. It binds
+nothing, so it takes the page-table entry that opens no dialog, which also
+removes the `0x3651554 == 1` check that made **Next** refuse without a
+joystick. Jump and guard are lever gestures - both levers spread outward,
+both squeezed inward - and share the words movement writes to, so neither
+came out while moving. A routine after each tick strips that, only when a
+pad was read, so the keyboard path is untouched.
 
 #### The shared bind page
 
@@ -460,9 +458,9 @@ Simple and the gamepad share one bind page, told apart by device:
 player-and-slot index) picks the saved block, `+0x08` for the gamepad and
 `+0x38`, the slot's own, for Simple.
 
-The device consulted is the structure's own `+0x00` dword, the pending pick
-the F7 screen edits, not the committed copy at `0x3651540`: the bind page
-and the live-table apply both run before OK commits, and against the
+The device consulted is the structure's own `+0x00` dword - the pending
+pick the F7 screen edits - not the committed copy at `0x3651540`. The bind
+page and the live-table apply both run before OK commits; against the
 committed device they would serve the profile being switched away from.
 
 The letter and digit sections are generated, not listed, and belong to
@@ -519,16 +517,16 @@ Whatever the saved devices, `asm/iniall.asm` runs the same loader for both
 players at the load loop's exit, so an inactive profile's saved set survives
 restarts spent on other devices.
 
-It is in the annex. Through v0.10.1 it sat at `0x5fb144` in `.rdata`, which is
-zeros in the file but not free: the attract loop's scoreboard state copies
-21 dwords from `0x5fb140` into its own record and reads an index out of
-them, so with the patch in the blob's bytes were the index and the loop
-crashed on its way back to the title screen.
+It is in the annex. Through v0.10.1 it sat at `0x5fb144` in `.rdata`, zeros
+in the file but not free: the attract loop's scoreboard state copies 21
+dwords from `0x5fb140` and reads an index out of them. With the blob there,
+its bytes were the index, and the loop crashed on the way back to the
+title screen.
 
 The stick deadzones load on the same exit: 40% per player unless that
-player's `1P Deadzone=` or `2P Deadzone=` line says otherwise - two digits,
-05 to 95, anything else keeps the default; an entry the F11 box rejects is
-re-seeded to the percent in force, so it neither lingers nor blanks.
+player's `1P Deadzone=` or `2P Deadzone=` line says otherwise, as two
+digits from 05 to 95. Anything else keeps the default. An entry the F11 box
+rejects is re-seeded to the percent in force.
 
 The key strings ride in the names blob rather than beside the Assign keys,
 whose run turns out to end within nine bytes of them. The thresholds the
@@ -666,11 +664,11 @@ of its own.
 
 ### Ending screens
 
-There are two credit sequences. The one the **Credits** button reaches is
-sub-state `0x20` of the title machine `0x1ae3690`, whose handler at
-`0x59081f` is a phase machine on `0x1ad0964`: 0 and 1 are the ending
-cutscene and the mission complete screen, 2 is the roll, and anything else
-falls through to a tail that stops the music and moves on.
+There are two credit sequences. The **Credits** button reaches sub-state
+`0x20` of the title machine `0x1ae3690`. Its handler at `0x59081f` is a
+phase machine on `0x1ad0964`: 0 and 1 are the ending cutscene and the
+mission complete screen, 2 is the roll, anything else falls through to a
+tail that stops the music and moves on.
 
 The one a finished game reaches is state 32 of the main-game machine
 `0x1ef9eb0`, whose draw table is `0x606fa0`; entry 32 is `0x44a523`, a
@@ -697,9 +695,9 @@ A key slot is a level and not an edge, so both stubs share one byte of
 `.data` holding last frame's reading. That byte is why skipping the credits
 with A does not also enter the first letter: A is still held when the
 initials screen opens, and only a press that starts there counts. Skipping
-is a hold rather than a press for the same reason it is not instant: a
-button already down when the roll opens never starts a count, so the press
-that skipped the win screen does not carry through.
+is a hold for the same reason: a button already down when the roll opens
+never starts a count, so the press that skipped the win screen does not
+carry through.
 
 Both stubs read 1P's slots and only 1P's, so 2P skips nothing and enters
 initials on RT alone.

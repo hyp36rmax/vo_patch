@@ -79,9 +79,9 @@ Three regions, and `build.py` fails if a pair is missing:
 ```
 
 Each `BLOBS` entry is `(code, fixups, labels)`. The code has its address
-slots empty; a fixup says which slot holds which symbol and how (absolute,
-or relative to the end of the slot); the labels are the offsets of the
-source's labels, for another blob or the site table to name. `vo_patch.py`
+slots empty. A fixup says which slot holds which symbol, absolute or
+relative to the end of the slot. The labels are the source's labels as
+offsets, for another blob or the site table to name. `vo_patch.py`
 links each one for the build being patched - `link('PADX', build)`, which
 `blob('PADX')` in the site table resolves to as the patch is applied - and
 that is what gets written.
@@ -109,10 +109,10 @@ build's `annex` list, or for the two places the game itself reaches, its
 
 The locals of the game's own functions that a stub reads - a loop counter
 at `[ebp-8]` - are the frame-offset symbols, plain constants from
-`frames.inc`, which `build.py` writes from the retail table. It finds
-where each one sits in the code by assembling the source once more with
-that constant moved and diffing; a relocation would do it, but nasm
-versions disagree on what an 8-bit relocation against an extern encodes.
+`frames.inc`, which `build.py` writes from the retail table. To find where
+each one sits in the code it assembles the source again with the constant
+moved and diffs. A relocation would do the same, but nasm versions
+disagree on what an 8-bit relocation against an extern encodes.
 
 The `.py` modules work the same way: `padtables.py` emits the bind list
 with a fixup on `PAD_NAMES` for every pointer, `dialogs.py` a fixup on each
@@ -121,10 +121,9 @@ reads as `extern`.
 
 So one set of machine code serves any build of the game; a second build is
 a second `Build` with its own tables. The site table names its hooks the
-same way - `call(0x0009703f, ('PAGESEC', 'fillsec'), 5)` computes the
-rel32 from where the blob is, and `site('PADX')` the file offset a blob is
-written at - so there is no hand-computed address for the two to disagree
-on.
+same way: `call(0x0009703f, ('PAGESEC', 'fillsec'), 5)` computes the rel32
+from where the blob is, and `site('PADX')` the file offset a blob is
+written at. No address is computed by hand.
 
 Nothing in here has a fixed shape. Every place another blob or the site
 table reaches is a label, `levers.asm` goes at `('PADX', 'end')` whatever
@@ -321,12 +320,11 @@ there is nothing to open them with. This builds a dialog instead.
 
 **The hook** replaces the window procedure pointer at `0x1c4d7e`. It watches
 for F11 and passes everything else to the handler that was there before.
-During a network match it passes F11 on as well: the game's own F-key
-handlers each begin `cmp [0x6bc94c], 2` - the loop's mode - and return, so
-the hook does the same test in the same place and F11 is as inert as F5. On
-F11 it fetches `DialogBoxIndirectParamA` through `LoadLibraryA` and
-`GetProcAddress` - the import table has no room and rebuilding it for one
-export is not worth it - and opens the template from the `.voxt` section
+During a network match it passes F11 on as well, with the same
+`cmp [0x6bc94c], 2` test the game's own F-key handlers begin with, so F11
+is as inert as F5 there. On F11 it fetches `DialogBoxIndirectParamA`
+through `LoadLibraryA` and `GetProcAddress` (the import table has no room)
+and opens the template from the `.voxt` section
 the same patch appends; `f11pause.asm` holds a placeholder for its address,
 filled at apply time.
 
@@ -394,12 +392,11 @@ table, and the same list carries the flag each check box reflects - the table
 addresses of both.
 
 The template goes in the `.voxt` section the patch appends, so its size is
-not a constraint. It carries a font block, full button names, and a deadzone
-group - *Stick Deadzone % [ XInput ]* - with `1P`, `2P` and `%` labels around
-two digits-only edits, a Defaults button of its own, and a min/max hint
-below. The hint is the same size as everything else: a template carries one
-font block. In the bottom row Quit Game sits at the left and Close alone at
-the right, where the closing hand goes.
+not a constraint. It carries a font block, full button names, and a
+deadzone group, *Stick Deadzone % [ XInput ]*: `1P` and `2P` labels around
+two digits-only edits, a Defaults button and a min/max hint. The hint is
+the same size as everything else, since a template carries one font block.
+Quit Game sits bottom left, Close bottom right.
 
 The F5 frame rate labels are the other case: an edit to a resource the game
 already has. Sega's *Fast* and *Smooth* read **30 FPS** and **60 FPS** now.
@@ -425,10 +422,10 @@ player numbers: the sides on a pad profile, 1P first, take the connected
 slots in ascending order. So two pads on 0 and 1 serve 1P and 2P, and one
 pad on slot 0 serves 2P alone when 1P is on the keyboard - which the fixed
 0/1 of earlier versions could not do. The map (`PADIDX`, slot + 1 per side,
-5 for none) is built on the first poll. It is rebuilt on three
-occasions: when a cached slot stops answering; when a side without a pad
-has missed 256 polls, so a pad plugged in later is found within a few
-seconds; and on a device change, which `commitdev.asm` clears it for.
+5 for none) is built on the first poll and rebuilt when a cached slot
+stops answering, when a side without a pad has missed 256 polls (so a pad
+plugged in later is found within seconds), and on a device change, which
+`commitdev.asm` clears it for.
 
 Not every slot is live in every game state. The stock keyboard handler at
 `0x443074` runs all twelve only when `[0x1ae3594]` is 4 and `[0x1ae3690]` is
@@ -620,16 +617,15 @@ what the game did before.
 The movie's shape comes from the file, not the game: the size the game
 passes is its window for the movie, 640x400 or 320x200, while `von.avi`
 is 320x240 with the picture letterboxed inside it (rows 30..209). So the
-stub asks mciavi for the frame size with `MCI_WHERE` - `WHERE_SOURCE`
-plus `WHERE_MAX`, since without MAX the answer is the source rect this
-stub set on its last run, and the placement runs more than once - and
-fits the picture band rather than the frame. From the real client rect it
-takes the biggest rectangle of that shape that fits, centres it, and
-writes the result back into the caller's frame, so the game's own
-`MoveWindow` a few instructions later does the work with the values it
-was going to use replaced. mciavi does not follow the window, so the stub
-then sends two `MCI_PUT`s: the band as the source rect and the fitted
-rectangle as the destination. If the size query fails it fits the game's
+stub asks mciavi for the frame size with `MCI_WHERE`, `WHERE_SOURCE` plus
+`WHERE_MAX` (without MAX the answer is the source rect set on the last
+run), and fits the picture band rather than the frame. It takes the
+biggest rectangle of that shape that fits the real client rect, centres
+it, and writes the result into the caller's frame, so the game's own
+`MoveWindow` a few instructions later uses the new values. mciavi does not
+follow the window, so the stub then sends two `MCI_PUT`s: the band as the
+source rect and the fitted rectangle as the destination. If the size
+query fails it fits the game's
 16:10 numbers and sends no source rect, which is what the stub did
 before. The game sends no `MCI_PUT` of its own.
 
@@ -641,12 +637,12 @@ but 37.
 
 Makes the ending credits skippable, which they are not in the stock game.
 
-The credits are sub-state `0x20`, and its handler at `0x59081f` is a phase
+The credits are sub-state `0x20`. Its handler at `0x59081f` is a phase
 machine on `0x1ad0964`: 0 and 1 are the ending cutscene and the mission
-complete screen, 2 is the roll, and anything else falls through to the tail
-at `0x5908f2` that stops the music and moves on to the name entry. So the
-skip is one write - put the phase past 2 and the game ends the sequence its
-own way on the next frame. None of that teardown is repeated here.
+complete screen, 2 is the roll, anything else falls through to the tail at
+`0x5908f2` that stops the music and moves on to the name entry. So the skip
+is one write: put the phase past 2 and the game ends the sequence its own
+way on the next frame.
 
 The input is not the one the game over and ranking screens test. Those read
 the press edges at `0x1ed5ec4`, which `0x56207a` builds from the 1P input
@@ -713,11 +709,10 @@ Draws `HOLD TO SKIP` over the credits while the button is down.
 The tile font was the obvious way and the wrong one: that layer is what the
 roll scrolls, so anything printed into it climbs the screen with the
 credits. `0x5c991c` takes screen pixels instead, the same call the pause
-text uses. The point is 320, 440 of the picture, computed from the
-origin and size globals at `0x6bf578`/`0x6bf5b8`, so a resized mode - or
-the 320x240 one, which `0x5c88ac` halves those globals for itself -
-places it the same way; unlike the pause text's 640-terms constants,
-nothing here halves again at `0x5c9a98`.
+text uses. The point is 320, 440 of the picture, computed from the origin
+and size globals at `0x6bf578`/`0x6bf5b8`, so any mode places it the same
+way; `0x5c88ac` halves those globals itself for 320x240, so unlike the
+pause text's constants nothing here halves again at `0x5c9a98`.
 
 Two things about when and where it paints.
 
@@ -726,10 +721,10 @@ drawn: the hook is the call at `0x5c64e7`, five bytes before the surface is
 flipped at `0x5c650d`, and the stub makes that call first with its argument
 untouched.
 
-And it paints on `0x1ae5f40`, the primary surface, which suits the pause
-screen because that is not flipping - here the back buffer is flipped over
-it the same frame, so that global is pointed at the back buffer,
-`0x1ae5f5c`, across the call and put back after.
+And it paints on whatever `0x1ae5f40` names, the primary surface, which
+suits the pause screen because that is not flipping. Here the back buffer
+is flipped over it the same frame, so the global is pointed at the back
+buffer, `0x1ae5f5c`, across the call and put back after.
 
 The gate is `MODE` 4, `SUBMODE` `0x20` and phase 2, and only then the hold
 count. `HELD` only means anything while the roll is running, where
@@ -739,18 +734,17 @@ count. `HELD` only means anything while the roll is running, where
 
 Switching away during the intro movie stops it, and the game treats that
 as the movie ending: it leaves the movie without rebuilding the screen it
-had handed to the player. A six-byte site makes it rebuild anyway, and
-this file is what happens when that rebuild fails - which it does when
-the window is still in the background and DirectDraw will not give
-exclusive mode back, leaving a primary surface with no back buffer for
-the next frame to draw on.
+had handed to the player. A six-byte site makes it rebuild anyway. This
+file handles the rebuild failing, which it does while the window is still
+in the background: DirectDraw will not give exclusive mode back, and the
+next frame has a primary surface with no back buffer to draw on.
 
 Three hooks, each at the entry of the game's own function so that every
 caller goes through it. The **recreate** swaps its caller's return address
-for the stub's, so the stub sees the result: a failure sets the game's
-inactive flag, which its main loop already idles on, and the "surfaces
-exist" flag the activation handler tests before recreating, so the next
-switch tries again.
+for the stub's, so the stub sees the result. A failure sets the game's
+inactive flag, which the main loop idles on, and the "surfaces exist" flag
+the activation handler tests before recreating, so the next switch tries
+again.
 
 **setactive** refuses a resume while the back buffer is null, since the
 movie player and the F-key dialogs resume through it and either would start

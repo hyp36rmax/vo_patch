@@ -1,11 +1,11 @@
 # vo_patch
 
 Gets *Cyber Troopers Virtual-On* (PC, 1997) running properly on a modern
-system. It installs the game straight from a disc image, fixes the crashes,
-the frame rate and the keyboard, renders the game at 1920x1080, adds XInput
-gamepad support for both players, plays the soundtrack from files instead of
-the disc, and puts two-player versus on the internet with a code to share -
-no port forwarding.
+system. It installs the game from a disc image and fixes the crashes, the
+frame rate and the keyboard. Then the extras: 1920x1080 rendering, XInput
+gamepads for both players, the soundtrack from files instead of the disc,
+and two-player versus over the internet with a code to share - no port
+forwarding.
 
 <img height="220" alt="Widescreen match" src="https://github.com/user-attachments/assets/464143ee-a63b-4004-83f5-16cf28c146dd" />
 &nbsp;
@@ -188,13 +188,13 @@ The offsets and internals of every patch are in [NOTES.md](docs/NOTES.md).
   [Gamepad](#gamepad).
 - **No disc required** - removes the disc check and plays the soundtrack from
   `music\trackNN.wav` beside the game. See [Music](#music).
-- **Disable menu bar (Extras menu on F11)** - hides the menu bar and moves
-  the Debug options to a new F11 dialog: No shot, SE, CD, Kill 1P, Kill 2P,
-  Scorekeeping and Quit Game. **Credits** is new - it jumps to the credit
-  roll from any match, so you can see it without finishing the game. Motion
-  has moved to F5. With the gamepad patch on, F11 also sets each player's
-  [stick deadzone](#stick-deadzone). Like the other F keys, it does nothing
-  during an internet match. Every other menu was already on a key:
+- **Disable menu bar (Extras menu on F11)** - hides the menu bar. The
+  Debug options move to a new F11 dialog: No shot, SE, CD, Kill 1P, Kill 2P,
+  Scorekeeping and Quit Game. **Credits** is new: it jumps to the credit
+  roll from any match. Motion has moved to F5. With the gamepad patch on,
+  F11 also sets each player's [stick deadzone](#stick-deadzone). Like the
+  other F keys, it does nothing during an internet match. Every other menu
+  was already on a key:
 
     | Key | Opens |
     | --- | --- |
@@ -284,10 +284,9 @@ original 640x480.
   game starts at the size it was left in. The menu entry that picked 320x240
   outright is turned off.
 - **HUD** - in a match the timer stays at the top left, as close to the
-  edge as at 4:3, instead of drifting towards the middle of the wider
-  picture, and the health bars with their labels are centred. The machine
-  select and waiting screens of a two-player game, whose photo backdrops
-  sat in a black frame, fill the screen.
+  edge as at 4:3, and the health bars with their labels are centred. The
+  photo backdrops of the two-player machine select and waiting screens,
+  which sat in a black frame, fill the screen.
 - **Split screen** - the **Screen Split** row on F5 offers **Ver** (side by
   side) and **Hor** (top and bottom). The third stock option, which
   duplicated the first, is gone. In side-by-side mode the timer and health
@@ -429,10 +428,9 @@ stick's drift.
 
 ## Internet play
 
-Link mode is two-player versus over a network, but stock it never leaves the
-LAN: the game finds opponents by broadcasting, and no router forwards a
-broadcast. Hence the usual advice to run a VPN and pretend everyone is on
-one LAN.
+Link mode is two-player versus over a network, but stock it never leaves
+the LAN: the game finds opponents by broadcasting, which no router
+forwards. Hence the usual advice to run a VPN.
 
 **Internet play**, under ADD-ONS, replaces that layer with plain UDP. One
 player hosts and gets a short code, the other types it in. No port
@@ -469,10 +467,9 @@ forwarding, no VPN. Direct IP is still there for LAN play.
 
 This is the default, and nobody forwards anything.
 
-1. **Host:** leave the connection on **Matchcode**, pick the **Region**
-   nearest to you - Europe, America or Asia; the line under the buttons
-   says where each server is - then choose **Host a game** and press
-   **OK**.
+1. **Host:** leave the connection on **Matchcode** and pick the **Region**
+   nearest to you - Europe, America or Asia. The line under the buttons
+   says where each server is. Choose **Host a game** and press **OK**.
 2. The dialog shows a code like `EU-ABCDE`, with a **Copy** button. Send it
    to the other player.
 3. **Guest:** choose **Join a game**, type or paste the code in, and press
@@ -665,10 +662,10 @@ and the window names the build it is looking at.
 1.04J pressing, also found in the Sega PC Greatest Hits Vol. 3 bundle. Its
 tables are the newest here and it has had the least play.
 
-A repack, a bad rip or a copy already modified is refused, with its size and
-MD5 shown beside a supported build's - in **GAME FILE** for a file you
-picked, in **INSTALL** for a disc image. Installing and ripping work
-whichever build the disc holds; only patching needs one from the table.
+A repack, a bad rip or a copy already modified is refused. Its size and MD5
+are shown beside a supported build's, in **GAME FILE** for a file you picked
+or in **INSTALL** for a disc image. Installing and ripping work whichever
+build the disc holds; only patching needs one from the table.
 
 ### What gets written
 
@@ -747,12 +744,12 @@ those by hand.
 
 LLMs are part of the toolchain here, alongside Ghidra, gdb and winedbg on
 the running game, Cheat Engine and Unicorn. The scope, the disc dumps, the
-testing and the debugging are human: every change is read before it goes
-in and played on the real game, across all four builds, before it ships.
-Offsets and byte sequences are verified against the original executable
-before anything is written, and the patcher refuses any file that is not
-an unmodified build it has tables for. It is still a hobby project poking
-at a nearly 30-year-old binary, so expect bugs.
+testing and the debugging are human. Every change is read before it goes
+in and played on all four builds before it ships. Offsets and bytes are
+verified against the original before anything is written, and the patcher
+refuses any file that is not an unmodified build it has tables for. It is
+still a hobby project poking at a nearly 30-year-old binary, so expect
+bugs.
 
 ## Credits and licence
 

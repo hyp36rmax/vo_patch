@@ -118,7 +118,7 @@ wrong on the build it is for; before tagging, give all four.
 | `offsets` | `selftest.py`: every `original` column against a real file, hundreds of patch combinations applied, and the fully patched MD5, on whichever build the file is |
 | `banner` | `bannertest.py`: the title prompt decodes back to the bitmap it was written from, and both files restore byte for byte, on whichever build the folder holds |
 | `credit` | `credittest.py`: the credit line recomposes out of the patched roll files, and both restore byte for byte. The line is spread over three files that have to agree - the block list in the executable, the cells in `scrstfmp.bin`, the tiles in `scrstfcg.bin` - so it patches a copy, walks the block list the way `0x448d39` does, expands the cells back through the tile sheet and compares the pixels against the bitmap the patcher started from |
-| `uiemu` | `uiemu.py`: the resolution blob run under Unicorn on the retail exe, patched in memory at 1080p - the plane B walker plus the blob with a photo block in the ring as the loader leaves it, the HUD spread's 2D and polygon positions, the pre-fill against the viewport, and the layouts' insets and scales. Needs nasm and python3-unicorn, and says so when it has neither |
+| `uiemu` | `uiemu.py`: the resolution blob run under Unicorn on the retail exe, patched in memory at 1080p. Checks the plane B walker with a photo block in the ring, the HUD spread's 2D and polygon positions, the pre-fill, and the layouts' insets and scales. Needs nasm and python3-unicorn, and says so when it has neither |
 
 Some need a copy of the game, which is not in the repository, so CI skips
 them and says so. They are the manual step before tagging.
@@ -147,13 +147,13 @@ python3 tools/vonbanner.py DIR --text 'Press Start' --write
 ```
 
 **`tools/vocredits.py`** builds the credit lines out of the roll's own
-letters. The roll is pre-rendered text chopped into cells rather than a font,
-so a new line cannot be typed - but the columns of each block separate into
-characters at the blank gaps, and matching those runs against a transcript of
-all 57 blocks gives a bitmap for each letter. 53 blocks segment exactly,
-which covers the 24px face completely. The 11px face has only the letters of
-CYBER TROOPERS, so the rest are drawn; `SMALL_DRAWN` holds them as ASCII art
-and [TEXT.md](TEXT.md) has the proportions they follow.
+letters. The roll is pre-rendered text chopped into cells, not a font, so a
+new line cannot be typed. But each block's columns separate into characters
+at the blank gaps, and matching those against a transcript of all 57 blocks
+gives a bitmap per letter. 53 blocks segment exactly, which covers the 24px
+face. The 11px face has only the letters of CYBER TROOPERS; the rest are
+drawn, as ASCII art in `SMALL_DRAWN`, to the proportions in
+[TEXT.md](TEXT.md).
 
 ```bash
 python3 tools/vocredits.py DIR             # preview, as ASCII art
@@ -175,10 +175,9 @@ own run in `.data`, and the levers routine written straight after the
 XInput routine - and those are the `caves` table of each `Build`.
 
 Nothing lives in a run of zeros in `.rdata`. Such a run is never known to
-be free: a pointer just before it means it is the tail of a structure or
-the NULL slots of a handler table, and the game reads or calls through it
-without any reference the file shows. Growing a blob is a rebuild; moving
-one is not a thing that happens.
+be free: it is usually the tail of a structure or the NULL slots of a
+handler table, read or called through with no reference the file shows.
+Growing a blob is a rebuild; moving one is not a thing that happens.
 
 ## Adding a blob or a site
 
@@ -229,13 +228,13 @@ committed:
    `credittest.py` on an install of it once its artwork MD5 is in `art`.
    Then someone has to play it.
 
-Two things to check by eye before anyone runs it. A site the matcher has
-placed by its bytes may be in the wrong function - ten bytes of `cmp
-[ebp-8], 0x1a; jge` occur in more than one place, and only the disassembly
-says which copy has the recompiled frame.
+Two things to check by eye before anyone runs it. A site placed by its
+bytes may be in the wrong function: ten bytes of `cmp [ebp-8], 0x1a; jge`
+occur in more than one place, and only the disassembly says which copy has
+the recompiled frame.
 
-And anything the apply code writes outside the site table - the annex code
-in `.voxt` - must be linked for the build being patched, not taken from a
+And anything the apply code writes outside the site table - the code in
+`.voxt` - must be linked for the build being patched, not taken from a
 module-level constant, which is retail's. `tools/whereis.py` turns a crash
 address into a blob and label.
 
@@ -251,12 +250,11 @@ last byte is a fingerprint of the patches that change how the game plays,
 read straight from the running exe by `sync_fingerprint()`, and a mismatch is
 refused at connect.
 
-So if you add a patch that changes the simulation - a rule, a timing, a
-physics value, anything that alters what the game computes from a given
-input - it needs two entries: one in `fp_builds` in `dpctrl.c`, per build,
-and one in `SYNC_SITES` in `vo_patch.py`, which is what warns when the
-netplay add-on is installed beside an executable an older release patched
-without it.
+A patch that changes the simulation - anything that alters what the game
+computes from a given input - needs two entries: one per build in
+`fp_builds` in `dpctrl.c`, and one in `SYNC_SITES` in `vo_patch.py`, which
+warns when the add-on is installed beside an executable an older release
+patched without it.
 
 Miss either and two copies, one with the patch and one without, desync
 mid-match instead of refusing to connect.
@@ -331,11 +329,10 @@ at a live server, the flood aside.
 
 ## Releasing
 
-The version comes from the tag and nowhere else. `VERSION = 'dev'` stays as it
-is in the source; the workflow rewrites that line during the build, and the
-spec, the exe name, the file properties, the window title, `--version` and the
-line on the title screen all read it from there. So there is nothing in a file
-to bump.
+The version comes from the tag and nowhere else. `VERSION = 'dev'` stays in
+the source; the workflow rewrites that line during the build, and everything
+else - the spec, the exe name, the file properties, the window title,
+`--version`, the title-screen line - reads it from there. Nothing to bump.
 
 The title-screen line is the one thing the patcher writes that is not the same
 for everyone, so it is written after the patch table rather than from it and
@@ -369,9 +366,9 @@ and `vo_patch-vX.Y.Z-python.zip`, the LF-normalised script with
 The exe is unsigned, and scanners have opinions about an unsigned program
 that edits another program. Before announcing: upload the exe from the win
 zip to VirusTotal once, and submit it to Microsoft as a false positive
-(Security Intelligence, as a developer, with the repository in the notes);
-the verdict usually clears within a day. Do not reanalyze on VirusTotal
-while it is still flagged - detections feed each other. The README's *Virus
+(Security Intelligence, as a developer, repository in the notes). The
+verdict usually clears within a day. Do not reanalyze on VirusTotal while
+it is still flagged; detections feed each other. The README's *Virus
 warnings* section tells users how to allow it in Defender meanwhile.
 
 `--generate-notes` writes the release body from commit subjects, which for a
@@ -387,7 +384,7 @@ Keep the notes to what a player would notice. Internal changes go in the diff.
 
 The checks prove the files are consistent with each other. They cannot
 prove the game still runs, and both v0.10.2 bugs passed everything green.
-Patch a clean copy of each build and walk these once - a table can be
+Patch a clean copy of each build and walk these once; a table can be
 well-formed and wrong on one build only:
 
 - **the attract loop**: skip the intro movie, then leave it alone through

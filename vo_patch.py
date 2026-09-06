@@ -2799,16 +2799,14 @@ DISC_IMAGES = {
 
 # Where each blob goes and what it names in the game, per build.
 #
-# The machine code in BLOBS below names no addresses: every place in the
-# game it touches is a symbol, and link() fills the symbol in from these
-# tables when the module loads. A second build is a second Build with its
-# own tables and the same BLOBS.
+# The machine code in BLOBS names no addresses. Every place in the game it
+# touches is a symbol, filled in by link() from these tables at import. A
+# second build is a second Build with its own tables and the same BLOBS.
 #
-# Where a blob goes is the annex, a section appended before any patch is
-# written, in ANNEX_BLOBS order; or a cave, the virtual address of a place
-# the game itself reaches, or (blob, offset) for a blob that rides inside
-# another. A symbol is a virtual address in the game, or (blob, label) for
-# a place inside one of ours.
+# A blob lives in the annex (a section appended before any patch is
+# written, in ANNEX_BLOBS order), or in a cave: a virtual address the game
+# itself reaches, or (blob, offset) for a blob inside another. A symbol is
+# a virtual address in the game, or (blob, label) inside one of ours.
 
 class Build(object):
     def __init__(self, name, short, md5, size, stamp, sections, caves,
@@ -4433,12 +4431,11 @@ JP.sites = {
 # `asm/build.py --check` on every push and fails if the two have drifted.
 #
 # Each entry is (code, fixups, labels). A fixup is (offset, kind, symbol,
-# addend): 'abs' puts the symbol's address plus the addend at the offset,
-# 'rel' the distance from the end of the slot to it, 'abs8' one byte of it -
-# a frame offset, where the symbol is where the caller keeps a local and
-# differs between compiles of the game. The symbol '.' is the blob's own
-# address. Labels are offsets into the code, for the symbols above and the
-# site table to name.
+# addend). Kinds: 'abs' writes the symbol's address plus the addend; 'rel'
+# the distance from the end of the slot to it; 'abs8' one byte of it, for a
+# frame offset (where the caller keeps a local, which differs between
+# compiles). The symbol '.' is the blob's own address. Labels are offsets
+# into the code, named by the symbol tables and the site table.
 
 # BLOBS BLOB BEGIN
 BLOBS = {
@@ -5854,10 +5851,9 @@ FEATURES = [
      'Files\tscrstfcg.bin and scrstfmp.bin are rewritten and backed\n'
      '\tup. Restore original puts them back. Missing, nothing is\n'
      '\twritten at all, the version included.', [
-         # The loader takes both byte counts from here rather than from
-         # the files, so these have to grow with them or the tail of each
-         # never loads: the new tiles would be past the count, and the walk
-         # would run off the end of the map.
+         # The loader reads both files to these byte counts, not to their
+         # size, so the counts grow with the files. Otherwise the new tiles
+         # never load and the walk runs off the end of the map.
          (0x001fcec8, '80340200', '006e0200'),
          (0x001fcecc, '48240000', 'ec250000'),
          (0x002bbb54, '000000000000000004000000000000000000000004000000000000000000000004000000000000000000000004000000000000000000000004000000ffffffff1800000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000001700000003000000000000000000000003000000630000001d00000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000001100000003000000000000000000000003000000630000001e00000003000000000000000000000001000000630000001500000003000000000000000000000001000000630000001c00000003000000000000000000000001000000630000002400000003000000000000000000000001000000630000001800000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000001800000003000000000000000000000003000000630000002400000003000000000000000000000001000000630000002000000003000000000000000000000001000000630000001f00000003000000000000000000000001000000630000002000000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000001a00000003000000000000000000000003000000630000001d00000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000002700000003000000000000000000000003000000630000002100000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000000c00000003000000000000000000000003000000630000001100000003000000000000000000000001000000630000001900000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000000b00000003000000000000000000000003000000630000001b00000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000000c00000003000000000000000000000003000000630000001600000003000000000000000000000001000000630000002200000003000000000000000000000001000000630000001700000003000000000000000000000004000000000000000000000004000000000000000000000004000000000000000000000002000000000000001600000003000000000000000000000003000000630000001800000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000002200000003000000000000000000000003000000630000001f00000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000002100000003000000000000000000000003000000630000001b00000003000000000000000000000001000000630000001800000003000000000000000000000001000000630000001f00000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000001200000003000000000000000000000003000000630000001d00000003000000000000000000000004000000000000000000000004000000000000000000000002000000000000000e00000003000000000000000000000003000000630000001600000003000000000000000000000004000000000000000000000004000000000000000000000004000000000000000000000002000000000000000a00000003000000000000000000000003000000630000001c00000003000000000000000000000001000000630000002200000003000000000000000000000001000000630000002100000003000000000000000000000001000000630000001500000003000000000000000000000004000000000000000000000004000000000000000000000004000000000000000000000002000000000000001c00000003000000000000000000000003000000630000002700000003000000000000000000000001000000630000001900000003000000000000000000000001000000630000002f00000003000000000000000000000001000000630000003100000003000000000000000000000001000000630000002000000003000000000000000000000001000000630000003300000003000000000000000000000006000000630000001c00000003000000000000000000000001000000630000001800000003000000000000000000000004000000000000000000000004000000000000000000000004000000000000000000000002000000000000000000000004000000040000000500000003000000000000000000000004000000000000000000000004000000000000000000000002000000040000001900000003000000000000000000000001000000630000001500000003000000000000000000000002000000000000000000000002000000000000000000000002000000000000000000000002000000',
@@ -5991,11 +5987,10 @@ FEATURES = [
          (0x001c5726, '558bec5356', jump(0x001c5726, ('ACTIVATE', 'resume'))),
          # the loop's idle pass while inactive
          (0x001c5412, 'e893030000', call(0x001c5412, ('ACTIVATE', 'idle'))),
-         # The rerelease alone reports a failed recreate with a message box
-         # from inside it, three times over - the display mode, the primary,
-         # the attached back buffer - which during the retry is a box per
-         # attempt, and under Proton an invisible one. The three calls go;
-         # the add esp after each takes the arguments they were pushed.
+         # The rerelease alone reports a failed recreate with a message
+         # box (display mode, primary, back buffer). The retry would show
+         # one per attempt, invisible under Proton. The three calls go; the
+         # add esp after each still takes their arguments.
          (In(JPRE_MD5, 0x001bf3de), 'e894440000', '9090909090'),
          (In(JPRE_MD5, 0x001bf4ae), 'e8c4430000', '9090909090'),
          (In(JPRE_MD5, 0x001bf4f9), 'e879430000', '9090909090')]),
@@ -6941,10 +6936,9 @@ def music_status(gamedir):
 
 # --- installing from a disc image ---------------------------------------
 # The disc is read directly: no mounting, no virtual drive, no setup.exe.
-# Sega's own installer is driven by ssp.ini in the root of the disc, so the
-# copy rules are taken from there rather than guessed at, and the same code
-# handles the retail and OEM pressings, which disagree about where the help
-# files live.
+# The copy rules come from ssp.ini in the disc root, which drives Sega's
+# own installer. That covers the retail and OEM pressings, which keep the
+# help files in different places.
 
 LOGICAL = 2048                  # user bytes in a sector, whatever its form
 
@@ -7226,13 +7220,10 @@ def install_disc(cue_path, dest, language=None, progress=None):
             written.append(name)
         # No v_on.ini is written, deliberately.
         #
-        # Sega's installer asks a dialog and copies v_on_a.ini or v_on_b.ini
-        # over it, then deletes both (setup.exe 0x408acf). Doing the same
-        # would fight the patches: v_on_a.ini carries Motion=3, a frame
-        # divisor the patched game obeys, so a freshly installed and patched
-        # copy would run at a third speed - the opposite of what the frame
-        # rate patch is for. An ini that is there wins over the defaults the
-        # patches set.
+        # Sega's installer copies v_on_a.ini or v_on_b.ini over it and
+        # deletes both (setup.exe 0x408acf). v_on_a.ini carries Motion=3,
+        # and an ini value beats a patched default, so a fresh install
+        # would run at a third speed.
         #
         # Both files are copied as the disc has them, so the settings are
         # not lost, and the game writes its own v_on.ini on first run.
@@ -7468,14 +7459,12 @@ def _netplay_is_ours(path):
     return data is not None and NETPLAY_MARK in data
 
 
-# The two patches that must match for a lockstep match not to drift: the
-# frame-rate divisor and the round-loss crash fix. The DLL fingerprints the
-# same two bytes from the running exe (fp_builds in net/dpctrl.c, one row
-# per build, as virtual addresses); here the patcher reads them from disk
-# so it can warn at install time rather than leaving it to a refused match.
-# The frame divisor's immediate, six bytes into its site, and the first
-# byte of a continuefix site - in every build, through its site map. Change
-# both tables together.
+# The two patches a lockstep match must agree on: the frame-rate divisor
+# and the round-loss fix. The DLL fingerprints the same two bytes from the
+# running exe (fp_builds in net/dpctrl.c, as virtual addresses); the
+# patcher reads them from disk to warn at install time. Per build: the
+# divisor immediate six bytes into its site, and the first byte of a
+# continuefix site. Change both tables together.
 SYNC_SITES = {build.md5: ((site_in(0x0010afbe, build) + 6, 0x01),
                           (site_in(0x00077f5a, build), 0x90))
               for build in BUILDS.values()}
@@ -8531,10 +8520,9 @@ class Patcher:
         if not any(stock for _p, _d, stock in found):
             log.append('patch: credit line already in place')
             return True
-        # Per file, not all-or-nothing: a failure between the two renames
-        # below leaves one done and one not, and the next run must finish
-        # the second rather than see the first and call the job done - or
-        # worse, append the tiles a second time.
+        # Per file: a failure between the two renames below leaves one
+        # done. The next run must finish the other, not append the tiles
+        # twice.
         (cg_path, cg, cg_stock), (mp_path, mp, mp_stock) = found
         for path, stock in ((cg_path, cg_stock), (mp_path, mp_stock)):
             if stock and not self._backup(path, log):
@@ -8545,11 +8533,9 @@ class Patcher:
         at = CREDIT_CELLS_AT * 2
         if mp_stock:
             mp[at:at] = b''.join(c.to_bytes(2, 'little') for c in CREDIT_CELLS)
-        # Both temps in full before either rename: the block list is already
-        # in the executable, and these two have to change together or the
-        # renderer walks a map that disagrees with it. A rename can still
-        # fail where a write cannot, so the failure message says what to
-        # press.
+        # Both temps written before either rename: the two files have to
+        # change together, or the renderer walks a map that disagrees with
+        # the block list already in the executable.
         pending = []
         try:
             for path, data, stock in ((cg_path, cg, cg_stock),
@@ -8708,18 +8694,11 @@ TITLE = '%s %s' % (NAME, VERSION)
 # How long after the last resize event the static widgets are redrawn, in
 # milliseconds. See App._nudge.
 NUDGE_MS = 60
-# Column widths in characters of the hint font rather than in pixels, so
-# they hold at any display scaling: at 125% or 200% the font grows and the
-# columns have to grow with it, or the same paragraph wraps a line deeper
-# every step up. Sixty to ninety characters is the readable range for a
-# line of prose and these sit inside it.
+# Column widths in characters of the hint font, not pixels, so they hold
+# at any display scaling. 60-90 characters is the readable range for a
+# line of prose.
 MIN_CHARS = 68                  # per column; narrower and hints wrap badly
-# And the widest, per column. Past this the extra room goes into longer
-# lines of hint text, which is harder to read rather than easier - a
-# paragraph wants sixty to ninety characters a line and this is already at
-# the top of that. Maximising lands here rather than filling a 34-inch
-# monitor with one sentence per line.
-MAX_CHARS = 88
+MAX_CHARS = 88                  # wider only makes lines harder to read
 GUTTER_CHARS = 2                # between the two columns
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 # One character of the default font on an unscaled display. Every fixed gap
@@ -9061,19 +9040,14 @@ def run_tk():
                           foreground=colour, font=font, justify='left')
 
         def fit(_event=None):
-            # Unconditional, every event, as it has always been. Skipping
-            # the write when the wrap would not move is an obvious saving
-            # and it is not one: setting wraplength is also what marks the
-            # label for redraw, and without that a label Tk has not
-            # repainted stays blank until something else touches it.
+            # Written on every event: setting wraplength is also what
+            # marks the label for redraw. Skip it and an unpainted label
+            # stays blank.
             width = holder.winfo_width()
             if width > 1:
                 edge = gutter() if callable(gutter) else gutter
-                # Capped as well as floored. A card that spans the whole
-                # window is wider than a line of prose should ever be -
-                # around 140 characters against the 88 a column is cut to -
-                # so the text stops where it would stop in a column and
-                # leaves the rest of the card empty.
+                # Capped as well as floored: a full-width card is about 140
+                # characters, so the text stops at a column's width.
                 label.configure(wraplength=min(
                     int(MAX_CHARS * em),
                     max(int(20 * em), width - 2 - edge)))
@@ -9238,13 +9212,9 @@ def run_tk():
                 if not shown:
                     body.pack(fill='x')
 
-            # Hold the content to the width it is meant to have before
-            # measuring anything. Left to itself a paragraph asks for the
-            # width of its longest line unwrapped, so the window came out as
-            # wide as the longest sentence in it and could not be dragged
-            # any narrower - the minimum below is taken from this. The
-            # hints wrap to whatever the content is given, so give it the
-            # answer first and let them settle against it.
+            # Set the width before measuring. Unconstrained, a paragraph
+            # asks for its longest line unwrapped, and the window's minimum
+            # came out as wide as the longest sentence in it.
             wide = self.min_content * self.columns \
                 + (self.gutter if self.columns > 1 else 0)
             self.canvas.itemconfigure(self.window, width=wide)
@@ -9888,10 +9858,9 @@ def run_tk():
                 text=why or '',
                 foreground=PALETTE['bad'] if level == 'bad'
                 else PALETTE['amber'] if level == 'warn' else self.dim)
-            # Three things can be said about the music folder, in this
-            # order: no room is the one that stops the rip, a disc with the
-            # wrong tracks is the reason not to press the button, and where
-            # the tracks go is what is left.
+            # In order of importance: no room stops the rip, wrong tracks
+            # are a reason not to press the button, otherwise say where
+            # they go.
             short = (room_for(self._target(), self._rip_bytes,
                               'the soundtrack')
                      if self.rip_ok and self._target() else '')
@@ -10581,17 +10550,10 @@ def run_tk():
             self._set_status(DONE % sum(1 for v in wanted.values() if v), True)
 
         def _restore(self):
-            # A selection is worth keeping across the reload only if there
-            # was one to make - _chose says whether the boxes were ever
-            # usable for this file. They are disabled after an apply as well
-            # as after a refusal, so their own state cannot answer it.
-            # Somebody who unticked two patches, applied, and restored
-            # should get their two back rather than a fresh set of
-            # defaults - but somebody who opened the patcher on an already
-            # patched copy never chose anything: every box was unticked and
-            # disabled because the file could not be patched, and carrying
-            # that forward left the whole list off after the restore had
-            # made it patchable again.
+            # Keep the selection across the reload only if the boxes were
+            # ever usable for this file (_chose). Unticked and disabled
+            # because the file could not be patched is not a choice, and
+            # carrying it forward left every box off after a restore.
             chosen = ({key: var.get() for key, var in self.vars.items()}
                       if self._chose else None)
             for line in self.core.restore():
