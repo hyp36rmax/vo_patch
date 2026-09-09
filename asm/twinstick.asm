@@ -1,10 +1,8 @@
 bits 32
-; Twin-stick profile. No new logic: the XInput tick in padxinput.asm is a
-; bind -> condition -> lever-mask engine, and the arcade scheme is just a
-; different set of binds and masks. Each of the twelve slots drives one
-; lever direction or button instead of a named action, so the two thumbsticks
-; land straight in the two lever words and the game derives walk, turn, jump
-; and crouch from the pair, exactly as the cabinet did.
+; Twin-stick profiles. No new input engine: the XInput tick in padxinput.asm
+; is a bind -> condition -> lever-mask engine. The stock arcade profile keeps
+; its original fixed LS/RS mapping. Controller Expansion adds a second set of
+; stubs using an Xbox/Brook-style digital Twin Stick mapping.
 
 extern TICK                       ; the shared XInput tick
 extern EXIT1P                     ; where the 1P profile switch resumes
@@ -22,6 +20,8 @@ extern CAMERA2
 extern SCR1                       ; scratch the tick keeps per player
 extern SCR2
 
+; ---------------------------------------------------------------------------
+; Upstream Twin-stick (XInput). Keep this path and its tables unchanged.
 stub1p:
     push    block1
     call    TICK
@@ -34,6 +34,23 @@ stub2p:
     add     esp, 4
     jmp     EXIT2P
 
+; ---------------------------------------------------------------------------
+; Controller Expansion: Twin-Stick (Custom).
+; The first version ships with the Xbox/Brook layout as its default. These
+; stubs are intentionally separate so the original Twin-stick profile remains
+; byte-for-byte equivalent in behaviour.
+custom1p:
+    push    customblock1
+    call    TICK
+    add     esp, 4
+    jmp     EXIT1P
+
+custom2p:
+    push    customblock2
+    call    TICK
+    add     esp, 4
+    jmp     EXIT2P
+
 ; One bind per slot, stride 2, matching the mask rows below. The codes are
 ; the condition table's, 0xe0 + index, the same ones the bound profile uses.
 binds:
@@ -41,6 +58,15 @@ binds:
     db 0xec, 0, 0xed, 0, 0xee, 0, 0xef, 0      ; RS up down left right
     db 0xe6, 0, 0xe7, 0                        ; LT, RT   - the triggers
     db 0xe4, 0, 0xe5, 0                        ; LB, RB   - the turbo buttons
+
+; Twin-Stick (Custom) default: Xbox/Brook layout from the controller matrix.
+; D-pad ids are appended after the original sixteen XInput conditions so
+; existing saved ids remain unchanged: f0 up, f1 down, f2 left, f3 right.
+custombinds:
+    db 0xf0, 0, 0xf1, 0, 0xf2, 0, 0xf3, 0      ; left: D-pad U D L R
+    db 0xe3, 0, 0xe0, 0, 0xe2, 0, 0xe1, 0      ; right: Y A X B
+    db 0xe6, 0, 0xe7, 0                        ; LT, RT
+    db 0xe4, 0, 0xe5, 0                        ; LB, RB
 
 ; Lever bits, active low: 0x20 up, 0x10 down, 0x80 left, 0x40 right,
 ; 0x01 trigger, 0x02 turbo. Taken from the game's own tables at 0x653690.
@@ -57,3 +83,8 @@ block1:
     dd 0, binds, LEV1A, LEV1B, maska, maskb, ACCEPT1, SCR1, KBD1P, CAMERA1
 block2:
     dd 1, binds, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2
+
+customblock1:
+    dd 0, custombinds, LEV1A, LEV1B, maska, maskb, ACCEPT1, SCR1, KBD1P, CAMERA1
+customblock2:
+    dd 1, custombinds, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2
