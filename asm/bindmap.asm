@@ -10,7 +10,7 @@ SIMPLE      equ 3
 extern KEYLIST
 extern PADLIST
 KEYCOUNT    equ 0x21
-PADCOUNT    equ 0x10
+PADCOUNT    equ 0x14
 extern SELSET                  ; where the search loop's jge went
 %include "frames.inc"      ; the caller's locals, by name; the offset
                             ; is the retail build's, and build.py finds
