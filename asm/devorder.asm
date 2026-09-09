@@ -1,12 +1,14 @@
 bits 32
-; The F7 device list shows the profiles as gamepad, twin-stick, Keyboard
-; (Simple), Keyboard (Real), while the device numbers stay what the
-; executable and v_on.ini have always used (0 Real, 1 gamepad, 2 twin-
-; stick, 3 Simple). Two mappings keep the list honest: the page's
-; preselect turns the pending device into its list position, and the OK
-; translate turns the chosen position back into a device before it is
-; stored as pending. Positions past the four profiles pass through
-; unchanged, as do out-of-range values.
+; The F7 device list shows the profiles as gamepad, twin-stick, Twin-Stick
+; (Custom), Keyboard (Simple), Keyboard (Real), while the original device
+; numbers stay what the executable and v_on.ini have always used
+; (0 Real, 1 gamepad, 2 twin-stick, 3 Simple). Controller Expansion uses
+; device 4 for Twin-Stick (Custom).
+;
+; Two mappings keep the list honest: the page's preselect turns the pending
+; device into its list position, and the OK translate turns the chosen
+; position back into a device before it is stored as pending. Positions past
+; the known profiles pass through unchanged, as do out-of-range values.
 
 extern BLOCKS                   ; pending devices, + player * 0x70
 %include "frames.inc"      ; the caller's locals, by name; the offset
@@ -15,8 +17,8 @@ extern BLOCKS                   ; pending devices, + player * 0x70
                             ; DEVSEL: the F7 combo selection
                             ; DEVNUM: and the device it maps to
 
-posof:  db 3, 0, 1, 2, 4, 5, 6, 7       ; device -> list position
-devof:  db 1, 2, 3, 0, 4, 5, 6, 7       ; list position -> device
+posof:  db 4, 0, 1, 3, 2, 5, 6, 7       ; device -> list position
+devof:  db 1, 2, 4, 3, 0, 5, 6, 7       ; list position -> device
 
 ; The preselect read: in eax = player * 0x70, out eax = list position.
 posshim:
