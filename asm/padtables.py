@@ -6,7 +6,7 @@ between them are computed rather than counted by hand:
     INPUTS  ->  the condition table the tick reads, at COND
                 the bind list the F7 page offers, at BINDS
                 the names both of them point at, at NAMES
-    NAMES   ->  the device list's four profile names, at DEVLIST
+    NAMES   ->  the device list's profile names, at DEVLIST
 
 An input's id is 0xe0 plus its position in INPUTS, so the order of that list
 is the order of the condition table and cannot be shuffled without moving
@@ -40,7 +40,8 @@ DEADZONE = 13000        # only its sign is read: the tick compares each
                         # from v_on.ini and the F11 box
 PULL = 0x40             # and a trigger
 
-# (name, kind, where, value). Sixteen entries, ids 0xe0 to 0xef.
+# (name, kind, where, value). Existing ids 0xe0 to 0xef stay fixed; the
+# Controller Expansion inputs append at 0xf0 to preserve saved binds.
 INPUTS = [
     ('A',         MASK,    WBUTTONS, 0x1000),
     ('B',         MASK,    WBUTTONS, 0x2000),
@@ -58,12 +59,17 @@ INPUTS = [
     ('RS Down',   BELOW,   RY, -DEADZONE),
     ('RS Left',   BELOW,   RX, -DEADZONE),
     ('RS Right',  ABOVE,   RX,  DEADZONE),
+    ('D-pad Up',    MASK,  WBUTTONS, 0x0001),
+    ('D-pad Down',  MASK,  WBUTTONS, 0x0002),
+    ('D-pad Left',  MASK,  WBUTTONS, 0x0004),
+    ('D-pad Right', MASK,  WBUTTONS, 0x0008),
 ]
 
 # The F7 device list, in display order; asm/devorder.asm maps positions
-# to the fixed device numbers (0 Real, 1 gamepad, 2 twin-stick, 3 Simple).
-PROFILES = ['Gamepad (XInput)', 'Twin-stick (XInput)', 'Keyboard (Simple)',
-            'Keyboard (Real)']
+# to the fixed upstream device numbers (0 Real, 1 gamepad, 2 twin-stick,
+# 3 Simple) plus Controller Expansion's device 4.
+PROFILES = ['Gamepad (XInput)', 'Twin-stick (XInput)', 'Twin-Stick (Custom)',
+            'Keyboard (Simple)', 'Keyboard (Real)']
 
 DEVLIST_LEN = 32        # the run the device list is written into
 
