@@ -270,7 +270,7 @@ tick:
     movzx   eax, byte [edx + esi*2]
     sub     eax, 0xe0
     jb      .nextslot
-    cmp     eax, 0x10
+    cmp     eax, 0x14
     jae     .nextslot
     lea     edi, [eax*8 + COND]
     movzx   eax, byte [edi]     ; kind
@@ -390,9 +390,12 @@ padpoll:                        ; in: eax = side, edx = an XINPUT_STATE
     xor     edi, edi            ; side
 .side:
     mov     eax, [edi*4 + DEVICES]
-    dec     eax
-    cmp     eax, 1              ; 1 gamepad, 2 twin-stick; a keyboard
-    ja      .nextside           ; side takes no slot
+    cmp     eax, 1              ; Gamepad
+    je      .slot
+    cmp     eax, 2              ; Twin-stick (XInput)
+    je      .slot
+    cmp     eax, 4              ; Twin-Stick (Custom)
+    jne     .nextside           ; keyboards take no XInput slot
 .slot:
     cmp     esi, 4
     jae     .done
