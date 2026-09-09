@@ -10,9 +10,9 @@ extern BLOCKS                   ; + player * 0x70: the device picked on the
                                 ; 0x3651540 - the page opens against this
 SIMPLE      equ 3               ; Keyboard (Simple)'s slot
 extern KEYLIST                  ; the game's 33 named keys
-extern PADLIST                  ; the 16 pad inputs, asm/padtables.py
+extern PADLIST                  ; the 20 pad inputs, asm/padtables.py
 KEYCOUNT    equ 0x21
-PADCOUNT    equ 0x10
+PADCOUNT    equ 0x14
 extern FILLDONE                 ; where the fill loop's jge went
 %include "frames.inc"      ; the caller's locals, by name; the offset
                             ; is the retail build's, and build.py finds
