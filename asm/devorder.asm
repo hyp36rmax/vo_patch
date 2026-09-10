@@ -11,6 +11,7 @@ bits 32
 ; the known profiles pass through unchanged, as do out-of-range values.
 
 extern BLOCKS                   ; pending devices, + player * 0x70
+extern DEV_POS, DEV_NUM         ; this build's profile-order tables below
 %include "frames.inc"      ; the caller's locals, by name; the offset
                             ; is the retail build's, and build.py finds
                             ; each use so a build can move it
@@ -19,13 +20,17 @@ extern BLOCKS                   ; pending devices, + player * 0x70
 
 posof:  db 4, 0, 1, 3, 2, 5, 6, 7       ; device -> list position
 devof:  db 1, 2, 4, 3, 0, 5, 6, 7       ; list position -> device
+; OEM and Japanese original retain the four-profile ordering until their
+; Custom dispatch sites have been verified from pristine executables.
+legacypos: db 3, 0, 1, 2, 4, 5, 6, 7
+legacydev: db 1, 2, 3, 0, 4, 5, 6, 7
 
 ; The preselect read: in eax = player * 0x70, out eax = list position.
 posshim:
     mov     eax, [eax + BLOCKS]
     cmp     eax, 7
     ja      .raw
-    movzx   eax, byte [posof + eax]
+    movzx   eax, byte [DEV_POS + eax]
 .raw:
     ret
 
@@ -35,7 +40,7 @@ devshim:
     mov     eax, [ebp + DEVSEL]            ; the combo selection
     cmp     eax, 7
     ja      .raw
-    movzx   eax, byte [devof + eax]
+    movzx   eax, byte [DEV_NUM + eax]
 .raw:
     mov     ecx, [ebp + DEVNUM]
     ret

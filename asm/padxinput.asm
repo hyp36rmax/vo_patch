@@ -20,6 +20,7 @@ extern PADPREV                  ; last polled buttons, one word per pad,
 extern PADIDX                   ; the slot map, see padpoll; commitdev.asm
 extern PADRETRY                 ; clears it. And its miss counter.
 extern DEVICES                  ; committed device per player, + player * 4
+extern CUSTOM_DEVICE            ; 4 on verified builds; 1 otherwise (already accepted)
 extern DZTHR1                   ; stick thresholds out of 32767, 1P then
                                 ; 2P, indexed by the block's player. Written
                                 ; by asm/iniall.asm at launch and the F11
@@ -394,7 +395,7 @@ padpoll:                        ; in: eax = side, edx = an XINPUT_STATE
     je      .slot
     cmp     eax, 2              ; Twin-stick (XInput)
     je      .slot
-    cmp     eax, 4              ; Twin-Stick (Custom)
+    cmp     eax, CUSTOM_DEVICE  ; Twin-Stick (Custom), when supported
     jne     .nextside           ; keyboards take no XInput slot
 .slot:
     cmp     esi, 4
@@ -486,4 +487,3 @@ block2:
 dll14:  db 'xinput1_4.dll', 0
 dll13:  db 'xinput1_3.dll', 0
 dll910: db 'xinput9_1_0.dll', 0
-

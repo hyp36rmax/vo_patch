@@ -70,6 +70,7 @@ INPUTS = [
 # 3 Simple) plus Controller Expansion's device 4.
 PROFILES = ['Gamepad (XInput)', 'Twin-stick (XInput)', 'Twin-Stick (Custom)',
             'Keyboard (Simple)', 'Keyboard (Real)']
+PROFILE_LABELS = ('gamepad', 'twin', 'custom', 'simple', 'real')
 
 DEVLIST_LEN = 32        # the run the device list is written into
 
@@ -94,7 +95,9 @@ def build():
                  + ['1P Deadzone', '2P Deadzone']):
         at[text] = ('PAD_NAMES', len(names))
         names += text.encode('ascii') + b'\0'
-    for text in PROFILES:
+    profile_labels = {}
+    for label, text in zip(PROFILE_LABELS, PROFILES):
+        profile_labels[label] = len(profiles)
         at[text] = ('PAD_PROFILES', len(profiles))
         profiles += text.encode('ascii') + b'\0'
 
@@ -105,8 +108,10 @@ def build():
         binds += struct.pack('<II', 0, FIRST_ID + i)
 
     devlist, dfix = bytearray(), []
-    for p in PROFILES:
-        dfix.append((len(devlist), 'abs', at[p], 0))
+    # The build chooses five names, or four names followed by a null pointer.
+    # This keeps the device list's size fixed across all supported builds.
+    for i in range(len(PROFILES)):
+        dfix.append((len(devlist), 'abs', 'PROFILE_%d' % i, 0))
         devlist += struct.pack('<I', 0)
     devlist += b'\0' * (DEVLIST_LEN - len(devlist))
 
@@ -125,7 +130,7 @@ def build():
             (bytes(devlist), dfix, {}),
             (SIMPLEDEF, [], {}),
             (inikeys, [], {}),
-            (bytes(profiles), [], {}))
+            (bytes(profiles), [], profile_labels))
 
 
 if __name__ == '__main__':

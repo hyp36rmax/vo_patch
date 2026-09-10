@@ -31,6 +31,7 @@ def main():
     spec = importlib.util.spec_from_file_location('vp', TARGET)
     vp = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(vp)
+    build = getattr(vp, name)
     retail = open(retail_path, 'rb').read()
     jp = open(jp_path, 'rb').read()
 
@@ -40,6 +41,8 @@ def main():
             if isinstance(off, (vp.At, vp.In)):
                 continue
             off = int(off)
+            if off in vp.CUSTOM_DISPATCH_SITES and build.md5 not in vp.CUSTOM_BUILDS:
+                continue
             o = bytes.fromhex(str(orig))
             jo, how = votrans.translate_off(off)
             if off in votrans.MANUAL:

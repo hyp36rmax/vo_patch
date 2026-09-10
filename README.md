@@ -318,7 +318,10 @@ say which build in the report - the window names it.
 ## Gamepad
 
 **XInput gamepad support** rebuilds the F7 device list. The legacy joystick
-profiles are hidden and four remain, available to both players.
+profiles are hidden and four remain, available to both players. The English
+retail and Japanese rerelease also offer **Twin-Stick (Custom)**. The USA
+OEM and original Japanese editions retain the four-profile list until
+their Custom dispatch sites can be verified.
 
 Players on a pad profile take the connected pads in order, 1P first. With
 two pads, the first drives 1P and the second 2P. With one pad and 1P on the
@@ -333,6 +336,7 @@ keyboard, that pad drives 2P.
 | --- | --- |
 | **Gamepad (XInput)** | twelve named actions, bound from the F7 screen |
 | **Twin-stick (XInput)** | the arcade levers, nothing to bind |
+| **Twin-Stick (Custom)** | fixed Xbox/Brook defaults; retail and Japanese rerelease only |
 | **Keyboard (Simple)** | every action on a bindable key |
 | **Keyboard (Real)** | the game's own two-lever keyboard scheme, bindable |
 
@@ -395,6 +399,21 @@ bindable.
 | Sticks together | crouch, which is the guard |
 | **LT**, **RT** | left and right weapon; both at once is the centre weapon |
 | **LB**, **RB** | the turbo buttons - dash in the direction you are moving |
+
+### Twin-Stick (Custom)
+
+Available on English retail and Japanese rerelease for both players:
+
+| Control | Mapping |
+| --- | --- |
+| Left lever up/down/left/right | D-pad up/down/left/right |
+| Right lever up/down/left/right | Y / A / X / B |
+| Left/right trigger | LT / RT |
+| Left/right dash | LB / RB |
+
+This milestone supplies fixed defaults. The profile does not yet provide
+editable gameplay bindings. The F7 Gamepad bind list now also includes
+the four D-pad directions; existing saved input IDs remain unchanged.
 
 ### Keyboard (Simple)
 
