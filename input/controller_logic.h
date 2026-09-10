@@ -17,6 +17,10 @@ static int von_claim(VonOwner owner[2], unsigned player, int source) {
     owner[player].attempted = 1;
     return 1;
 }
+static int von_owned_source(const VonOwner owner[2], unsigned player, unsigned kind) {
+    return player < 2 && owner[player].source >= 0 &&
+           (owner[player].source >= 4) == (kind == 5);
+}
 static uint32_t von_inputs(uint16_t b, unsigned lt, unsigned rt,
                           int lx, int ly, int rx, int ry, int threshold) {
     uint32_t m = 0;

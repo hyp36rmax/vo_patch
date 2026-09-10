@@ -143,10 +143,17 @@ __declspec(dllexport) DWORD WINAPI VonGetState(DWORD player, DWORD kind, XINPUT_
     if (!state) return ERROR_BAD_ARGUMENTS;
     ZeroMemory(state,sizeof(*state));
     if (player>1 || busy) return ERROR_DEVICE_NOT_CONNECTED;
-    if (!owners[player].attempted)
+    if (!owners[player].attempted) {
+        /* Automatic first-use prompts never steal the only connected pad from
+         * another player. An explicit F7 selection may still request a swap. */
+        XINPUT_STATE probe;
+        int i, available=0, first=kind==5?4:0, end=kind==5?6:4;
+        for (i=first;i<end;++i)
+            if (i!=owners[1-player].source && !raw_state(i,&probe)) available=1;
+        if (!available) return ERROR_DEVICE_NOT_CONNECTED;
         VonSelectController(GetActiveWindow(),player,kind);
-    if (owners[player].source<0) return ERROR_DEVICE_NOT_CONNECTED;
-    if ((owners[player].source>=4)!=(kind==5)) return ERROR_DEVICE_NOT_CONNECTED;
+    }
+    if (!von_owned_source(owners,player,kind)) return ERROR_DEVICE_NOT_CONNECTED;
     result=raw_state(owners[player].source,state);
     if (result) { owners[player].source=-1; ZeroMemory(state,sizeof(*state)); }
     else if (suppress_start[player]) {
@@ -159,7 +166,8 @@ __declspec(dllexport) DWORD WINAPI VonGetState(DWORD player, DWORD kind, XINPUT_
 __declspec(dllexport) int WINAPI VonCaptureInput(HWND parent, DWORD player, DWORD kind, int threshold) {
     Prompt p={0};
     if (player>1 || busy) return 0;
-    if (owners[player].source<0 && !VonSelectController(parent,player,kind)) return 0;
+    if (!von_owned_source(owners,player,kind) &&
+        !VonSelectController(parent,player,kind)) return 0;
     p.player=player; p.kind=(int)kind; p.capture=1; p.threshold=threshold;
     return prompt(parent,&p);
 }

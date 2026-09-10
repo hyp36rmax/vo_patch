@@ -98,6 +98,9 @@ int main(void) {
         VonOwner owner[2]={{-1,0},{-1,0}};
         assert(von_claim(owner,0,first)); assert(von_claim(owner,1,second));
         assert(owner[0].source==first && owner[1].source==second);
+        assert(von_owned_source(owner,0,first>=4?5:4));
+        assert(!von_owned_source(owner,0,first>=4?4:5));
+        assert(!von_owned_source(owner,2,4));
         assert(von_claim(owner,0,second));
         assert(owner[0].source==second && owner[1].source!=second);
         if((first>=4)==(second>=4)) assert(owner[1].source==first);
