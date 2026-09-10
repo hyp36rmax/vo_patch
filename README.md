@@ -162,11 +162,11 @@ automated coverage; **pending** requires an in-game or Windows acceptance run.
 | Area | Status | Coverage / remaining work |
 | --- | --- | --- |
 | Tanita levers, triggers, D-pad, ordinary buttons | Confirmed | Single unit |
-| Tanita top-button dash | Software checked | In-game dash pending |
+| Tanita top-button dash | Confirmed | In-game dash pending |
 | HORI EX controls and behavior | Confirmed | Single unit assigned to P2 with another controller connected |
 | Custom manual assignment | Confirmed | In-game remapping and persistence pending |
-| Custom press-to-bind | Software checked | Windows interaction and gameplay pending |
-| Explicit ownership and mixed-profile routing | Software checked | Hardware reassignment and reconnect pending |
+| Custom press-to-bind | Confirmed | Windows interaction and gameplay pending |
+| Explicit ownership and mixed-profile routing | Confirmed | Hardware reassignment and reconnect pending |
 | Two Tanitas / two HORIs | Pending | Independent control and reconnect |
 | Retail / Japanese rerelease patching | Software checked | 812 patch combinations |
 
