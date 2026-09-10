@@ -67,10 +67,11 @@ INPUTS = [
 
 # The F7 device list, in display order; asm/devorder.asm maps positions
 # to the fixed upstream device numbers (0 Real, 1 gamepad, 2 twin-stick,
-# 3 Simple) plus Controller Expansion's device 4.
+# 3 Simple) plus Controller Expansion devices 4 Custom, 5 Tanita, 6 HORI.
 PROFILES = ['Gamepad (XInput)', 'Twin-stick (XInput)', 'Twin-Stick (Custom)',
+            'Twin-Stick (Tanita)', 'Twin-Stick (HORI EX)',
             'Keyboard (Simple)', 'Keyboard (Real)']
-PROFILE_LABELS = ('gamepad', 'twin', 'custom', 'simple', 'real')
+PROFILE_LABELS = ('gamepad', 'twin', 'custom', 'tanita', 'hori', 'simple', 'real')
 
 DEVLIST_LEN = 32        # the run the device list is written into
 
@@ -108,7 +109,7 @@ def build():
         binds += struct.pack('<II', 0, FIRST_ID + i)
 
     devlist, dfix = bytearray(), []
-    # The build chooses five names, or four names followed by a null pointer.
+    # The build chooses seven names, or four names followed by null pointers.
     # This keeps the device list's size fixed across all supported builds.
     for i in range(len(PROFILES)):
         dfix.append((len(devlist), 'abs', 'PROFILE_%d' % i, 0))

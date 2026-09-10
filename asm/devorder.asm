@@ -3,7 +3,7 @@ bits 32
 ; (Custom), Keyboard (Simple), Keyboard (Real), while the original device
 ; numbers stay what the executable and v_on.ini have always used
 ; (0 Real, 1 gamepad, 2 twin-stick, 3 Simple). Controller Expansion uses
-; device 4 for Twin-Stick (Custom).
+; device 4 for Custom, 5 for Tanita and 6 for HORI EX.
 ;
 ; Two mappings keep the list honest: the page's preselect turns the pending
 ; device into its list position, and the OK translate turns the chosen
@@ -18,8 +18,8 @@ extern DEV_POS, DEV_NUM         ; this build's profile-order tables below
                             ; DEVSEL: the F7 combo selection
                             ; DEVNUM: and the device it maps to
 
-posof:  db 4, 0, 1, 3, 2, 5, 6, 7       ; device -> list position
-devof:  db 1, 2, 4, 3, 0, 5, 6, 7       ; list position -> device
+posof:  db 6, 0, 1, 5, 2, 3, 4, 7       ; device -> list position
+devof:  db 1, 2, 4, 5, 6, 3, 0, 7       ; list position -> device
 ; OEM and Japanese original retain the four-profile ordering until their
 ; Custom dispatch sites have been verified from pristine executables.
 legacypos: db 3, 0, 1, 2, 4, 5, 6, 7

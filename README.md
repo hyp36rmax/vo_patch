@@ -319,9 +319,11 @@ say which build in the report - the window names it.
 
 **XInput gamepad support** rebuilds the F7 device list. The legacy joystick
 profiles are hidden and four remain, available to both players. The English
-retail and Japanese rerelease also offer **Twin-Stick (Custom)**. The USA
-OEM and original Japanese editions retain the four-profile list until
-their Custom dispatch sites can be verified.
+retail and Japanese rerelease also offer **Twin-Stick (Custom)**,
+**Twin-Stick (Tanita)** and **Twin-Stick (HORI EX)**. The USA OEM and original
+Japanese editions retain the four-profile list until their additional
+dispatch sites can be verified. The new hardware paths require Windows
+play testing; see [controller validation](docs/CONTROLLERS.md).
 
 Players on a pad profile take the connected pads in order, 1P first. With
 two pads, the first drives 1P and the second 2P. With one pad and 1P on the
@@ -337,6 +339,8 @@ keyboard, that pad drives 2P.
 | **Gamepad (XInput)** | twelve named actions, bound from the F7 screen |
 | **Twin-stick (XInput)** | the arcade levers, nothing to bind |
 | **Twin-Stick (Custom)** | fixed Xbox/Brook defaults; retail and Japanese rerelease only |
+| **Twin-Stick (Tanita)** | native HID, VID 1F4F / PID 9001 / REV 0200; hardware testing pending |
+| **Twin-Stick (HORI EX)** | Xbox 360 version, D-pad + right stick through XInput; hardware testing pending |
 | **Keyboard (Simple)** | every action on a bindable key |
 | **Keyboard (Real)** | the game's own two-lever keyboard scheme, bindable |
 
@@ -414,6 +418,44 @@ Available on English retail and Japanese rerelease for both players:
 This milestone supplies fixed defaults. The profile does not yet provide
 editable gameplay bindings. The F7 Gamepad bind list now also includes
 the four D-pad directions; existing saved input IDs remain unchanged.
+
+### Twin-Stick (Tanita)
+
+Available on retail and Japanese rerelease. The patcher installs the supplied
+32-bit `vontanita.dll` beside the game. Keep the `input` folder with the Python
+release. The Windows release bundles the helper automatically. It requires
+the Windows Universal C Runtime (included in Windows 10 and later).
+
+X/Y drive the left lever; Z/Rz drive the right. Values below 25% or above 75%
+become digital directions; the middle half is neutral. Buttons 4/5 fire the
+triggers and 10/11 dash (zero-based numbering). The duplicate physical
+controls that report button 10 or 11 each remain one logical action.
+Options pauses, Cross accepts, Share uses the existing Back/camera action,
+and the POV navigates through the existing D-pad path. Rx/Ry and PS are ignored.
+
+Tanitas are assigned by sorted HID device path, independently of XInput slots,
+with P1 taking the first when both players select Tanita. Each device keeps
+its own report and state. Paths remain reserved for the game session, so
+unplugging one does not reassign the other. Reconnect to the same USB port;
+restart the game after changing ports or replacing a reserved device.
+
+The reader currently accepts a single gamepad report containing the stated
+axes, POV and button range. The supplied hardware observations did not include
+a HID report descriptor, so descriptor compatibility, Windows input delivery
+and two-device reconnect behavior still need physical validation.
+
+### Twin-Stick (HORI EX)
+
+For the **Xbox 360 HORI Twin Stick EX** (VID 1BAD / PID FF00, IG_00): left lever
+on D-pad, right lever on right thumbstick, LT/RT fire and LB/RB dash. A/B/X/Y,
+Back and Start keep their XInput meanings. The PlayStation model is unvalidated.
+
+Select the profile manually. It uses the existing ascending XInput-slot
+assignment, independently of native Tanitas; XInput does not identify this
+profile by VID/PID. Raw XInput Y is treated as positive-up, as specified by
+Microsoft. Confirm right-lever polarity on the real HORI: percentages shown
+by controller tools do not establish the sign returned by XInputGetState.
+Dual-HORI hardware validation remains pending.
 
 ### Keyboard (Simple)
 

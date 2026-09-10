@@ -23,7 +23,7 @@ def tables(vp, build):
     names = ['Gamepad (XInput)', 'Twin-stick (XInput)',
              'Keyboard (Simple)', 'Keyboard (Real)']
     if custom:
-        names.insert(2, 'Twin-Stick (Custom)')
+        names[2:2] = ['Twin-Stick (Custom)', 'Twin-Stick (Tanita)', 'Twin-Stick (HORI EX)']
     strings = vp.link('PAD_PROFILES', build)
     base = vp.cave_va('PAD_PROFILES', build)
     pointers = struct.unpack('<8I', vp.link('PAD_DEVLIST', build))
@@ -41,6 +41,24 @@ def tables(vp, build):
             actual = next(new for off, _old, new in rows if off == offset)
             assert actual == struct.pack('<I', vp.symbol_va(target, build)).hex()
 
+    # Every new site is absent from unverified builds. On verified builds,
+    # check startup, spending, dialog and INI routes as well as gameplay.
+    hardware_sites = {
+        0x422b8: ('TWIN','tanita1p'), 0x1bc14b: ('TWIN','tanita2p'),
+        0x422bc: ('TWIN','hori1p'), 0x1bc14f: ('TWIN','hori2p'),
+        0x9521b: 'JOYCHECKOK', 0x9521f: 'JOYCHECKOK',
+        0x9673d: 'SPENDNONE', 0x96741: 'SPENDNONE',
+        0x95be8: 'NODIALOG', 0x96263: 'SAVENONE', 0x96267: 'SAVENONE'}
+    assert set(hardware_sites) | {0x958a3, 0x958a4} <= vp.CUSTOM_DISPATCH_SITES
+    if custom:
+        for site, target in hardware_sites.items():
+            offset = site if build.short == 'retail' else build.sites[site][0]
+            actual = next(new for off, _old, new in rows if off == offset)
+            assert actual == struct.pack('<I', vp.symbol_va(target, build)).hex()
+        for site in (0x958a3, 0x958a4):
+            offset = site if build.short == 'retail' else build.sites[site][0]
+            assert next(new for off, _old, new in rows if off == offset) == '03'
+
 
 def emulate(vp, build, ucmod, regs):
     uc = ucmod.Uc(ucmod.UC_ARCH_X86, ucmod.UC_MODE_32)
@@ -48,8 +66,10 @@ def emulate(vp, build, ucmod, regs):
     stack, stop, xinput = 0x10000000, 0x10001000, 0x10001100
     uc.mem_map(stack, 0x2000)
     sym = lambda name: vp.symbol_va(name, build)
-    for name in ('DEVORDER', 'TWIN', 'PADX', 'PAD_COND'):
+    for name in ('DEVORDER', 'TWIN', 'PADX', 'PAD_COND', 'LEVERS'):
         uc.mem_write(vp.cave_va(name, build), vp.link(name, build))
+    epilogue = sym(('PADX', 'epilogue'))
+    uc.mem_write(epilogue, b'\xe9' + struct.pack('<i', vp.cave_va('LEVERS', build) - epilogue - 5))
     # The fake XInputGetState succeeds, preserving the input supplied below.
     uc.mem_write(xinput, bytes.fromhex('31c0c20800'))
     for name in ('KBD1P', 'KBD2P', 'CAMSKIP'):
@@ -65,7 +85,7 @@ def emulate(vp, build, ucmod, regs):
         assert uc.reg_read(regs.UC_X86_REG_EIP) == end, (build.short, entry)
 
     # Execute both directions of the F7 mapping for each player and profile.
-    order = [1, 2, 4, 3, 0] if build.short in ('retail', 'jpre') else [1, 2, 3, 0]
+    order = [1, 2, 4, 5, 6, 3, 0] if build.short in ('retail', 'jpre') else [1, 2, 3, 0]
     frame = stack + 0x800
     for player in range(2):
         for pos, device in enumerate(order):
@@ -82,17 +102,41 @@ def emulate(vp, build, ucmod, regs):
 
     word('XIFN', xinput)
     # A hidden legacy device 4 must not consume the first pad ahead of 2P.
-    for device in (0, 1, 2, 3, 4):
+    for device in (0, 1, 2, 3, 4, 5, 6):
         word('PADIDX', 0)
         uc.mem_write(sym('DEVICES'), struct.pack('<II', device, 1))
         uc.reg_write(regs.UC_X86_REG_EAX, 1)
         uc.reg_write(regs.UC_X86_REG_EDX, sym('STATE'))
         run(('PADX', 'padpoll'))
-        uses_pad = device in (1, 2) or (device == 4 and len(order) == 5)
+        uses_pad = device in (1, 2) or (device in (4, 6) and len(order) == 7)
         assert bytes(uc.mem_read(sym('PADIDX'), 2)) == (b'\x01\x02' if uses_pad else b'\x05\x01')
 
-    if len(order) != 5:
+    if len(order) != 7:
         return
+    # Every profile pairing allocates each API independently, P1 first.
+    word(('PADX', 'tanitafn'), xinput)
+    calls = []
+    def record(_uc, address, _size, _data):
+        if address == xinput:
+            sp = _uc.reg_read(regs.UC_X86_REG_ESP)
+            calls.append(struct.unpack('<I', _uc.mem_read(sp + 4, 4))[0])
+    hook = uc.hook_add(ucmod.UC_HOOK_CODE, record)
+    uc.ctl_remove_cache(xinput, xinput + 5)
+    for first in order:
+        for second in order:
+            uc.mem_write(sym('DEVICES'), struct.pack('<II', first, second))
+            word('PADIDX', 0)
+            for player, device in enumerate((first, second)):
+                if device not in (1, 2, 4, 5, 6):
+                    continue
+                calls.clear()
+                uc.reg_write(regs.UC_X86_REG_EAX, player)
+                uc.reg_write(regs.UC_X86_REG_EDX, sym('STATE'))
+                run(('PADX', 'padpoll'))
+                expected = int(player == 1 and ((first == 5) if device == 5 else first in (1, 2, 4, 6)))
+                assert calls[-1] == expected, (first, second, player, calls)
+    uc.hook_del(hook)
+    uc.mem_write(sym('DEVICES'), struct.pack('<II', 4, 4))
     word('MODE', 4)
     word('SUBMODE', 8)
     # (wButtons, LT, RT, expected left mask, expected right mask).
@@ -116,6 +160,65 @@ def emulate(vp, build, ucmod, regs):
                     actual = struct.unpack('<H', uc.mem_read(sym('LEV%d%s' % (side, lever)), 2))[0]
                     expected = 0xffff ^ mask if side == player else 0xffff
                     assert actual == expected, (build.short, player, buttons, lt, rt, lever, hex(actual), hex(expected))
+
+    # Hardware profile directions, diagonals, triggers and dashes per side.
+    # Raw XInput Y is positive up; Tanita's reader normalizes HID Y to that.
+    word('DZTHR1', 13000)
+    uc.mem_write(sym('DZTHR1') + 4, struct.pack('<I', 13000))
+    for profile, device in (('stub', 2), ('tanita', 5), ('hori', 6)):
+        uc.mem_write(sym('DEVICES'), struct.pack('<II', device, device))
+        inputs = [(0, 0, 0, 0, 0, 0, 0, 0, 0)]
+        for sign, axis, left, right in ((1,1,0x20,0),(-1,1,0x10,0),
+                (-1,0,0x80,0),(1,0,0x40,0),(1,3,0,0x20),(-1,3,0,0x10),
+                (-1,2,0,0x80),(1,2,0,0x40)):
+            axes = [0]*4
+            buttons = 0
+            if profile == 'hori' and axis < 2:
+                buttons = {0x20:1,0x10:2,0x80:4,0x40:8}[left]
+            else:
+                axes[axis] = sign*32767
+            inputs.append((buttons,0,0,*axes,left,right))
+        inputs += [(0,255,255,0,0,0,0,1,1), (0x300,0,0,0,0,0,0,2,2),
+                   (9 if profile == 'hori' else 0,0,0,
+                    0 if profile == 'hori' else 32767,
+                    0 if profile == 'hori' else 32767,32767,32767,0x60,0x60)]
+        for player in (1, 2):
+            for buttons, lt, rt, lx, ly, rx, ry, left, right in inputs:
+                word('PADIDX', 0x0201)
+                uc.mem_write(sym('BTN'), struct.pack('<HBBhhhh', buttons,lt,rt,lx,ly,rx,ry))
+                for side in (1,2):
+                    for lever in ('A','B'):
+                        uc.mem_write(sym('LEV%d%s' % (side,lever)), b'\xff\xff')
+                run(('TWIN', '%s%dp' % (profile,player)), sym('EXIT%dP' % player))
+                for side in (1,2):
+                    for lever,mask in (('A',left),('B',right)):
+                        got = struct.unpack('<H',uc.mem_read(sym('LEV%d%s' % (side,lever)),2))[0]
+                        assert got == (0xffff ^ mask if side == player else 0xffff), (profile,player,inputs,hex(got))
+
+    # Tanita Options/Cross still reach the window during pause without XInput.
+    post = xinput + 0x40
+    uc.mem_write(post, bytes.fromhex('31c0c21000'))
+    word('POSTMSG', post)
+    word('XIFN', 1)
+    uc.mem_write(sym('DEVICES'), struct.pack('<II', 5, 0))
+    uc.mem_write(sym(('PADX', 'tanitaprev')), b'\0'*4)
+    events = []
+    def posted(_uc, address, _size, _data):
+        if address == post:
+            sp = _uc.reg_read(regs.UC_X86_REG_ESP)
+            events.append(struct.unpack('<4I', _uc.mem_read(sp + 4,16)))
+    uc.hook_add(ucmod.UC_HOOK_CODE, posted)
+    uc.mem_write(sym('PBTN'), struct.pack('<H',0x1010))
+    run(('PADX','pollpads'))
+    assert [event[2] for event in events] == [0x72,0x20]
+    events.clear()
+    run(('PADX','pollpads'))
+    assert not events
+    uc.mem_write(sym('PBTN'), b'\0\0')
+    run(('PADX','pollpads'))
+    uc.mem_write(sym('PBTN'), struct.pack('<H',0x10))
+    run(('PADX','pollpads'))
+    assert [event[2] for event in events] == [0x72]
 
 
 def main():

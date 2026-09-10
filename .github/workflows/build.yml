@@ -92,6 +92,10 @@ jobs:
           i686-w64-mingw32-objdump -p /tmp/dpctrl.dll | grep -i 'DLL Name'
           i686-w64-mingw32-objdump -p /tmp/dpctrl.dll | grep -qi dplayx \
             && { echo "still linked against DirectPlay"; exit 1; }
+          i686-w64-mingw32-gcc -O2 -Wall -Wextra -Werror -shared -o /tmp/vontanita.dll \
+              input/tanita.c input/tanita.def -lhid -lsetupapi \
+              -Wl,--enable-stdcall-fixup
+          i686-w64-mingw32-objdump -p /tmp/vontanita.dll | grep -q TanitaGetState
           echo "ok"
 
       # What this job cannot do is touch a real copy of the game, so the
@@ -184,6 +188,7 @@ jobs:
           grep -q 'pyi_rth__tkinter' listing.txt || { echo 'no Tk runtime hook'; exit 1; }
           ls dist/v-on-patcher/_internal/_tkinter*.pyd || { echo 'tkinter was not bundled'; exit 1; }
           ls dist/v-on-patcher/_internal/certifi/cacert.pem || { echo 'certifi CA list was not bundled'; exit 1; }
+          ls dist/v-on-patcher/_internal/vontanita.dll || { echo 'Tanita DLL was not bundled'; exit 1; }
           ls dist/v-on-patcher/_internal/dpctrl.dll || { echo 'netplay DLL was not bundled'; exit 1; }
           echo "$(find dist/v-on-patcher -type f | wc -l) files, tkinter, CA list and DLL present"
 
@@ -224,6 +229,7 @@ jobs:
           version = re.search(rb"^VERSION = '(.*)'$", text, re.M).group(1).decode()
           pathlib.Path('dist/v-on-patcher-%s.py' % version).write_bytes(text)
           shutil.copy('net/dpctrl.dll', 'dist/dpctrl.dll')
+          shutil.copy('input/vontanita.dll', 'dist/vontanita.dll')
           print('staged v-on-patcher-%s.py and dpctrl.dll' % version)
           EOF
           if grep -q $'\r' dist/v-on-patcher-*.py; then
@@ -261,6 +267,7 @@ jobs:
                   if f.endswith('.py'):
                       z.write(f)
               z.write('dpctrl.dll', 'net/dpctrl.dll')
+              z.write('vontanita.dll', 'input/vontanita.dll')
           "
           ls -l *.zip
           for z in *.zip; do unzip -l "$z" | sed -n '1,5p'; done

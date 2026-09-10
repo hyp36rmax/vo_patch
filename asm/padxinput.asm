@@ -20,6 +20,7 @@ extern PADPREV                  ; last polled buttons, one word per pad,
 extern PADIDX                   ; the slot map, see padpoll; commitdev.asm
 extern PADRETRY                 ; clears it. And its miss counter.
 extern DEVICES                  ; committed device per player, + player * 4
+extern TANITA_DEVICE, HORI_DEVICE
 extern CUSTOM_DEVICE            ; 4 on verified builds; 1 otherwise (already accepted)
 extern DZTHR1                   ; stick thresholds out of 32767, 1P then
                                 ; 2P, indexed by the block's player. Written
@@ -92,11 +93,11 @@ pollpads:
     pushfd
     call    resolve             ; during the intro the tick has never run, so
     cmp     eax, 1              ; nothing else has resolved the import yet
-    jbe     .out
+    jbe     .tanitastart
     xor     esi, esi
 .pad:
     cmp     esi, 2
-    jae     .out
+    jae     .tanitastart
     push    PSTATE
     push    esi
     call    [XIFN]
@@ -168,6 +169,43 @@ pollpads:
 .nextpad:
     inc     esi
     jmp     .pad
+.tanitastart:
+    xor     esi, esi
+.tanitapad:
+    cmp     dword [DEVICES + esi*4], TANITA_DEVICE
+    jne     .tanitanext
+    mov     eax, esi
+    mov     edx, PSTATE
+    call    tanitapoll
+    test    eax, eax
+    jnz     .tanitaclear
+    movzx   ebx, word [PBTN]
+    movzx   ebp, word [tanitaprev + esi*2]
+    mov     [tanitaprev + esi*2], bx
+    not     ebp
+    and     ebx, ebp
+    test    ebx, 0x10
+    jz      .tanitaaccept
+    push    0
+    push    VK_F3
+    push    WM_KEYDOWN
+    push    dword [HWND]
+    call    [POSTMSG]
+.tanitaaccept:
+    test    ebx, 0x1000
+    jz      .tanitanext
+    push    0
+    push    VK_SPACE
+    push    WM_KEYDOWN
+    push    dword [HWND]
+    call    [POSTMSG]
+    jmp     .tanitanext
+.tanitaclear:
+    mov     word [tanitaprev + esi*2], 0
+.tanitanext:
+    inc     esi
+    cmp     esi, 2
+    jb      .tanitapad
 .out:
     popfd
     popad
@@ -206,9 +244,13 @@ tick:
     mov     ebx, [ebp + 8]
     mov     dword [ebp - 4], 0
 
+    mov     eax, [ebx]
+    cmp     dword [DEVICES + eax*4], TANITA_DEVICE
+    je      .poll
     call    resolve
     cmp     eax, 1
     je      .keyboard
+.poll:
     mov     eax, [ebx]
     mov     edx, STATE
     call    padpoll
@@ -354,6 +396,8 @@ apply:
 ; side without a pad has missed 256 polls (a pad plugged in later), and
 ; after a device change, which commitdev.asm clears it for.
 padpoll:                        ; in: eax = side, edx = an XINPUT_STATE
+    cmp     dword [DEVICES + eax*4], TANITA_DEVICE
+    je      tanitapoll
     push    ebx                 ; out: eax = 0 polled, else no pad
     mov     ebx, eax
     cmp     word [PADIDX], 0
@@ -394,6 +438,8 @@ padpoll:                        ; in: eax = side, edx = an XINPUT_STATE
     cmp     eax, 1              ; Gamepad
     je      .slot
     cmp     eax, 2              ; Twin-stick (XInput)
+    je      .slot
+    cmp     eax, HORI_DEVICE
     je      .slot
     cmp     eax, CUSTOM_DEVICE  ; Twin-Stick (Custom), when supported
     jne     .nextside           ; keyboards take no XInput slot
@@ -487,3 +533,49 @@ block2:
 dll14:  db 'xinput1_4.dll', 0
 dll13:  db 'xinput1_3.dll', 0
 dll910: db 'xinput9_1_0.dll', 0
+
+; Tanita ordinals count only Tanita profiles, independent of XInput slots.
+; The DLL owns sorted, reserved physical paths; there is no activity claim.
+tanitapoll:
+    push    ebx
+    push    esi
+    mov     ebx, eax
+    mov     esi, edx
+    mov     eax, [tanitafn]
+    test    eax, eax
+    jnz     .resolved
+    push    tanitadll
+    call    [LOADLIB]
+    test    eax, eax
+    jz      .missing
+    push    tanitaname
+    push    eax
+    call    [GETPROC]
+    test    eax, eax
+    jnz     .store
+.missing:
+    mov     eax, 1
+.store:
+    mov     [tanitafn], eax
+.resolved:
+    cmp     eax, 1
+    je      .done
+    xor     ecx, ecx
+    test    ebx, ebx
+    jz      .call
+    cmp     dword [DEVICES], TANITA_DEVICE
+    jne     .call
+    inc     ecx
+.call:
+    push    esi
+    push    ecx
+    call    eax
+.done:
+    pop     esi
+    pop     ebx
+    ret
+align 4
+tanitafn: dd 0
+tanitaprev: dw 0, 0
+tanitadll: db 'vontanita.dll', 0
+tanitaname: db 'TanitaGetState', 0

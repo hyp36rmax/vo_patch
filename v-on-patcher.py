@@ -30,6 +30,7 @@ import sys
 import time
 import webbrowser
 import threading
+import tempfile
 import urllib.request
 import zipfile
 import urllib.error
@@ -3546,18 +3547,26 @@ BUILDS = {RETAIL.md5: RETAIL, JPRE.md5: JPRE, OEM.md5: OEM,
           JP.md5: JP}
 BY_STAMP = {b.stamp: b for b in BUILDS.values()}
 
-# Custom's runtime and F7 dispatch sites are verified on these editions. Other
+# Expansion runtime and F7 dispatch sites are verified on these editions. Other
 # builds retain their four-profile menu, ordering and pad allocation.
 CUSTOM_BUILDS = frozenset((RETAIL.md5, JPRE.md5))
 CUSTOM_DISPATCH_SITES = frozenset((0x000422b4, 0x001bc147,
-                                  0x00096739, 0x00095be4))
+                                  0x00096739, 0x00095be4,
+                                  0x000422b8, 0x001bc14b, 0x000422bc, 0x001bc14f,
+                                  0x0009521b, 0x0009521f, 0x0009673d, 0x00096741,
+                                  0x00095be8, 0x00096263, 0x00096267,
+                                  0x000958a3, 0x000958a4))
 for _build in BUILDS.values():
     _custom = _build.md5 in CUSTOM_BUILDS
     _build.symbols['DEV_POS'] = ('DEVORDER', 'posof' if _custom else 'legacypos')
     _build.symbols['DEV_NUM'] = ('DEVORDER', 'devof' if _custom else 'legacydev')
     _build.symbols['CUSTOM_DEVICE'] = 4 if _custom else 1
-    _profiles = ('gamepad', 'twin', 'custom', 'simple', 'real') if _custom else (
-        'gamepad', 'twin', 'simple', 'real', None)
+    _build.symbols['SAVENONE'] = (0x00496e6b if _build is RETAIL else
+                                  0x004959ca if _build is JPRE else 0)
+    _build.symbols['TANITA_DEVICE'] = 5 if _custom else 0xffffffff
+    _build.symbols['HORI_DEVICE'] = 6 if _custom else 1
+    _profiles = ('gamepad', 'twin', 'custom', 'tanita', 'hori', 'simple', 'real') if _custom else (
+        'gamepad', 'twin', 'simple', 'real', None, None, None)
     for _i, _profile in enumerate(_profiles):
         _build.symbols['PROFILE_%d' % _i] = (
             ('PAD_PROFILES', _profile) if _profile else 0)
@@ -3799,6 +3808,19 @@ JPRE.sites = {
     0x001bc13f: (0x001b6aaf, '5d765b00'),
     0x000422b0: (0x00041970, '2b254400'),
     0x001bc143: (0x001b6ab3, '6e765b00'),
+    0x000422b8: (0x00041978, '35254400'),
+    0x001bc14b: (0x001b6abb, '78765b00'),
+    0x000422bc: (0x0004197c, '35254400'),
+    0x001bc14f: (0x001b6abf, '78765b00'),
+    0x0009521b: (0x00093d3c, '4d484900'),
+    0x0009521f: (0x00093d40, 'b9484900'),
+    0x0009673d: (0x0009529c, '555e4900'),
+    0x00096741: (0x000952a0, '475e4900'),
+    0x00095be8: (0x00094747, 'c6524900'),
+    0x00096263: (0x00094dc2, '48584900'),
+    0x00096267: (0x00094dc6, '48584900'),
+    0x000958a3: (0x00094403, '02'),
+    0x000958a4: (0x00094404, '02'),
     0x000422b4: (0x00041974, '35254400'),
     0x001bc147: (0x001b6ab7, '78765b00'),
     0x00095e46: (0x000949a5, '83c008'),
@@ -4494,43 +4516,52 @@ BLOBS = {
         'credits': 0xe6,
     }),
     'PADX': (bytes.fromhex(
-        '6887030000e81a01000083c404e9fcffffff68af030000e80801000083c404e9'
-        'fcffffffe806000000ff2500000000609ce8ef02000083f8010f86da00000031'
+        '6838040000e8a401000083c404e9fcffffff6860040000e89201000083c404e9'
+        'fcffffffe806000000ff2500000000609ce8a003000083f8010f86da00000031'
         'f683fe020f83cf000000680000000056ff150000000085c00f85b50000000fb7'
         '1d000000008d14b5000000000fb72a66891a89d825100300003d10030000754d'
         '803d060000001e7244803d070000001e723b89e825100300003d100300007473'
         '833d0000000002746ac70500000000ffffffffe8fcffffff833d000000000175'
-        '52c70500000000ffffffffeb4631ff83ff02733f8d0cbd1c0100000fb70189da'
+        '52c70500000000ffffffffeb4631ff83ff02733f8d0cbda60100000fb70189da'
         '21c221e839c27428b80001000085d2750b807903007419b8010100006a000fb6'
-        '51025250ff3500000000ff150000000047ebbc46e928ffffff9d61c310007200'
-        '001020005589e583ec045356578b5d08c745fc00000000e8e901000083f80174'
-        '448b03ba00000000e83b01000085c07534c745fc010000000fb70500000000a9'
-        '00100000740b8b5318c60280e8fcffffff0fb70500000000a92000000074068b'
-        '5324c602808b4320ffd0837dfc000f84d301000031f683fe0c0f83a100000083'
-        '3d00000000047512833d00000000087c09833d000000000c7e0f83fe04747b83'
-        'fe05747683fe077f778b53040fb604722de0000000726383f814735e8d3cc500'
-        '0000000fb6070fb757028b4f0483f800741783f801741d83f802742c0fb68200'
-        '00000039c8772eeb310fbf8200000000f7d8eb070fbf82000000008b0b3b048d'
-        '000000007f0feb120fb7050000000085c87502eb05e82500000046e956ffffff'
-        '31f683fe040f831c0100000fb705000000000fa3f07305e80300000046ebe38b'
-        '53100fb60c32f7d18b53080fb70221c86689028b53140fb60c32f7d18b530c0f'
-        'b70221c8668902c35389c366833d00000000007505e83b0000000fb683000000'
-        '003c057318485250ff150000000085c0742166c705000000000000eb11fe0500'
-        '000000750966c705000000000000b8010000005bc356575389d366c705000000'
-        '00050531f631ff8b04bd0000000083f801740c83f80274073d00000000751a83'
-        'fe04731b5356ff15000000004685c075ee89f08887000000004783ff0272c889'
-        'da5b5f5ec3a10000000085c075385631f683fe0373258b04b56c03000050ff15'
-        '0000000085c0750346ebe6687803000050ff150000000085c07505b801000000'
-        'a3000000005ec35f5e5bc9c3d7030000e5030000f303000058496e7075744765'
-        '7453746174650000000000000000000000000000000000000000000000000000'
-        '0000000000000000000000000000000100000000000000000000000000000000'
-        '000000000000000000000000000000000000000000000078696e707574315f34'
-        '2e646c6c0078696e707574315f332e646c6c0078696e707574395f315f302e64'
-        '6c6c00'
+        '51025250ff3500000000ff150000000047ebbc46e928ffffff31f6813cb50000'
+        '000000000000757189f0ba00000000e88003000085c075570fb71d000000000f'
+        'b7ac361005000066899c3610050000f7d521ebf7c31000000074156a006a7268'
+        '00010000ff3500000000ff1500000000f7c30010000074216a006a2068000100'
+        '00ff3500000000ff1500000000eb0a66c784361005000000004683fe020f8278'
+        'ffffff9d61c310007200001020005589e583ec045356578b5d08c745fc000000'
+        '008b03813c850000000000000000740ae80102000083f80174448b03ba000000'
+        '00e83b01000085c07534c745fc010000000fb70500000000a900100000740b8b'
+        '5318c60280e8fcffffff0fb70500000000a92000000074068b5324c602808b43'
+        '20ffd0837dfc000f84eb01000031f683fe0c0f83a1000000833d000000000475'
+        '12833d00000000087c09833d000000000c7e0f83fe04747b83fe05747683fe07'
+        '7f778b53040fb604722de0000000726383f814735e8d3cc5000000000fb6070f'
+        'b757028b4f0483f800741783f801741d83f802742c0fb6820000000039c8772e'
+        'eb310fbf8200000000f7d8eb070fbf82000000008b0b3b048d000000007f0feb'
+        '120fb7050000000085c87502eb05e82500000046e956ffffff31f683fe040f83'
+        '340100000fb705000000000fa3f07305e80300000046ebe38b53100fb60c32f7'
+        'd18b53080fb70221c86689028b53140fb60c32f7d18b530c0fb70221c8668902'
+        'c3813c8500000000000000000f84820100005389c366833d00000000007505e8'
+        '3b0000000fb683000000003c057318485250ff150000000085c0742166c70500'
+        '0000000000eb11fe0500000000750966c705000000000000b8010000005bc356'
+        '575389d366c70500000000050531f631ff8b04bd0000000083f801741383f802'
+        '740e3d0000000074073d00000000751a83fe04731b5356ff15000000004685c0'
+        '75ee89f08887000000004783ff0272c189da5b5f5ec3a10000000085c0753856'
+        '31f683fe0373258b04b51d04000050ff150000000085c0750346ebe668290400'
+        '0050ff150000000085c07505b801000000a3000000005ec35f5e5bc9c3880400'
+        '0096040000a404000058496e7075744765745374617465000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000000'
+        '0100000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000078696e707574315f342e646c6c0078696e707574315f332e'
+        '646c6c0078696e707574395f315f302e646c6c00535689c389d6a10c05000085'
+        'c075296814050000ff150000000085c07410682205000050ff150000000085c0'
+        '7505b801000000a30c05000083f801741731c985db740d813d00000000000000'
+        '007501415651ffd05e5bc3900000000000000000766f6e74616e6974612e646c'
+        '6c0054616e697461476574537461746500'
     ), (
-        (0x1, 'abs', '.', 903),
+        (0x1, 'abs', '.', 1080),
         (0xe, 'rel', 'EXIT1P', -4),
-        (0x13, 'abs', '.', 943),
+        (0x13, 'abs', '.', 1120),
         (0x20, 'rel', 'EXIT2P', -4),
         (0x2b, 'abs', 'PEEKMSG', 0),
         (0x4b, 'abs', 'PSTATE', 0),
@@ -4544,80 +4575,109 @@ BLOBS = {
         (0xb4, 'rel', 'CDSTOP', -4),
         (0xba, 'abs', 'GAMEMODE', 0),
         (0xc3, 'abs', 'MODE2', 0),
-        (0xd7, 'abs', '.', 284),
+        (0xd7, 'abs', '.', 422),
         (0x106, 'abs', 'HWND', 0),
         (0x10c, 'abs', 'POSTMSG', 0),
-        (0x144, 'abs', 'STATE', 0),
-        (0x15b, 'abs', 'BTN', 0),
-        (0x16d, 'rel', 'CAMSKIP', -4),
-        (0x174, 'abs', 'BTN', 0),
-        (0x1a1, 'abs', 'MODE', 0),
-        (0x1aa, 'abs', 'SUBMODE', 0),
-        (0x1b3, 'abs', 'SUBMODE', 0),
-        (0x1df, 'abs', 'COND', 0),
-        (0x1ff, 'abs', 'BTN', 0),
-        (0x20c, 'abs', 'BTN', 0),
-        (0x217, 'abs', 'BTN', 0),
-        (0x220, 'abs', 'DZTHR1', 0),
-        (0x22b, 'abs', 'BTN', 0),
-        (0x24e, 'abs', 'BTN', 0),
-        (0x28e, 'abs', 'PADIDX', 0),
-        (0x29d, 'abs', 'PADIDX', 0),
-        (0x2aa, 'abs', 'XIFN', 0),
-        (0x2b5, 'abs', 'PADIDX', 0),
-        (0x2bf, 'abs', 'PADRETRY', 0),
-        (0x2c8, 'abs', 'PADIDX', 0),
-        (0x2dd, 'abs', 'PADIDX', 0),
-        (0x2ea, 'abs', 'DEVICES', 0),
-        (0x2f9, 'abs', 'CUSTOM_DEVICE', 0),
-        (0x308, 'abs', 'XIFN', 0),
-        (0x315, 'abs', 'PADIDX', 0),
-        (0x326, 'abs', 'XIFN', 0),
-        (0x339, 'abs', '.', 876),
-        (0x340, 'abs', 'LOADLIB', 0),
-        (0x34c, 'abs', '.', 888),
-        (0x353, 'abs', 'GETPROC', 0),
-        (0x361, 'abs', 'XIFN', 0),
-        (0x36c, 'abs', '.', 983),
-        (0x370, 'abs', '.', 997),
-        (0x374, 'abs', '.', 1011),
-        (0x38b, 'abs', 'BINDS1', 0),
-        (0x38f, 'abs', 'LEV1A', 0),
-        (0x393, 'abs', 'LEV1B', 0),
-        (0x397, 'abs', 'MASK1A', 0),
-        (0x39b, 'abs', 'MASK1B', 0),
-        (0x39f, 'abs', 'ACCEPT1', 0),
-        (0x3a3, 'abs', 'SCR1', 0),
-        (0x3a7, 'abs', 'KBD1P', 0),
-        (0x3ab, 'abs', 'CAMERA1', 0),
-        (0x3b3, 'abs', 'BINDS2', 0),
-        (0x3b7, 'abs', 'LEV2A', 0),
-        (0x3bb, 'abs', 'LEV2B', 0),
-        (0x3bf, 'abs', 'MASK2A', 0),
-        (0x3c3, 'abs', 'MASK2B', 0),
-        (0x3c7, 'abs', 'ACCEPT2', 0),
-        (0x3cb, 'abs', 'SCR2', 0),
-        (0x3cf, 'abs', 'KBD2P', 0),
-        (0x3d3, 'abs', 'CAMERA2', 0),
+        (0x11e, 'abs', 'DEVICES', 0),
+        (0x122, 'abs', 'TANITA_DEVICE', 0),
+        (0x12b, 'abs', 'PSTATE', 0),
+        (0x13b, 'abs', 'PBTN', 0),
+        (0x143, 'abs', '.', 1296),
+        (0x14b, 'abs', '.', 1296),
+        (0x166, 'abs', 'HWND', 0),
+        (0x16c, 'abs', 'POSTMSG', 0),
+        (0x183, 'abs', 'HWND', 0),
+        (0x189, 'abs', 'POSTMSG', 0),
+        (0x193, 'abs', '.', 1296),
+        (0x1c6, 'abs', 'DEVICES', 0),
+        (0x1ca, 'abs', 'TANITA_DEVICE', 0),
+        (0x1dd, 'abs', 'STATE', 0),
+        (0x1f4, 'abs', 'BTN', 0),
+        (0x206, 'rel', 'CAMSKIP', -4),
+        (0x20d, 'abs', 'BTN', 0),
+        (0x23a, 'abs', 'MODE', 0),
+        (0x243, 'abs', 'SUBMODE', 0),
+        (0x24c, 'abs', 'SUBMODE', 0),
+        (0x278, 'abs', 'COND', 0),
+        (0x298, 'abs', 'BTN', 0),
+        (0x2a5, 'abs', 'BTN', 0),
+        (0x2b0, 'abs', 'BTN', 0),
+        (0x2b9, 'abs', 'DZTHR1', 0),
+        (0x2c4, 'abs', 'BTN', 0),
+        (0x2e7, 'abs', 'BTN', 0),
+        (0x324, 'abs', 'DEVICES', 0),
+        (0x328, 'abs', 'TANITA_DEVICE', 0),
+        (0x338, 'abs', 'PADIDX', 0),
+        (0x347, 'abs', 'PADIDX', 0),
+        (0x354, 'abs', 'XIFN', 0),
+        (0x35f, 'abs', 'PADIDX', 0),
+        (0x369, 'abs', 'PADRETRY', 0),
+        (0x372, 'abs', 'PADIDX', 0),
+        (0x387, 'abs', 'PADIDX', 0),
+        (0x394, 'abs', 'DEVICES', 0),
+        (0x3a3, 'abs', 'HORI_DEVICE', 0),
+        (0x3aa, 'abs', 'CUSTOM_DEVICE', 0),
+        (0x3b9, 'abs', 'XIFN', 0),
+        (0x3c6, 'abs', 'PADIDX', 0),
+        (0x3d7, 'abs', 'XIFN', 0),
+        (0x3ea, 'abs', '.', 1053),
+        (0x3f1, 'abs', 'LOADLIB', 0),
+        (0x3fd, 'abs', '.', 1065),
+        (0x404, 'abs', 'GETPROC', 0),
+        (0x412, 'abs', 'XIFN', 0),
+        (0x41d, 'abs', '.', 1160),
+        (0x421, 'abs', '.', 1174),
+        (0x425, 'abs', '.', 1188),
+        (0x43c, 'abs', 'BINDS1', 0),
+        (0x440, 'abs', 'LEV1A', 0),
+        (0x444, 'abs', 'LEV1B', 0),
+        (0x448, 'abs', 'MASK1A', 0),
+        (0x44c, 'abs', 'MASK1B', 0),
+        (0x450, 'abs', 'ACCEPT1', 0),
+        (0x454, 'abs', 'SCR1', 0),
+        (0x458, 'abs', 'KBD1P', 0),
+        (0x45c, 'abs', 'CAMERA1', 0),
+        (0x464, 'abs', 'BINDS2', 0),
+        (0x468, 'abs', 'LEV2A', 0),
+        (0x46c, 'abs', 'LEV2B', 0),
+        (0x470, 'abs', 'MASK2A', 0),
+        (0x474, 'abs', 'MASK2B', 0),
+        (0x478, 'abs', 'ACCEPT2', 0),
+        (0x47c, 'abs', 'SCR2', 0),
+        (0x480, 'abs', 'KBD2P', 0),
+        (0x484, 'abs', 'CAMERA2', 0),
+        (0x4bb, 'abs', '.', 1292),
+        (0x4c4, 'abs', '.', 1300),
+        (0x4ca, 'abs', 'LOADLIB', 0),
+        (0x4d3, 'abs', '.', 1314),
+        (0x4da, 'abs', 'GETPROC', 0),
+        (0x4e8, 'abs', '.', 1292),
+        (0x4f9, 'abs', 'DEVICES', 0),
+        (0x4fd, 'abs', 'TANITA_DEVICE', 0),
     ), {
         'entry1p': 0x0,
         'entry2p': 0x12,
         'pump': 0x24,
         'pollpads': 0x2f,
-        'keytab': 0x11c,
-        'keytab_end': 0x124,
-        'tick': 0x124,
-        'apply': 0x25f,
-        'padpoll': 0x288,
-        'resolve': 0x325,
-        'epilogue': 0x367,
-        'dlltab': 0x36c,
-        'procname': 0x378,
-        'block1': 0x387,
-        'block2': 0x3af,
-        'dll14': 0x3d7,
-        'dll13': 0x3e5,
-        'dll910': 0x3f3,
+        'keytab': 0x1a6,
+        'keytab_end': 0x1ae,
+        'tick': 0x1ae,
+        'apply': 0x2f8,
+        'padpoll': 0x321,
+        'resolve': 0x3d6,
+        'epilogue': 0x418,
+        'dlltab': 0x41d,
+        'procname': 0x429,
+        'block1': 0x438,
+        'block2': 0x460,
+        'dll14': 0x488,
+        'dll13': 0x496,
+        'dll910': 0x4a4,
+        'tanitapoll': 0x4b4,
+        'tanitafn': 0x50c,
+        'tanitaprev': 0x510,
+        'tanitadll': 0x514,
+        'tanitaname': 0x522,
     }),
     'LEVERS': (bytes.fromhex(
         '837dfc0074288b53088b4b0cf60280750df601407508800a708009b0eb10f602'
@@ -4635,7 +4695,12 @@ BLOBS = {
         '0000000000000000780000008400000000000000000000000000000000000000'
         '0000000060000000000000000000000078000000840000000000000000000000'
         '0000000000000000010000006000000000000000000000007800000084000000'
-        '00000000000000000000000000000000'
+        '000000000000000000000000000000006890000000e8fcffffff83c404e9fcff'
+        'ffff68b8000000e8fcffffff83c404e9fcffffff6890010000e8fcffffff83c4'
+        '04e9fcffffff68b8010000e8fcffffff83c404e9fcfffffff000f100f200f300'
+        'ec00ed00ee00ef00e600e700e400e50000000000780100000000000000000000'
+        '7800000084000000000000000000000000000000000000000100000078010000'
+        '0000000000000000780000008400000000000000000000000000000000000000'
     ), (
         (0x1, 'abs', '.', 144),
         (0x6, 'rel', 'TICK', -4),
@@ -4685,6 +4750,36 @@ BLOBS = {
         (0x124, 'abs', 'SCR2', 0),
         (0x128, 'abs', 'KBD2P', 0),
         (0x12c, 'abs', 'CAMERA2', 0),
+        (0x131, 'abs', '.', 144),
+        (0x136, 'rel', 'TICK', -4),
+        (0x13e, 'rel', 'EXIT1P', -4),
+        (0x143, 'abs', '.', 184),
+        (0x148, 'rel', 'TICK', -4),
+        (0x150, 'rel', 'EXIT2P', -4),
+        (0x155, 'abs', '.', 400),
+        (0x15a, 'rel', 'TICK', -4),
+        (0x162, 'rel', 'EXIT1P', -4),
+        (0x167, 'abs', '.', 440),
+        (0x16c, 'rel', 'TICK', -4),
+        (0x174, 'rel', 'EXIT2P', -4),
+        (0x194, 'abs', '.', 376),
+        (0x198, 'abs', 'LEV1A', 0),
+        (0x19c, 'abs', 'LEV1B', 0),
+        (0x1a0, 'abs', '.', 120),
+        (0x1a4, 'abs', '.', 132),
+        (0x1a8, 'abs', 'ACCEPT1', 0),
+        (0x1ac, 'abs', 'SCR1', 0),
+        (0x1b0, 'abs', 'KBD1P', 0),
+        (0x1b4, 'abs', 'CAMERA1', 0),
+        (0x1bc, 'abs', '.', 376),
+        (0x1c0, 'abs', 'LEV2A', 0),
+        (0x1c4, 'abs', 'LEV2B', 0),
+        (0x1c8, 'abs', '.', 120),
+        (0x1cc, 'abs', '.', 132),
+        (0x1d0, 'abs', 'ACCEPT2', 0),
+        (0x1d4, 'abs', 'SCR2', 0),
+        (0x1d8, 'abs', 'KBD2P', 0),
+        (0x1dc, 'abs', 'CAMERA2', 0),
     ), {
         'stub1p': 0x0,
         'stub2p': 0x12,
@@ -4698,6 +4793,13 @@ BLOBS = {
         'block2': 0xb8,
         'customblock1': 0xe0,
         'customblock2': 0x108,
+        'tanita1p': 0x130,
+        'tanita2p': 0x142,
+        'hori1p': 0x154,
+        'hori2p': 0x166,
+        'horibinds': 0x178,
+        'horiblock1': 0x190,
+        'horiblock2': 0x1b8,
     }),
     'INTROWAIT': (bytes.fromhex(
         'e8fcffffff6a006a006a006a00ff742414ff150000000085c07509e80a000000'
@@ -4923,7 +5025,7 @@ BLOBS = {
         'iniall': 0x0,
     }),
     'DEVORDER': (bytes.fromhex(
-        '0400010302050607010204030005060703000102040506070102030004050607'
+        '0600010502030407010204050603000703000102040506070102030004050607'
         '8b800000000083f80777070fb68000000000c38b45f483f80777070fb6800000'
         '00008b4decc3'
     ), (
@@ -5234,6 +5336,8 @@ BLOBS = {
         (0x8, 'abs', 'PROFILE_2', 0),
         (0xc, 'abs', 'PROFILE_3', 0),
         (0x10, 'abs', 'PROFILE_4', 0),
+        (0x14, 'abs', 'PROFILE_5', 0),
+        (0x18, 'abs', 'PROFILE_6', 0),
     ), {
     }),
     'PAD_SIMPLEDEF': (bytes.fromhex(
@@ -5251,15 +5355,19 @@ BLOBS = {
     }),
     'PAD_PROFILES': (bytes.fromhex(
         '47616d65706164202858496e70757429005477696e2d737469636b202858496e'
-        '70757429005477696e2d537469636b2028437573746f6d29004b6579626f6172'
-        '64202853696d706c6529004b6579626f61726420285265616c2900'
+        '70757429005477696e2d537469636b2028437573746f6d29005477696e2d5374'
+        '69636b202854616e69746129005477696e2d537469636b2028484f5249204558'
+        '29004b6579626f617264202853696d706c6529004b6579626f61726420285265'
+        '616c2900'
     ), (
     ), {
         'gamepad': 0x0,
         'twin': 0x11,
         'custom': 0x25,
-        'simple': 0x39,
-        'real': 0x4b,
+        'tanita': 0x39,
+        'hori': 0x4d,
+        'simple': 0x62,
+        'real': 0x74,
     }),
     'EXTRAS_DATA': (bytes.fromhex(
         '5553455233322e444c4c004469616c6f67426f78496e64697265637450617261'
@@ -6257,7 +6365,7 @@ FEATURES = [
          (0x001c530e, 'ff1590d56503', call(0x001c530e, ('PADX', 'pump'), 1)),
          # two pads are separate devices, so 2P may reuse 1P's inputs
          (0x000971bd, '0f8558000000', 'e95900000090'),
-         # The build selects four profiles, or five including Custom.
+         # The build selects four profiles, or seven including hardware/Custom.
          (0x0026c218, 'ecd36600d4d36600c0d36600b4d3660090d3660080d3660068d3660058d36600',
           blob('PAD_DEVLIST')),
          # profile switch, both players: slot 2 gets the twin-stick stubs
@@ -6268,6 +6376,21 @@ FEATURES = [
          (0x001bc13f, 'edcc5b00', abs32(('TWIN', 'stub2p'))),
          (0x000422b0, '6b2e4400', abs32('SIMPLESTUB1')),
          (0x001bc143, 'fecc5b00', abs32('SIMPLESTUB2')),
+         # Hardware profiles (5 Tanita, 6 HORI EX), verified builds only.
+         (0x000422b8, '752e4400', abs32(('TWIN', 'tanita1p'))),
+         (0x001bc14b, '08cd5b00', abs32(('TWIN', 'tanita2p'))),
+         (0x000422bc, '752e4400', abs32(('TWIN', 'hori1p'))),
+         (0x001bc14f, '08cd5b00', abs32(('TWIN', 'hori2p'))),
+         (0x0009521b, '415d4900', abs32('JOYCHECKOK')),
+         (0x0009521f, 'a15d4900', abs32('JOYCHECKOK')),
+         (0x0009673d, 'f6724900', abs32('SPENDNONE')),
+         (0x00096741, 'e8724900', abs32('SPENDNONE')),
+         (0x00095be8, '67674900', abs32('NODIALOG')),
+         # Fixed hardware profiles have no legacy joystick binds to load/save.
+         (0x00096263, 'e96c4900', abs32('SAVENONE')),
+         (0x00096267, 'e96c4900', abs32('SAVENONE')),
+         (0x000958a3, '02', '03'),
+         (0x000958a4, '02', '03'),
          # slot 4: Twin-Stick (Custom)
          (0x000422b4, '752e4400', abs32(('TWIN', 'custom1p'))),
          (0x001bc147, '08cd5b00', abs32(('TWIN', 'custom2p'))),
@@ -7467,6 +7590,54 @@ def rip_in_background(source, gamedir, progress, done):
     return thread
 
 
+# --- Tanita hashes: written by input/build.py, do not edit ---
+# Source: input/tanita.c, compiled by input/build.py.
+TANITA_SRC_SHA = '64503daee1f74e76a5a06b6bf16ed3ab1b0c51cecc60cd329a0fd1680dbc95c5'
+# sha256 of input/vontanita.dll, so the patcher can tell its own build
+# from an older one already installed.
+TANITA_DLL_SHA = 'a32529a61d2f0618e13b2bb89806e35011be3c7aa2af40f52c5198ab2933eac9'
+# --- end Tanita hashes ---
+
+
+def tanita_dll():
+    """Read the exact native helper shipped with this patcher."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    paths = ([os.path.join(sys._MEIPASS, 'vontanita.dll')]
+             if getattr(sys, 'frozen', False) else
+             [os.path.join(here, 'input', 'vontanita.dll'),
+              os.path.join(here, 'vontanita.dll')])
+    for path in paths:
+        try:
+            with open(path, 'rb') as fh:
+                data = fh.read()
+        except OSError:
+            continue
+        if hashlib.sha256(data).hexdigest() != TANITA_DLL_SHA:
+            raise ValueError('Tanita helper does not match this patcher: %s' % path)
+        return data
+    raise ValueError('Missing vontanita.dll; keep the supplied input folder beside the patcher')
+
+
+def install_tanita(gamedir):
+    """Install before writing the patched exe; never overwrite a foreign DLL."""
+    data = tanita_dll()
+    dest = os.path.join(gamedir, 'vontanita.dll')
+    if os.path.exists(dest):
+        with open(dest, 'rb') as fh:
+            old = fh.read()
+        if old == data:
+            return
+        raise ValueError('A different vontanita.dll already exists in the game folder')
+    fd, temp = tempfile.mkstemp(prefix='.vontanita-', suffix='.new', dir=gamedir)
+    try:
+        with os.fdopen(fd, 'wb') as fh:
+            fh.write(data)
+        os.replace(temp, dest)
+    finally:
+        if os.path.exists(temp):
+            os.remove(temp)
+
+
 # --- netplay ------------------------------------------------------------
 # The DirectPlay replacement, compiled by net/build.py to net/dpctrl.dll,
 # which the release carries beside the exe (PyInstaller's _internal/) and a
@@ -8415,6 +8586,12 @@ class Patcher:
             ready, why = self._banner_ready()
             if not ready:
                 return False, log + [_note(why), NOTHING]
+
+        if 'padxinput' in applied and self.build.md5 in CUSTOM_BUILDS:
+            try:
+                install_tanita(os.path.dirname(self.exe_path) or '.')
+            except (OSError, ValueError) as exc:
+                return False, log + ['Tanita helper: %s' % exc, NOTHING]
 
         if not self._backup(self.exe_path, log):
             return False, log + [NOTHING]

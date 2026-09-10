@@ -88,3 +88,34 @@ customblock1:
     dd 0, custombinds, LEV1A, LEV1B, maska, maskb, ACCEPT1, SCR1, KBD1P, CAMERA1
 customblock2:
     dd 1, custombinds, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2
+
+; Native Tanita is converted to digital LS/RS and the existing trigger masks.
+tanita1p:
+    push block1
+    call TICK
+    add esp, 4
+    jmp EXIT1P
+tanita2p:
+    push block2
+    call TICK
+    add esp, 4
+    jmp EXIT2P
+; HORI Twin Stick EX, Xbox 360: D-pad left lever, RS right lever.
+hori1p:
+    push horiblock1
+    call TICK
+    add esp, 4
+    jmp EXIT1P
+hori2p:
+    push horiblock2
+    call TICK
+    add esp, 4
+    jmp EXIT2P
+horibinds:
+    db 0xf0,0,0xf1,0,0xf2,0,0xf3,0
+    db 0xec,0,0xed,0,0xee,0,0xef,0
+    db 0xe6,0,0xe7,0,0xe4,0,0xe5,0
+horiblock1:
+    dd 0, horibinds, LEV1A, LEV1B, maska, maskb, ACCEPT1, SCR1, KBD1P, CAMERA1
+horiblock2:
+    dd 1, horibinds, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2

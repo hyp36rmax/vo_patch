@@ -56,7 +56,7 @@ a = Analysis(
     [SOURCE],
     pathex=[],
     binaries=[],
-    datas=[('net/dpctrl.dll', '.')],   # netplay DLL, read at install time
+    datas=[('net/dpctrl.dll', '.'), ('input/vontanita.dll', '.')],   # netplay DLL, read at install time
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
