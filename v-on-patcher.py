@@ -7851,14 +7851,15 @@ def rip_in_background(source, gamedir, progress, done):
 
 # --- Tanita hashes: written by input/build.py, do not edit ---
 # Source: input/tanita.c, compiled by input/build.py.
-TANITA_SRC_SHA = 'c72c6ef40be6c9a9777223f4d433dba89ac714f016260d591de27fda3b0e6e44'
+TANITA_SRC_SHA = 'fa86f18b51f2c7f62856d547c8d70c0beaf2685688713b0580fac390ef2c5f9d'
 # sha256 of input/vontanita.dll, so the patcher can tell its own build
 # from an older one already installed.
-TANITA_DLL_SHA = 'f1a623d9e2192131d32921f5c8d3334411ba8ed4c53eab8320abf48dcb04c1c0'
+TANITA_DLL_SHA = 'e22900c3accf5309ccabf47c0fdd6b86d9e27cb38cf1443344c1d8810c22c902'
 # --- end Tanita hashes ---
 
 
 TANITA_PREVIOUS_DLL_SHAS = frozenset((
+    'f1a623d9e2192131d32921f5c8d3334411ba8ed4c53eab8320abf48dcb04c1c0',
     'a32529a61d2f0618e13b2bb89806e35011be3c7aa2af40f52c5198ab2933eac9',
 ))
 

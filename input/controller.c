@@ -38,6 +38,14 @@ typedef struct {
     unsigned ready;
     VonCapture edge;
 } Prompt;
+static HWND child(HWND parent, const char *cls, const char *text, DWORD style,
+                  int id, LONG left, LONG top, LONG right, LONG bottom) {
+    RECT rect={left,top,right,bottom};
+    MapDialogRect(parent,&rect);
+    return CreateWindowExA(0,cls,text,WS_CHILD|WS_VISIBLE|style,
+        rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top,
+        parent,(HMENU)(INT_PTR)id,NULL,NULL);
+}
 static void label(HWND window, const char *text) {
     SetDlgItemTextA(window, 100, text);
 }
@@ -50,12 +58,13 @@ static INT_PTR CALLBACK procedure(HWND window, UINT msg, WPARAM wp, LPARAM lp) {
         snprintf(title,sizeof(title),"Player %u - %s",p->player+1,
                  p->capture ? "Press a control to bind" : "Choose controller");
         SetWindowTextA(window,title);
-        CreateWindowExA(0,"STATIC",p->capture ?
+        HWND instructions=child(window,"STATIC",p->capture ?
             "Release all controls, then press ONE button or move ONE lever direction.\nEscape cancels; the current binding stays unchanged." :
             "Release Start / Options, then press it on this player's controller.\nSelecting the other player's controller swaps compatible assignments.",
-            WS_CHILD|WS_VISIBLE,12,12,420,60,window,(HMENU)100,NULL,NULL);
-        CreateWindowExA(0,"BUTTON","Cancel",WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_DEFPUSHBUTTON,
-                       340,80,80,26,window,(HMENU)IDCANCEL,NULL,NULL);
+            0,100,8,8,237,46);
+        HWND cancel=child(window,"BUTTON","Cancel",WS_TABSTOP|BS_DEFPUSHBUTTON,
+                          IDCANCEL,185,54,237,72);
+        if (!instructions || !cancel) { EndDialog(window,0); return TRUE; }
         p->started=GetTickCount();
         if (!SetTimer(window,1,16,NULL)) EndDialog(window,0);
         return TRUE;

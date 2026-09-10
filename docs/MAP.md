@@ -38,11 +38,11 @@ is stale, so the line numbers are current.
 | 4479–5843 | the blobs, `BLOBS`, and `link()` | `BLOBS = {` |
 | 5844–6253 | banner and credit bitmaps, tile expansion | `LEVERS_CODE = link('LEVERS',` |
 | 6254–7003 | the patch table: `FEATURES`, `BY_KEY`, labels, tips, apply order | `FEATURES = [` |
-| 7004–7904 | ripping (`RAW = 2352`) and installing (`LOGICAL = 2048`) | `# --- ripping --------------` |
-| 7905–8734 | netplay setup, `SYNC_SITES`, cnc-ddraw, CD audio | `# --- netplay --------------` |
-| 8735–9224 | `Patcher`: reading a file, applying, restoring | `class Patcher:` |
-| 9225–9792 | the logo and icon (`tools/assets.py`), then the window strings | `# ASSETS BLOB BEGIN - tools/` |
-| 9793–11793 | the window (`run_tk`), the CLI, `main` | `def run_tk():` |
+| 7004–7905 | ripping (`RAW = 2352`) and installing (`LOGICAL = 2048`) | `# --- ripping --------------` |
+| 7906–8735 | netplay setup, `SYNC_SITES`, cnc-ddraw, CD audio | `# --- netplay --------------` |
+| 8736–9225 | `Patcher`: reading a file, applying, restoring | `class Patcher:` |
+| 9226–9793 | the logo and icon (`tools/assets.py`), then the window strings | `# ASSETS BLOB BEGIN - tools/` |
+| 9794–11794 | the window (`run_tk`), the CLI, `main` | `def run_tk():` |
 <!-- REGIONS END -->
 
 ## 3. `v_on.exe`
