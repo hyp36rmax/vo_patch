@@ -15,6 +15,7 @@ bits 32
 ; player's F11 box; the boxes write the lines back when the dialog
 ; closes, through asm/iniparse.asm's tail.
 
+extern CUSTOM_LOAD
 extern LOADSIMPLE               ; asm/iniload.asm, cdecl (player, flag)
 extern FINDLINE                 ; (key) -> value text, 0 if absent
 extern DZSEED                   ; asm/pagesel.asm's tail: (cl, ebx)
@@ -29,6 +30,7 @@ iniall:
     push    1
     call    LOADSIMPLE
     add     esp, 16
+    call    CUSTOM_LOAD
 
     push    ebx                 ; callee-saved: the hooked function's
     push    1                   ; caller may hold it live. 2P first; the

@@ -36,7 +36,7 @@ def tables(vp, build):
         matches = [off for off, _old, new in rows if new == target]
         assert matches == ([retail if build.short == 'retail' else jpre] if custom else [])
     if custom:
-        for site, target in ((0x96739, 'SPENDNONE'), (0x95be4, 'NODIALOG')):
+        for site, target in ((0x96739, 'SPENDNONE'), (0x95be4, ('CUSTOM', 'page'))):
             offset = site if build.short == 'retail' else build.sites[site][0]
             actual = next(new for off, _old, new in rows if off == offset)
             assert actual == struct.pack('<I', vp.symbol_va(target, build)).hex()
@@ -66,7 +66,7 @@ def emulate(vp, build, ucmod, regs):
     stack, stop, xinput = 0x10000000, 0x10001000, 0x10001100
     uc.mem_map(stack, 0x2000)
     sym = lambda name: vp.symbol_va(name, build)
-    for name in ('DEVORDER', 'TWIN', 'PADX', 'PAD_COND', 'LEVERS'):
+    for name in ('DEVORDER', 'TWIN', 'PADX', 'PAD_COND', 'LEVERS', 'CUSTOM'):
         uc.mem_write(vp.cave_va(name, build), vp.link(name, build))
     epilogue = sym(('PADX', 'epilogue'))
     uc.mem_write(epilogue, b'\xe9' + struct.pack('<i', vp.cave_va('LEVERS', build) - epilogue - 5))
@@ -160,6 +160,21 @@ def emulate(vp, build, ucmod, regs):
                     actual = struct.unpack('<H', uc.mem_read(sym('LEV%d%s' % (side, lever)), 2))[0]
                     expected = 0xffff ^ mask if side == player else 0xffff
                     assert actual == expected, (build.short, player, buttons, lt, rt, lever, hex(actual), hex(expected))
+
+    # A reassigned D-pad must not also fire its old gameplay direction.
+    original = bytes(uc.mem_read(sym(('CUSTOM', 'binds1')),24))
+    uc.mem_write(sym(('CUSTOM', 'binds1')), bytes.fromhex('e000') + b'\0'*22)
+    uc.mem_write(sym('DEVICES'), struct.pack('<II',4,0))
+    for mode, buttons, mask in ((4,1,0),(4,0x1000,0x20),(0,1,0x20)):
+        word('MODE',mode)
+        word('PADIDX',0x0501)
+        uc.mem_write(sym('BTN'),struct.pack('<HBBhhhh',buttons,0,0,0,0,0,0))
+        uc.mem_write(sym('LEV1A'),b'\xff\xff\xff\xff')
+        run(('TWIN','custom1p'),sym('EXIT1P'))
+        assert struct.unpack('<H',uc.mem_read(sym('LEV1A'),2))[0] == 0xffff ^ mask
+        assert bytes(uc.mem_read(sym('LEV1B'),2)) == b'\xff\xff'
+    word('MODE',4)
+    uc.mem_write(sym(('CUSTOM', 'binds1')),original)
 
     # Hardware profile directions, diagonals, triggers and dashes per side.
     # Raw XInput Y is positive up; Tanita's reader normalizes HID Y to that.

@@ -124,6 +124,9 @@ def build():
     # above at 17 and 19.
 
     inc = 'extern COND, SIMPLEDEF, INIKEYS, DZKEYS\n'
+    inc += ('%macro custom_defaults 0\n'
+            'db 0xf0,0,0xf1,0,0xf2,0,0xf3,0,0xe3,0,0xe0,0,0xe2,0,0xe1,0,0xe6,0,0xe7,0,0xe4,0,0xe5,0\n'
+            '%endmacro\n')
     return (inc,
             (bytes(cond), [], {}),
             (bytes(binds), bfix, {}),

@@ -4,6 +4,8 @@ bits 32
 ; its original fixed LS/RS mapping. Controller Expansion adds a second set of
 ; stubs using an Xbox/Brook-style digital Twin Stick mapping.
 
+%include "padtables.inc"
+extern CUSTOM1, CUSTOM2
 extern TICK                       ; the shared XInput tick
 extern EXIT1P                     ; where the 1P profile switch resumes
 extern EXIT2P                     ; and the 2P one
@@ -63,10 +65,7 @@ binds:
 ; D-pad ids are appended after the original sixteen XInput conditions so
 ; existing saved ids remain unchanged: f0 up, f1 down, f2 left, f3 right.
 custombinds:
-    db 0xf0, 0, 0xf1, 0, 0xf2, 0, 0xf3, 0      ; left: D-pad U D L R
-    db 0xe3, 0, 0xe0, 0, 0xe2, 0, 0xe1, 0      ; right: Y A X B
-    db 0xe6, 0, 0xe7, 0                        ; LT, RT
-    db 0xe4, 0, 0xe5, 0                        ; LB, RB
+    custom_defaults
 
 ; Lever bits, active low: 0x20 up, 0x10 down, 0x80 left, 0x40 right,
 ; 0x01 trigger, 0x02 turbo. Taken from the game's own tables at 0x653690.
@@ -85,9 +84,9 @@ block2:
     dd 1, binds, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2
 
 customblock1:
-    dd 0, custombinds, LEV1A, LEV1B, maska, maskb, ACCEPT1, SCR1, KBD1P, CAMERA1
+    dd 0, CUSTOM1, LEV1A, LEV1B, maska, maskb, ACCEPT1, SCR1, KBD1P, CAMERA1
 customblock2:
-    dd 1, custombinds, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2
+    dd 1, CUSTOM2, LEV2A, LEV2B, maska, maskb, ACCEPT2, SCR2, KBD2P, CAMERA2
 
 ; Native Tanita is converted to digital LS/RS and the existing trigger masks.
 tanita1p:

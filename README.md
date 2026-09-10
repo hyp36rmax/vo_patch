@@ -338,9 +338,9 @@ keyboard, that pad drives 2P.
 | --- | --- |
 | **Gamepad (XInput)** | twelve named actions, bound from the F7 screen |
 | **Twin-stick (XInput)** | the arcade levers, nothing to bind |
-| **Twin-Stick (Custom)** | fixed Xbox/Brook defaults; retail and Japanese rerelease only |
+| **Twin-Stick (Custom)** | twelve remappable gameplay inputs; retail and Japanese rerelease only |
 | **Twin-Stick (Tanita)** | native HID, VID 1F4F / PID 9001 / REV 0200; hardware testing pending |
-| **Twin-Stick (HORI EX)** | Xbox 360 version, D-pad + right stick through XInput; hardware testing pending |
+| **Twin-Stick (HORI EX)** | Xbox 360 version, D-pad + right stick through XInput; single-unit behavior confirmed, dual-unit test pending |
 | **Keyboard (Simple)** | every action on a bindable key |
 | **Keyboard (Real)** | the game's own two-lever keyboard scheme, bindable |
 
@@ -415,9 +415,18 @@ Available on English retail and Japanese rerelease for both players:
 | Left/right trigger | LT / RT |
 | Left/right dash | LB / RB |
 
-This milestone supplies fixed defaults. The profile does not yet provide
-editable gameplay bindings. The F7 Gamepad bind list now also includes
-the four D-pad directions; existing saved input IDs remain unchanged.
+In F7 select **Twin-Stick (Custom)** for the player, then **Next** to open
+its binding editor. All twelve gameplay inputs can use any of the twenty
+XInput inputs, including D-pad directions, or **None**. **OK** saves that
+player's choices; **Cancel** discards edits. **Default**, then **OK**, restores
+the Xbox/Brook layout above for that player only.
+
+The two sets persist as `1P Custom Assign` and `2P Custom Assign` in `v_on.ini`,
+separate from Gamepad and Simple. Changing profiles does not replace them.
+Start still pauses and Back retains the game's camera/zoom action; these are
+not gameplay binding choices. D-pad menu navigation remains available even
+when its gameplay directions have been reassigned. Existing saved input IDs
+remain unchanged.
 
 ### Twin-Stick (Tanita)
 
@@ -439,10 +448,9 @@ its own report and state. Paths remain reserved for the game session, so
 unplugging one does not reassign the other. Reconnect to the same USB port;
 restart the game after changing ports or replacing a reserved device.
 
-The reader currently accepts a single gamepad report containing the stated
-axes, POV and button range. The supplied hardware observations did not include
-a HID report descriptor, so descriptor compatibility, Windows input delivery
-and two-device reconnect behavior still need physical validation.
+The first user test confirms working Tanita levers, triggers, D-pad and ordinary
+buttons. The top-button dash issue remains under investigation. Dual-unit and
+reconnect behavior still need physical validation.
 
 ### Twin-Stick (HORI EX)
 
@@ -455,6 +463,7 @@ assignment, independently of native Tanitas; XInput does not identify this
 profile by VID/PID. Raw XInput Y is treated as positive-up, as specified by
 Microsoft. Confirm right-lever polarity on the real HORI: percentages shown
 by controller tools do not establish the sign returned by XInputGetState.
+The user confirmed all buttons and behavior with the correct player selected.
 Dual-HORI hardware validation remains pending.
 
 ### Keyboard (Simple)

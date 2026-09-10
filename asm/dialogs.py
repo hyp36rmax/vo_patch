@@ -185,3 +185,26 @@ if __name__ == '__main__':
     _inc, tpl, data = build_extras()
     print('Extras template %d, data %d, F5 %d'
           % (len(tpl), len(data), len(build_f5(F5_NEW))))
+
+
+def build_custom():
+    """Independent fixed-size Custom bind editor, twelve gameplay slots."""
+    rows = []
+    for col, slots in enumerate(((0, 1, 2, 3, 8, 10), (4, 5, 6, 7, 9, 11))):
+        x = 10 + col * 145
+        rows.append(('Left lever' if col == 0 else 'Right lever',
+                     0xffff, x, 8, 120, 12, LABEL, STATIC))
+        for row, (slot, label) in enumerate(zip(slots, ('Up', 'Down', 'Left', 'Right', 'Trigger', 'Dash'))):
+            y = 25 + row * 21
+            rows.append((label, 0xffff, x, y + 2, 40, 12, LABEL, STATIC))
+            rows.append(('', 100 + slot, x + 43, y, 90, 130, 0x50210003, 0x0085))
+    rows += [('Start pauses. Back keeps camera / zoom.', 0xffff, 10, 154, 275, 12, LABEL, STATIC),
+             ('Default', 3, 10, 176, 55, 16, PUSH, BUTTON),
+             ('OK', 1, 168, 176, 55, 16, PUSH | 1, BUTTON),
+             ('Cancel', 2, 230, 176, 55, 16, PUSH, BUTTON)]
+    tpl = struct.pack('<II5H', DLGSTYLE, 0, len(rows), 0, 0, 298, 202)
+    tpl += struct.pack('<HH', 0, 0) + wstr('Twin-Stick (Custom)')
+    tpl += struct.pack('<H', 9) + wstr('Segoe UI')
+    for text, iid, x, y, w, h, style, cls in rows:
+        tpl = align4(tpl) + item(style, x, y, w, h, iid, cls, text)
+    return bytes(tpl), [], {}

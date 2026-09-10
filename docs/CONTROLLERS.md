@@ -1,12 +1,21 @@
 # Controller Expansion: hardware profiles
 
-Status: software implementation for retail and Japanese rerelease. Physical
-Windows validation is pending. This is not a claim that the device reader has
-been tested on a connected Tanita or HORI.
+Status: retail and Japanese rerelease. The user reports that Tanita levers,
+triggers, D-pad and ordinary buttons work; its top-button dash issue remains
+under investigation. HORI EX buttons and behavior were confirmed working after
+selecting the assigned player (it was P2 with another controller connected).
+Back's camera/zoom behavior is intentional and remains unchanged. Dual-unit
+and disconnect/reconnect acceptance testing is still pending.
 
 ## Architecture
 
-Custom retains its Xbox/Brook fixed table and has no hardware-specific binds.
+Custom retains Xbox/Brook defaults and has no hardware-specific binds. Its
+independent F7 editor remaps all twelve gameplay slots, with separate live tables
+and `1P Custom Assign` / `2P Custom Assign` INI lines. Cancel never commits pending
+edits; Default requires OK to save. Missing or malformed lines keep the defaults.
+Start and Back retain their fixed menu/camera behavior. A remapped D-pad no longer
+also invokes its old gameplay direction, while fixed D-pad menu navigation stays.
+The modal editor owns the active F7 window to prevent nested edits.
 The upstream Gamepad, Twin-stick, Simple and Real paths retain their mappings.
 Profile IDs stay 0 Real, 1 Gamepad, 2 Twin-stick, 3 Simple, 4 Custom; this change
 adds 5 Tanita and 6 HORI EX. F7 lists Gamepad, Twin-stick, Custom, Tanita, HORI,
@@ -23,8 +32,8 @@ The helper accepts only VID 1F4F, PID 9001, revision 0200, usage page 1 / usage 
 It reads X/Y/Z/Rz and the hat by usage, rather than guessing raw byte offsets.
 It expects these values and a button range starting at HID usage 1 through at
 least 13 in one report. Ambiguous or incomplete descriptors are rejected.
-The reported hardware observations do not establish that descriptor layout;
-this must be checked on the first physical unit. No other HID profile is added.
+The first user test confirms that the reader accepts that unit. No other HID
+profile is added.
 
 Overlapped reads keep the normal polling path nonblocking. Each handle owns its
 preparsed descriptor, report buffer, pending read and cached state. A bounded
@@ -78,6 +87,10 @@ executable leaves this inert helper beside it; the original does not load it.
 - Assembly execution of all 49 profile pairs, including mixed APIs and both
   keyboard profiles; independent ascending ordinal allocation.
 - Custom's 12 inputs and neutral state, both players, unchanged defaults.
+- Custom editor input list, per-slot edits, None, Cancel after Default, per-player
+  save/reload, malformed INI lines, Default + OK, F7 return values and D-pad
+  remapping versus menu navigation. The editor's Win32 messages are mocked;
+  the actual game dialog needs Windows visual/input acceptance testing.
 - Upstream Twin-stick, native Tanita and HORI direction/diagonal masks, simultaneous
   triggers/dashes, neutral state and isolation of the other player's lever words.
 - Native C mapping across all 256 byte-axis values, threshold boundaries,

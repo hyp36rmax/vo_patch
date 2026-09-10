@@ -259,7 +259,7 @@ def check_link(vp, blobs):
 SOURCES = [
     ('TIMER', 'timer.asm'), ('DEBUGBOX', 'debugbox.asm'),
     ('PADX', 'padxinput.asm'), ('LEVERS', 'levers.asm'),
-    ('TWIN', 'twinstick.asm'), ('INTROWAIT', 'introwait.asm'),
+    ('CUSTOM', 'custombind.asm'), ('TWIN', 'twinstick.asm'), ('INTROWAIT', 'introwait.asm'),
     ('KBPAGE', 'kbpage.asm'), ('BINDLIST', 'bindlist.asm'),
     ('BINDMAP', 'bindmap.asm'), ('BINDBLOCK', 'bindblock.asm'),
     ('INISAVE', 'inisave.asm'), ('INILOAD', 'iniload.asm'),
@@ -296,6 +296,7 @@ def main(check=False):
      blobs['PAD_DEVLIST'], blobs['PAD_SIMPLEDEF'],
      blobs['PAD_INIKEYS'], blobs['PAD_PROFILES']) = padtables.build()
     _inc, extras_tpl, blobs['EXTRAS_DATA'] = dialogs.build_extras()
+    blobs['CUSTOM_DLG'] = dialogs.build_custom()
 
     vocd_out = ['VOCD_MAGICS = {\n']
     for name, value, note in MAGICS:

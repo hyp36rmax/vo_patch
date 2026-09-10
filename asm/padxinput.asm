@@ -20,7 +20,7 @@ extern PADPREV                  ; last polled buttons, one word per pad,
 extern PADIDX                   ; the slot map, see padpoll; commitdev.asm
 extern PADRETRY                 ; clears it. And its miss counter.
 extern DEVICES                  ; committed device per player, + player * 4
-extern TANITA_DEVICE, HORI_DEVICE
+extern TANITA_DEVICE, HORI_DEVICE, CUSTOM_EDIT_DEVICE
 extern CUSTOM_DEVICE            ; 4 on verified builds; 1 otherwise (already accepted)
 extern DZTHR1                   ; stick thresholds out of 32767, 1P then
                                 ; 2P, indexed by the block's player. Written
@@ -356,6 +356,17 @@ tick:
     ; is what navigates them, and in a round it moves. It cannot be a bind:
     ; one input per slot, and the left stick already holds those four.
 .dpadstart:
+    ; Custom's D-pad is remappable in a fight; the fixed menu path remains.
+    mov     eax,[ebx]
+    cmp     dword [DEVICES+eax*4], CUSTOM_EDIT_DEVICE
+    jne     .fixeddpad
+    cmp     dword [MODE],4
+    jne     .fixeddpad
+    cmp     dword [SUBMODE],8
+    jl      .fixeddpad
+    cmp     dword [SUBMODE],12
+    jle     epilogue
+.fixeddpad:
     xor     esi, esi
 .dpad:
     cmp     esi, 4
