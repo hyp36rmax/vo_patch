@@ -51,6 +51,6 @@ dzseed:
     mov     al, cl
     aam                         ; ah tens, al ones
     add     ax, 0x3030
-    xchg    al, ah
+    db      0x86, 0xe0         ; xchg al, ah: pin encoding across NASM versions
     mov     [ebx*4 + DZSTR1], ax
     ret

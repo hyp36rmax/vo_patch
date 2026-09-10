@@ -49,7 +49,7 @@ iniall:
     ja      .have
     cmp     ah, 9
     ja      .have
-    xchg    al, ah
+    db      0x86, 0xe0         ; xchg al, ah: pin encoding across NASM versions
     aad                         ; al = tens * 10 + ones
     cmp     al, 95
     ja      .have
