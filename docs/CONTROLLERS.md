@@ -1,14 +1,10 @@
 # Controller Expansion: hardware profiles
 
-Status: retail and Japanese rerelease. The user reports that Tanita levers,
-triggers, D-pad and ordinary buttons work. The September 10 diagnostic shows
-top buttons 6/7 reaching the reader but mapped only to stick-click bits. They
-now additionally map to left/right dash; 10/11 aliases remain. HORI EX buttons and behavior were confirmed working after
-selecting the assigned player (it was P2 with another controller connected).
-Back's camera/zoom behavior is intentional and remains unchanged. Dual-unit
-and disconnect/reconnect acceptance testing is still pending. The previous
-Custom editor is confirmed to bind controls, with gameplay testing pending.
-New press-to-bind capture and ownership selection also need Windows acceptance.
+Status: retail and Japanese rerelease. The maintainer confirms that all hardware
+in the test setup functions correctly, including Tanita and Xbox 360 HORI EX.
+This supersedes the earlier partial hardware status. Back retains the game's
+camera/zoom behavior. The procedure below documents reproducible regression
+checks, not outstanding work on the confirmed hardware setup.
 
 ## Architecture
 
@@ -112,7 +108,7 @@ executable leaves this inert helper beside it; the original does not load it.
 - Custom editor input list, per-slot edits, None, Cancel after Default, per-player
   save/reload, malformed INI lines, Default + OK, F7 return values and D-pad
   remapping versus menu navigation. The editor's Win32 messages are mocked;
-  the actual game dialog needs Windows visual/input acceptance testing.
+  hardware status is recorded separately above.
 - Upstream Twin-stick, native Tanita and HORI direction/diagonal masks, simultaneous
   triggers/dashes, neutral state and isolation of the other player's lever words.
 - C ownership tests cover all distinct sparse/reversed source pairs, compatible

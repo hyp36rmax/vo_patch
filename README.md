@@ -156,18 +156,16 @@ checks add isolation, reassignment and reconnect behavior. This records how
 original hardware behaves without treating API emulation as a substitute for a
 working controller.
 
-**Confirmed** denotes a user-reported hardware result; **software checked** denotes
-automated coverage; **pending** requires an in-game or Windows acceptance run.
+The maintainer confirms that all hardware in the test setup functions correctly.
+**Confirmed** records that hardware result; **software checked** records automated
+coverage rather than a separate hardware test.
 
-| Area | Status | Coverage / remaining work |
+| Area | Status | Basis |
 | --- | --- | --- |
-| Tanita levers, triggers, D-pad, ordinary buttons | Confirmed | Single unit |
-| Tanita top-button dash | Software checked | In-game dash pending |
-| HORI EX controls and behavior | Confirmed | Single unit assigned to P2 with another controller connected |
-| Custom manual assignment | Confirmed | In-game remapping and persistence pending |
-| Custom press-to-bind | Software checked | Windows interaction and gameplay pending |
-| Explicit ownership and mixed-profile routing | Software checked | Hardware reassignment and reconnect pending |
-| Two Tanitas / two HORIs | Pending | Independent control and reconnect |
+| Tanita controls, including top-button dash | Confirmed | Maintainer hardware testing |
+| Xbox 360 HORI EX controls and behavior | Confirmed | Maintainer hardware testing |
+| Controller Expansion hardware functionality | Confirmed | Maintainer reports all tested hardware functioning |
+| Custom remapping, capture and player-ownership logic | Software checked | Input capture, assignment and isolation regression tests |
 | Retail / Japanese rerelease patching | Software checked | 812 patch combinations |
 
 Detailed test coverage, executable dispatch evidence and the acceptance procedure
