@@ -416,7 +416,12 @@ Available on English retail and Japanese rerelease for both players:
 | Left/right dash | LB / RB |
 
 In F7 select **Twin-Stick (Custom)** for the player, then **Next** to open
-its binding editor. All twelve gameplay inputs can use any of the twenty
+its binding editor. Focus an action with the mouse or Tab, release the controls,
+then press one physical button or move one lever direction to bind it. Escape
+cancels capture and leaves the dropdown available for manual selection. Capture
+times out after 30 seconds; diagonals and simultaneous inputs require a retry.
+**Choose controller** changes which physical XInput controller feeds this player.
+All twelve gameplay inputs can use any of the twenty
 XInput inputs, including D-pad directions, or **None**. **OK** saves that
 player's choices; **Cancel** discards edits. **Default**, then **OK**, restores
 the Xbox/Brook layout above for that player only.
@@ -437,20 +442,31 @@ the Windows Universal C Runtime (included in Windows 10 and later).
 
 X/Y drive the left lever; Z/Rz drive the right. Values below 25% or above 75%
 become digital directions; the middle half is neutral. Buttons 4/5 fire the
-triggers and 10/11 dash (zero-based numbering). The duplicate physical
-controls that report button 10 or 11 each remain one logical action.
+triggers. The tested top switches report buttons 6/7 (zero-based), now mapped
+to left/right dash. Buttons 10/11 remain dash aliases. The diagnostic showed
+6/7 reaching the reader as stick-click bits, which explains the missing dash.
 Options pauses, Cross accepts, Share uses the existing Back/camera action,
 and the POV navigates through the existing D-pad path. Rx/Ry and PS are ignored.
 
-Tanitas are assigned by sorted HID device path, independently of XInput slots,
-with P1 taking the first when both players select Tanita. Each device keeps
-its own report and state. Paths remain reserved for the game session, so
-unplugging one does not reassign the other. Reconnect to the same USB port;
-restart the game after changing ports or replacing a reserved device.
+On retail/JPRE, controller ownership is explicit for every controller profile:
+at first use each game session, or when confirming F7, press **Start / Options**
+on the controller intended for the displayed player. All controllers can remain
+connected, in any Windows slot order. Selecting the other player's controller
+swaps compatible assignments; it never feeds both players. Each native Tanita
+keeps its own reserved HID path and report state.
+
+Claims last for the game session. On a detected disconnect, controls clear and
+that claim is invalidated; reconnect and choose again through F7. Another pad is
+never automatically promoted. XInput does not provide a universally available
+persistent physical ID, so claims are deliberately re-established each launch,
+rather than saving Windows slot numbers as hardware identities. Restart the game
+if both reserved native Tanita paths were used and you change USB ports.
 
 The first user test confirms working Tanita levers, triggers, D-pad and ordinary
-buttons. The top-button dash issue remains under investigation. Dual-unit and
-reconnect behavior still need physical validation.
+buttons. The top-button correction is covered by diagnostic-derived software
+tests; in-game dash, new capture, ownership and reconnect behavior need physical
+validation. The previous Custom editor is confirmed able to save bindings;
+Custom gameplay testing remains pending.
 
 ### Twin-Stick (HORI EX)
 
@@ -458,9 +474,9 @@ For the **Xbox 360 HORI Twin Stick EX** (VID 1BAD / PID FF00, IG_00): left lever
 on D-pad, right lever on right thumbstick, LT/RT fire and LB/RB dash. A/B/X/Y,
 Back and Start keep their XInput meanings. The PlayStation model is unvalidated.
 
-Select the profile manually. It uses the existing ascending XInput-slot
-assignment, independently of native Tanitas; XInput does not identify this
-profile by VID/PID. Raw XInput Y is treated as positive-up, as specified by
+Select the profile manually, then press Start on the intended HORI when asked
+to choose that player's controller. XInput does not identify this profile by
+VID/PID. Raw XInput Y is treated as positive-up, as specified by
 Microsoft. Confirm right-lever polarity on the real HORI: percentages shown
 by controller tools do not establish the sign returned by XInputGetState.
 The user confirmed all buttons and behavior with the correct player selected.

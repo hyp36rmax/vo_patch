@@ -101,6 +101,8 @@ def emulate(vp, build, ucmod, regs):
             assert uc.reg_read(regs.UC_X86_REG_ECX) == player
 
     word('XIFN', xinput)
+    # Exercise the retained legacy allocator separately from explicit ownership.
+    word(('PADX', 'ownership_enabled'), 0xffffffff)
     # A hidden legacy device 4 must not consume the first pad ahead of 2P.
     for device in (0, 1, 2, 3, 4, 5, 6):
         word('PADIDX', 0)
@@ -136,6 +138,29 @@ def emulate(vp, build, ucmod, regs):
                 expected = int(player == 1 and ((first == 5) if device == 5 else first in (1, 2, 4, 6)))
                 assert calls[-1] == expected, (first, second, player, calls)
     uc.hook_del(hook)
+    # Verified builds query the helper by PLAYER and profile, never by an
+    # inferred Windows slot. Reversed/sparse physical claims live in the helper.
+    owned = xinput + 0x80
+    uc.mem_write(owned, bytes.fromhex('31c0c20c00'))
+    word(('PADX', 'ownership_enabled'), 4)
+    word(('PADX', 'ownedfn'), owned)
+    owned_calls = []
+    def owned_record(_uc, address, _size, _data):
+        if address == owned:
+            sp = _uc.reg_read(regs.UC_X86_REG_ESP)
+            owned_calls.append(struct.unpack('<3I', _uc.mem_read(sp+4,12)))
+    owned_hook = uc.hook_add(ucmod.UC_HOOK_CODE, owned_record)
+    for first in order:
+        for second in order:
+            uc.mem_write(sym('DEVICES'), struct.pack('<II',first,second))
+            for player, device in enumerate((first,second)):
+                if device not in (1,2,4,5,6):
+                    continue
+                uc.reg_write(regs.UC_X86_REG_EAX,player)
+                uc.reg_write(regs.UC_X86_REG_EDX,sym('STATE'))
+                run(('PADX','padpoll'))
+                assert owned_calls[-1] == (player,device,sym('STATE'))
+    uc.hook_del(owned_hook)
     uc.mem_write(sym('DEVICES'), struct.pack('<II', 4, 4))
     word('MODE', 4)
     word('SUBMODE', 8)
@@ -197,6 +222,10 @@ def emulate(vp, build, ucmod, regs):
                    (9 if profile == 'hori' else 0,0,0,
                     0 if profile == 'hori' else 32767,
                     0 if profile == 'hori' else 32767,32767,32767,0x60,0x60)]
+        if profile == 'tanita':
+            # Sanitized diagnostic: both levers up plus physical top 6 or 7.
+            inputs += [(0x140,0,0,0,32767,0,32767,0x22,0x20),
+                       (0x280,0,0,0,32767,0,32767,0x20,0x22)]
         for player in (1, 2):
             for buttons, lt, rt, lx, ly, rx, ry, left, right in inputs:
                 word('PADIDX', 0x0201)

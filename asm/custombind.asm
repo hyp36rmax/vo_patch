@@ -4,6 +4,7 @@ bits 32
 extern CURPLAYER, HWND, LOADLIB, GETPROC, ENDDIALOG
 extern PADLIST, CUSTOM_DEFAULTS, CUSTOM_TEMPLATE, CUSTOM_PAGE_END
 extern FINDLINE, PARSE12, WRITELINE, HEXCHAR
+extern CAPTURE_INPUT, SELECT_CONTROLLER
 %include "padtables.inc"
 
 page:
@@ -94,6 +95,40 @@ procedure:
     je .cancel
     cmp eax,3
     je .default
+    cmp eax,4
+    je .choose
+    cmp eax,100
+    jb .unhandled
+    cmp eax,112
+    jae .unhandled
+    mov edx,[ebp+16]
+    shr edx,16
+    cmp edx,3               ; CBN_SETFOCUS: highlight action, press control
+    je .capture
+    jmp .unhandled
+.choose:
+    mov eax,4
+    mov ecx,[player]
+    call SELECT_CONTROLLER
+    jmp .handled
+.capture:
+    sub eax,100
+    mov [capture_slot],eax
+    mov eax,[player]
+    call CAPTURE_INPUT
+    sub eax,0xe0
+    cmp eax,20
+    jae .handled           ; cancelled/timeout/disconnect: retain selection
+    inc eax
+    push 0
+    push eax
+    push 0x14e
+    mov eax,[capture_slot]
+    add eax,100
+    push eax
+    push ebx
+    call [sendfn]
+    jmp .handled
 .unhandled:
     xor eax,eax
     jmp .out
@@ -314,6 +349,7 @@ binds1: custom_defaults
 binds2: custom_defaults
 pending: times 24 db 0
 player: dd 0
+capture_slot: dd 0
 dialogfn: dd 0
 sendfn: dd 0
 titlefn: dd 0

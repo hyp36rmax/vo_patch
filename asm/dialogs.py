@@ -198,11 +198,14 @@ def build_custom():
             y = 25 + row * 21
             rows.append((label, 0xffff, x, y + 2, 40, 12, LABEL, STATIC))
             rows.append(('', 100 + slot, x + 43, y, 90, 130, 0x50210003, 0x0085))
-    rows += [('Start pauses. Back keeps camera / zoom.', 0xffff, 10, 154, 275, 12, LABEL, STATIC),
-             ('Default', 3, 10, 176, 55, 16, PUSH, BUTTON),
-             ('OK', 1, 168, 176, 55, 16, PUSH | 1, BUTTON),
-             ('Cancel', 2, 230, 176, 55, 16, PUSH, BUTTON)]
-    tpl = struct.pack('<II5H', DLGSTYLE, 0, len(rows), 0, 0, 298, 202)
+    rows += [('Focus an action to press-to-bind; Escape keeps the list available.',
+              0xffff, 10, 150, 280, 12, LABEL, STATIC),
+             ('Start pauses. Back keeps camera / zoom.', 0xffff, 10, 164, 275, 12, LABEL, STATIC),
+             ('Choose controller', 4, 70, 190, 92, 16, PUSH, BUTTON),
+             ('Default', 3, 10, 190, 55, 16, PUSH, BUTTON),
+             ('OK', 1, 168, 190, 55, 16, PUSH | 1, BUTTON),
+             ('Cancel', 2, 230, 190, 55, 16, PUSH, BUTTON)]
+    tpl = struct.pack('<II5H', DLGSTYLE, 0, len(rows), 0, 0, 298, 216)
     tpl += struct.pack('<HH', 0, 0) + wstr('Twin-Stick (Custom)')
     tpl += struct.pack('<H', 9) + wstr('Segoe UI')
     for text, iid, x, y, w, h, style, cls in rows:

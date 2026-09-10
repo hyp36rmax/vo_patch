@@ -93,7 +93,7 @@ jobs:
           i686-w64-mingw32-objdump -p /tmp/dpctrl.dll | grep -qi dplayx \
             && { echo "still linked against DirectPlay"; exit 1; }
           i686-w64-mingw32-gcc -O2 -Wall -Wextra -Werror -shared -o /tmp/vontanita.dll \
-              input/tanita.c input/tanita.def -lhid -lsetupapi \
+              input/tanita.c input/controller.c input/tanita.def -lhid -lsetupapi \
               -Wl,--enable-stdcall-fixup
           i686-w64-mingw32-objdump -p /tmp/vontanita.dll | grep -q TanitaGetState
           echo "ok"

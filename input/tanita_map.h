@@ -16,8 +16,9 @@ static TanitaState tanita_map(const int32_t *v, unsigned b,
     int32_t xl, int32_t xh, int32_t yl, int32_t yh,
     int32_t zl, int32_t zh, int32_t rl, int32_t rh,
     int32_t hl, int32_t hh) {
+    /* Observed top switches are zero-based 6/7; retain 10/11 dash aliases. */
     static const uint16_t buttons[13] = {
-        0x4000,0x1000,0x2000,0x8000,0,0,0x40,0x80,0x20,0x10,0x100,0x200,0};
+        0x4000,0x1000,0x2000,0x8000,0,0,0x140,0x280,0x20,0x10,0x100,0x200,0};
     static const uint16_t hats[8] = {1,9,8,10,2,6,4,5};
     TanitaState s = {0};
     unsigned i;

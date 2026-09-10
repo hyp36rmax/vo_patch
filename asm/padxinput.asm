@@ -98,9 +98,27 @@ pollpads:
 .pad:
     cmp     esi, 2
     jae     .tanitastart
+    cmp     dword [ownership_enabled], 4
+    jne     .legacyread
+    mov     eax,[DEVICES+esi*4]
+    cmp     eax,1
+    je      .ownedread
+    cmp     eax,2
+    je      .ownedread
+    cmp     eax,4
+    je      .ownedread
+    cmp     eax,6
+    jne     .nextpad
+.ownedread:
+    mov     eax,esi
+    mov     edx,PSTATE
+    call    ownedpoll
+    jmp     .readresult
+.legacyread:
     push    PSTATE
     push    esi
     call    [XIFN]
+.readresult:
     test    eax, eax
     jnz     .nextpad            ; pad not connected
     movzx   ebx, word [PBTN]
@@ -407,6 +425,8 @@ apply:
 ; side without a pad has missed 256 polls (a pad plugged in later), and
 ; after a device change, which commitdev.asm clears it for.
 padpoll:                        ; in: eax = side, edx = an XINPUT_STATE
+    cmp     dword [ownership_enabled], 4
+    je      ownedpoll
     cmp     dword [DEVICES + eax*4], TANITA_DEVICE
     je      tanitapoll
     push    ebx                 ; out: eax = 0 polled, else no pad
@@ -548,6 +568,8 @@ dll910: db 'xinput9_1_0.dll', 0
 ; Tanita ordinals count only Tanita profiles, independent of XInput slots.
 ; The DLL owns sorted, reserved physical paths; there is no activity claim.
 tanitapoll:
+    cmp     dword [ownership_enabled], 4
+    je      ownedpoll
     push    ebx
     push    esi
     mov     ebx, eax
@@ -590,3 +612,95 @@ tanitafn: dd 0
 tanitaprev: dw 0, 0
 tanitadll: db 'vontanita.dll', 0
 tanitaname: db 'TanitaGetState', 0
+
+; The native helper owns explicit controller claims on the verified builds.
+; No DLL dependency or ownership UI is introduced on unverified builds.
+ownedresolve:
+    cmp dword [ownedfn],0
+    jne .done
+    push ebx
+    push tanitadll
+    call [LOADLIB]
+    test eax,eax
+    jz .fail
+    mov ebx,eax
+    push selectname
+    push ebx
+    call [GETPROC]
+    mov [selectfn],eax
+    push capturename
+    push ebx
+    call [GETPROC]
+    mov [capturefn],eax
+    push ownedname
+    push ebx
+    call [GETPROC]
+.fail:
+    mov [ownedfn],eax
+    pop ebx
+.done:
+    ret
+ownedpoll:
+    push ebx
+    push esi
+    mov ebx,eax
+    mov esi,edx
+    call ownedresolve
+    cmp dword [ownedfn],0
+    je .missing
+    push esi
+    push dword [DEVICES+ebx*4]
+    push ebx
+    call [ownedfn]
+    jmp .out
+.missing:
+    mov eax,1
+.out:
+    pop esi
+    pop ebx
+    ret
+; EAX profile, ECX player. Called when F7 commits a player selection.
+selectcontroller:
+    cmp dword [ownership_enabled],4
+    jne .done
+    pushad
+    mov ebx,eax
+    mov esi,ecx
+    call ownedresolve
+    cmp dword [selectfn],0
+    je .out
+    push ebx
+    push esi
+    push dword [HWND]
+    call [selectfn]
+.out:
+    popad
+.done:
+    ret
+; EAX player, EBX editor window. Result: input E0..F3, zero on cancel.
+captureinput:
+    push esi
+    push edi
+    mov esi,eax
+    mov edi,ebx
+    call ownedresolve
+    xor eax,eax
+    cmp dword [capturefn],0
+    je .out
+    push dword [DZTHR1+esi*4]
+    push 4
+    push esi
+    push edi
+    call [capturefn]
+.out:
+    pop edi
+    pop esi
+    ret
+align 4
+ownership_enabled: dd CUSTOM_EDIT_DEVICE
+ownedfn: dd 0
+selectfn: dd 0
+capturefn: dd 0
+ownedname: db 'VonGetState',0
+selectname: db 'VonSelectController',0
+capturename: db 'VonCaptureInput',0

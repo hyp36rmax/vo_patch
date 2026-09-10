@@ -9,7 +9,8 @@ patcher checks the file against TANITA_DLL_SHA before installing it.
     python3 input/build.py            compile, write the DLL and the hashes
     python3 input/build.py --check    is the DLL current? writes nothing
 
---check compares a hash of tanita.c, tanita_map.h and tanita.def against the one recorded in v-on-patcher.py
+--check compares the native reader, controller UI, mapping headers and exports
+against the source hash recorded in v-on-patcher.py
 and the DLL file against its recorded hash, rather than recompiling: two
 mingw versions do not produce identical output from identical source, so a
 byte comparison would fail on any machine but the one that last ran this.
@@ -40,12 +41,13 @@ IMAGE_BASE = 0x6c640000
 BEGIN = '# --- Tanita hashes: written by input/build.py, do not edit ---'
 END = '# --- end Tanita hashes ---'
 
-EXPORTS = ('TanitaGetState',)
+EXPORTS = ('TanitaGetState', 'VonGetState', 'VonSelectController', 'VonCaptureInput')
 
 
 def source_hash():
     digest = hashlib.sha256()
-    for path in (SRC, DEF, os.path.join(HERE, 'tanita_map.h')):
+    for path in (SRC, DEF, *(os.path.join(HERE, name) for name in
+                            ('tanita_map.h', 'controller.c', 'controller_logic.h'))):
         with open(path, 'rb') as f:
             digest.update(f.read())
     return digest.hexdigest()
@@ -57,7 +59,7 @@ def compile_dll(workdir):
         sys.exit('%s not found. Install gcc-mingw-w64-i686.' % CC)
 
     out = os.path.join(workdir, 'vontanita.dll')
-    cmd = [CC, '-O2', '-shared', '-s', '-o', out, SRC, DEF,
+    cmd = [CC, '-O2', '-shared', '-s', '-o', out, SRC, os.path.join(HERE, 'controller.c'), DEF,
            '-lhid', '-lsetupapi', '-Wall', '-Wextra', '-Werror', '-Wl,--enable-stdcall-fixup',
            '-Wl,--no-insert-timestamp', '-Wl,--image-base=%#x' % IMAGE_BASE]
     proc = subprocess.run(cmd, capture_output=True, text=True)

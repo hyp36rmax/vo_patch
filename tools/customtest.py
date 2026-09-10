@@ -73,6 +73,16 @@ def check(vp, build, unicorn, r):
         assert message == 0x147
         return c['selection']
 
+    captures, selections = [], []
+    capture_result = 0
+    def capture_input():
+        captures.append(u.reg_read(r.UC_X86_REG_EAX))
+        return capture_result
+    functions[sym('CAPTURE_INPUT')] = capture_input, 0
+    u.mem_write(sym('CAPTURE_INPUT'), b'\xc3')
+    functions[sym('SELECT_CONTROLLER')] = lambda: selections.append(
+        (u.reg_read(r.UC_X86_REG_EAX),u.reg_read(r.UC_X86_REG_ECX))), 0
+    u.mem_write(sym('SELECT_CONTROLLER'), b'\xc3')
     # FINDLINE/WRITELINE are direct cdecl code addresses, not IAT pointers.
     for name, func, argc in (('FINDLINE', findline, 1), ('WRITELINE', writeline, 2)):
         address = sym(name)
@@ -119,6 +129,17 @@ def check(vp, build, unicorn, r):
 
     for player in (0, 1):
         hwnd = open_editor(player)
+        # Focus an action, capture an input, and cancel capture without mutation.
+        for input_id in range(0xe0,0xf4):
+            capture_result = input_id
+            run(('CUSTOM','procedure'), (hwnd,0x111,(3<<16)|110,0))
+            assert controls[hwnd,110]['selection'] == input_id-0xdf
+            assert captures[-1] == player
+        capture_result = 0
+        run(('CUSTOM','procedure'), (hwnd,0x111,(3<<16)|110,0))
+        assert controls[hwnd,110]['selection'] == 20
+        run(('CUSTOM','procedure'), (hwnd,0x111,4,0))
+        assert selections[-1] == (4,player)
         # Individually choose a different input for every slot, and unbind one.
         selected = [0] + list(range(1, 12))
         expected = b''.join(struct.pack('<H', 0 if pos == 0 else 0xdf + pos) for pos in selected)
