@@ -1,7 +1,7 @@
 # Developing v-on-patcher
 
 How to build, what to run before pushing, and what each check is for. For
-using the patcher see [README.md](../README.md); for what the patches do see
+using the patcher see [patcher guide](PATCHER.md); for what the patches do see
 [NOTES.md](NOTES.md); for the assembly sources see [asm/](../asm/).
 
 ## The four layers

@@ -1,8 +1,8 @@
 # Documentation map
 
-The root [README](../README.md) is for playing: installing, what each patch
-does, internet play, the gamepad, music, resolution. Everything here is for
-working on the patcher.
+The root [README](../README.md) covers Controller Expansion profiles, assignment
+and hardware status. The [patcher guide](PATCHER.md) covers installation and
+other game features; this index covers development.
 
 | Read | For |
 | --- | --- |

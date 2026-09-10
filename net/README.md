@@ -2,7 +2,7 @@
 
 A replacement for the game's `DPCTRL.DLL`. Same seven exports, same calling
 conventions, plain UDP where the original used DirectPlay. For installing and
-using it see [README.md](../README.md); for testing it see
+using it see [patcher guide](../docs/PATCHER.md#internet-play); for testing it see
 [DEVELOPING.md](../docs/DEVELOPING.md).
 
 ```
