@@ -55,6 +55,8 @@ pressing both triggers fires the centre weapon.
 
 ### Twin-Stick (Custom)
 
+[Reference hardware and implementation record](docs/controllers/custom-twinstick.md).
+
 A remappable XInput profile with Xbox/Brook-style defaults:
 
 | Game input | Default XInput control |
@@ -66,18 +68,10 @@ A remappable XInput profile with Xbox/Brook-style defaults:
 
 ### Twin-Stick (Tanita)
 
-The native HID reader matches the following identity and reads controls by HID
-usage rather than fixed report offsets. It does not create a virtual XInput device.
-All button numbers below are **zero-based**; HID button usages are one-based.
-
-| Hardware characteristic | Diagnostic value |
-| --- | --- |
-| VID / PID / revision | `1F4F` / `9001` / `0200` |
-| Accepted collection | Usage page `01`, usage `05` (Game Pad) |
-| Left / right lever axes | X–Y / Z–Rz |
-| Axis samples | Neutral `128`; endpoints `0` and `255` |
-| POV samples | Up `0`, right `2`, down `4`, left `6`; neutral `8` |
-| Lever triggers / top switches | Buttons `4`–`5` / `6`–`7` |
+Native HID support for VID `1F4F`, PID `9001`, revision `0200`, Generic Desktop /
+Game Pad. See the [Tanita hardware record](docs/controllers/tanita-twinstick.md)
+for measured axes, duplicated auxiliary controls and button-report attribution.
+Button numbers below are zero-based.
 
 | Game input | HID mapping |
 | --- | --- |
@@ -87,18 +81,14 @@ All button numbers below are **zero-based**; HID button usages are one-based.
 | Menu navigation | POV hat |
 | Accept / pause / camera | Cross / Options / Share |
 
-Axis values below 25% or above 75% of the descriptor's logical range produce
-full digital directions; the middle half is neutral. Both axes can activate
-for diagonals. Rx, Ry and PS have no assigned gameplay function.
+The profile translates HID axes to the existing digital lever semantics; it does
+not add analog game movement.
 
 ### Twin-Stick (HORI EX)
 
-| Hardware specification | Value |
-| --- | --- |
-| Model | Xbox 360 HORI Twin Stick EX |
-| Windows identity | VID `1BAD`, PID `FF00`, interface `IG_00` |
-| Input API | XInput |
-| Profile selection | Manual; no VID/PID matching through XInput |
+Xbox 360 HORI Twin Stick EX, VID `1BAD` / PID `FF00`, selected manually through
+XInput. The [hardware record](docs/controllers/hori-twinstick-ex-x360.md) preserves
+both XInput and legacy Windows measurements.
 
 | Game input | XInput control |
 | --- | --- |
@@ -156,24 +146,26 @@ checks add isolation, reassignment and reconnect behavior. This records how
 original hardware behaves without treating API emulation as a substitute for a
 working controller.
 
-The maintainer confirms that all hardware in the test setup functions correctly.
-**Confirmed** records that hardware result; **software checked** records automated
-coverage rather than a separate hardware test.
+The maintainer confirms functional hardware operation, Custom remapping/capture
+and controller reassignment in the latest internal build. Detailed player-position
+and multi-unit results are tracked separately from that functional confirmation.
 
-| Area | Status | Basis |
-| --- | --- | --- |
-| Tanita controls, including top-button dash | Confirmed | Maintainer hardware testing |
-| Xbox 360 HORI EX controls and behavior | Confirmed | Maintainer hardware testing |
-| Controller Expansion hardware functionality | Confirmed | Maintainer reports all tested hardware functioning |
-| Custom remapping, capture and player-ownership logic | Software checked | Input capture, assignment and isolation regression tests |
-| Retail / Japanese rerelease patching | Software checked | 812 patch combinations |
+| Area | Status |
+| --- | --- |
+| Tanita movement, triggers and top controls | Functionally Tested |
+| Xbox 360 HORI EX controls and P2 operation | Functionally Tested; 2P Validated |
+| Custom remapping/capture and controller reassignment | Functionally Tested |
+| Dual Tanita / dual HORI | Pending |
+| Retail / Japanese rerelease patching | Software checked: 812 patch combinations |
 
-Detailed test coverage, executable dispatch evidence and the acceptance procedure
-are in [Controller validation](docs/CONTROLLERS.md).
+The [controller documentation index](docs/controllers/README.md) separates observed
+measurements, implementation decisions and hardware results. See
+[controller internals](docs/CONTROLLERS.md) for dispatch evidence and automated checks.
 
 ## Additional Hardware
 
-Community compatibility reports should identify the exact model, platform,
+Use the [testing methodology](docs/controllers/profile-testing-methodology.md)
+for future community records. Compatibility reports should identify the exact model, platform,
 VID/PID/revision and input mode; include neutral and per-control diagnostics,
 then check the proposed mapping in-game for both players. Distinguish measured
 reports from inferred mappings, and redact device-instance paths before posting

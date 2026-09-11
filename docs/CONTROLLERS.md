@@ -1,10 +1,8 @@
 # Controller Expansion: hardware profiles
 
-Status: retail and Japanese rerelease. The maintainer confirms that all hardware
-in the test setup functions correctly, including Tanita and Xbox 360 HORI EX.
-This supersedes the earlier partial hardware status. Back retains the game's
-camera/zoom behavior. The procedure below documents reproducible regression
-checks, not outstanding work on the confirmed hardware setup.
+Hardware characterization and current acceptance status are maintained in
+[controllers/](controllers/README.md). This document records software architecture,
+executable dispatch evidence and automated checks for retail and Japanese rerelease.
 
 ## Architecture
 
@@ -70,8 +68,8 @@ session-scoped and reselected each launch; no slot number is persisted as an
 identity. Detected disconnects clear state and invalidate that claim without
 reassigning another connected controller. Reconnect requires F7 selection.
 The two unverified executable builds retain their legacy ordinal allocator.
-Raw XInput Y uses positive-up. Fred's percentage display must be checked against
-actual raw XInput values on the device before declaring hardware validation.
+Raw XInput Y uses positive-up; utility percentages and retained measurements are
+documented separately in the [HORI record](controllers/hori-twinstick-ex-x360.md).
 
 ## Binary dispatch evidence
 
