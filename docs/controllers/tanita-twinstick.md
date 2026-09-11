@@ -125,12 +125,15 @@ overlapped read and cached state. Paths are reserved for the process; disconnect
 one does not promote the other. Explicit Options selection assigns a native
 source to P1 or P2 independently of XInput slots. After a detected disconnect,
 reselect in F7; changing ports after both native path reservations are occupied
-requires restarting. Two-source implementation is not a dual-unit hardware result.
+requires restarting.
 
 ## Validation record
 
 The maintainer confirms lever movement, diagonals and top controls functioning in
-the latest internal build. Detailed player-position results were not supplied.
+the latest internal build and reports a successful Tanita-versus-Tanita local
+match using two physical units. This establishes P1/P2 operation and simultaneous
+local versus; reconnect ordering was not reported. The exact build identifier
+for this dual-unit test was not supplied.
 
 | Test | Status | Retained evidence / scope |
 | --- | --- | --- |
@@ -144,9 +147,10 @@ the latest internal build. Detailed player-position results were not supplied.
 | Trigger inputs | Functionally Tested | Both triggers reported working |
 | Auxiliary/top controls | Functionally Tested | Latest game confirmation; per-surface report attribution flagged above |
 | Remapping | Not applicable | Fixed profile; no remapping UI |
-| P1 assignment | Not recorded | Implemented; no explicit P1 test result retained |
-| P2 assignment | Not recorded | Implemented; no explicit P2 test result retained |
-| Dual Tanita | Pending / Not Yet Validated | No two-physical-unit test supplied |
+| P1 assignment | 1P Validated | Tanita-versus-Tanita local match |
+| P2 assignment | 2P Validated | Tanita-versus-Tanita local match |
+| Dual Tanita / simultaneous local VS | Functionally Tested | Maintainer reports two physical Tanitas working against each other |
+| Dual-unit disconnect/reconnect ordering | Not recorded | Not established by the local versus result |
 | Mixed-controller configuration | Not recorded for Tanita specifically | General ownership confirmation does not identify this combination |
 
 [Mapping source](../../input/tanita_map.h), [ownership](../../input/controller.c)

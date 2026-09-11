@@ -155,7 +155,8 @@ and multi-unit results are tracked separately from that functional confirmation.
 | Tanita movement, triggers and top controls | Functionally Tested |
 | Xbox 360 HORI EX controls and P2 operation | Functionally Tested; 2P Validated |
 | Custom remapping/capture and controller reassignment | Functionally Tested |
-| Dual Tanita / dual HORI | Pending |
+| Dual Tanita local versus | Functionally Tested; P1 and P2 validated |
+| Dual HORI | Pending |
 | Retail / Japanese rerelease patching | Software checked: 812 patch combinations |
 
 The [controller documentation index](docs/controllers/README.md) separates observed

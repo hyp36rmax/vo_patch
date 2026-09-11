@@ -20,12 +20,13 @@ player position or a two-identical-controller result.
 | Record | Characterized | Implemented | Functionally Tested | 1P Validated | 2P Validated |
 | --- | --- | --- | --- | --- | --- |
 | [Twin-Stick (Custom)](custom-twinstick.md) | Brook/XInput reference layout | Yes | Yes | Not recorded | Not recorded |
-| [Tanita Twin-Stick](tanita-twinstick.md) | Single unit | Yes | Yes | Not recorded | Not recorded |
+| [Tanita Twin-Stick](tanita-twinstick.md) | Single-unit measurements; dual-unit game test | Yes | Yes | Yes | Yes |
 | [HORI Twin Stick EX — Xbox 360](hori-twinstick-ex-x360.md) | Single unit; XInput and legacy presentation | Yes | Yes | Not recorded | Yes |
 | [Controller Profile Testing Methodology](profile-testing-methodology.md) | Working procedure | — | — | — | — |
 
 **Not recorded** identifies a missing specific result, not a failure of the tested
-hardware. Dual-Tanita and dual-HORI tests remain **Pending**. The HORI P2 result
+hardware. Dual-Tanita local versus is **Functionally Tested**, with both player
+positions validated. Dual-HORI testing remains **Pending**. The HORI P2 result
 includes another connected controller; its model and a simultaneous local VS test
 were not recorded.
 
