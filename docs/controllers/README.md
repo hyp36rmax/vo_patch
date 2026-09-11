@@ -21,7 +21,7 @@ player position or a two-identical-controller result.
 | --- | --- | --- | --- | --- | --- |
 | [Twin-Stick (Custom)](custom-twinstick.md) | Brook/XInput reference layout | Yes | Yes | Yes | Yes |
 | [Tanita Twin-Stick](tanita-twinstick.md) | Single-unit measurements; dual-unit game test | Yes | Yes | Yes | Yes |
-| [HORI Twin Stick EX — Xbox 360](hori-twinstick-ex-x360.md) | Single unit; XInput and legacy presentation | Yes | Yes | Not recorded | Yes |
+| [HORI Twin Stick EX — Xbox 360](hori-twinstick-ex-x360.md) | Single unit; XInput and legacy presentation | Yes | Yes | Yes | Yes |
 | [Controller Profile Testing Methodology](profile-testing-methodology.md) | Working procedure | — | — | — | — |
 
 **Not recorded** identifies a missing specific result, not a failure of the tested
