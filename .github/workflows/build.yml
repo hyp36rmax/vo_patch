@@ -284,8 +284,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" \
-                 --title "$GITHUB_REF_NAME" --generate-notes
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            notes="docs/releases/$GITHUB_REF_NAME.md"
+            if [[ "$GITHUB_REF_NAME" == *-controller-expansion.* ]]; then
+              test -f "$notes"
+              gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease \
+                --latest=false --title "Controller Expansion — $GITHUB_REF_NAME" \
+                --notes-file "$notes"
+            else
+              gh release create "$GITHUB_REF_NAME" \
+                --title "$GITHUB_REF_NAME" --generate-notes
+            fi
+          fi
           gh release upload "$GITHUB_REF_NAME" \
             dist/*.zip --clobber
