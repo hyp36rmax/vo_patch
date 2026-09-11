@@ -14,8 +14,9 @@ The maintainer reports functional hardware testing on the latest internal build,
 including Custom remapping/reassignment and corrected Tanita top controls. Its
 exact tested commit, Windows version and utility versions were not supplied.
 Implementation references were inspected at `ed2b861`; controller code is unchanged
-from `ff75c05`. A functional confirmation does not establish an undocumented
-player position or a two-identical-controller result.
+from `ff75c05`. The maintainer has separately confirmed P1 and P2 operation for
+Custom, Tanita and HORI. Dual-unit results remain distinct from player-position
+validation with a single unit.
 
 | Record | Characterized | Implemented | Functionally Tested | 1P Validated | 2P Validated |
 | --- | --- | --- | --- | --- | --- |

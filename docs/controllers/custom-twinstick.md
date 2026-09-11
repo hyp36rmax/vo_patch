@@ -78,7 +78,8 @@ requires an XInput source even when switching from a previously selected Tanita.
 | Reference hardware operation | Functionally Tested | Maintainer confirmation |
 | Controller reassignment and remapping | Functionally Tested | Latest internal build confirmation |
 | Direct physical input capture | Functionally Tested | Maintainer confirmation, also reflected in the branch README update |
-| Separate P1 / P2 runs | Not recorded | Functional confirmation does not identify the player positions |
+| P1 operation | 1P Validated | Maintainer confirmation in the controller index |
+| P2 operation | 2P Validated | Maintainer confirmation in the controller index |
 | Save/relaunch and cancel/timeout edge cases | Not recorded individually | Automated coverage exists; separate hardware results were not supplied |
 | Simultaneous local VS / multiple Brook adapters | Not Tested in the retained record | No configuration-specific result supplied |
 

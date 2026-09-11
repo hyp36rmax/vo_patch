@@ -111,7 +111,7 @@ XInput assignments can be swapped without unplugging controllers.
 | Single-unit XInput and legacy characterization | Characterized | Measurements above |
 | Movement, triggers, dash, buttons and menu behavior | Functionally Tested | Maintainer reports correct controls and behavior |
 | Diagonals, paired triggers/shoulders, neutral return | Functionally Tested | Individual PASS results above |
-| P1 operation | Not recorded | No explicit P1 result supplied |
+| P1 operation | 1P Validated | Maintainer confirmation in the controller index |
 | P2 operation | 2P Validated | HORI assigned to P2 with another controller connected |
 | Mixed-controller connection | Functionally Tested | Other controller's model and simultaneous local VS result not recorded |
 | Fixed-profile remapping | Not applicable | No remapping editor for this profile |
