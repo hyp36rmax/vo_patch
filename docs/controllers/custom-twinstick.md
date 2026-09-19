@@ -17,8 +17,9 @@ the reference mapping is not a universal Twin-Stick standard.
 
 ## Default mapping — IMPLEMENTED
 
-The defaults match the supplied reference layout. Left and right in the table
-refer to physical levers, triggers and dash buttons.
+The defaults are ready to use with the supplied reference layout; remapping is
+optional. Left and right in the table refer to physical levers, triggers and
+dash buttons.
 
 | Physical control / game input | Default XInput binding |
 | --- | --- |

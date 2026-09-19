@@ -9,14 +9,18 @@ using the patcher see [patcher guide](PATCHER.md); for what the patches do see
 ```
 asm/*.asm    ──nasm──►  hex strings in v-on-patcher.py  ──PyInstaller──►  v-on-patcher-X.Y.Z-win.zip
 net/dpctrl.c ──mingw─►  net/dpctrl.dll                     CI builds this  (exe + _internal/)
-  you edit             asm/build.py, net/build.py
+input/*.c   ──mingw─►  input/vontanita.dll                 controller helper
+  you edit             asm/build.py, net/build.py, input/build.py
                        write these
 ```
 
 `v-on-patcher.py` cannot read `asm/` at runtime, so the machine code is baked in
 as text between marker comments; `asm/build.py` is the only thing that puts
 it there. The netplay DLL is a file, `net/dpctrl.dll`, that `net/build.py`
-compiles and the release ships beside the exe.
+compiles and the release ships beside the exe. `input/build.py` builds the
+controller helper from the native HID reader, ownership/capture code and mapping
+headers, then records source and binary hashes in the patcher. It serves Tanita,
+Raphnet and explicit XInput ownership; its filename remains `vontanita.dll`.
 
 **Never edit a blob by hand.** The next build run silently discards it.
 
@@ -36,9 +40,9 @@ needs pip. The script checks and prints; the actual install is one `apt` or
 `dnf` line it gives you.
 
 `nasm` is needed only to rebuild `asm/`, `asm/ui.asm` included, mingw only
-to rebuild the netplay DLL. Neither is needed to run the patcher or to
-build the exe: the machine code is in `v-on-patcher.py` as text, the DLL is
-committed as `net/dpctrl.dll`.
+to rebuild the netplay and controller DLLs. Neither is needed to run the patcher
+or build the exe: machine code is embedded in `v-on-patcher.py`, and the DLLs
+are committed as `net/dpctrl.dll` and `input/vontanita.dll`.
 
 `python3-pyflakes` is the `lint` check; `python3-capstone` (4.x or 5.x)
 regenerates `UI_REFS` in `tools/uibuild.py` and drives the build-mapping
@@ -72,6 +76,7 @@ chmod +x .git/hooks/pre-push
 ```bash
 python3 asm/build.py              # only if you touched asm/ - regenerates the hex
 python3 net/build.py              # only if you touched net/ - recompiles the DLL
+python3 input/build.py            # only if you touched input/ - rebuilds the helper and hashes
 python3 tools/uibuild.py          # only if you touched asm/ui.asm - the resolution blob;
                                   # then the other builds' tables and the pinned
                                   # MD5s: HIRES.md, Rebuilding
@@ -80,9 +85,9 @@ python3 tools/check.py            # the checks CI runs, in two seconds
 python3 v-on-patcher.py               # does the window still open?
 ```
 
-All three build scripts rewrite blobs inside `v-on-patcher.py`, so `git diff`
-after one shows the hex changing and nothing else. If it shows more, something else
-moved too.
+Inspect the diff after generation. Assembly/UI builds update embedded blobs;
+DLL builds update their binary and recorded hashes. Controller site or annex
+changes may also require regenerating the build maps and `docs/MAP.md`.
 
 For anything non-trivial, branch and open a PR - CI runs on both.
 
@@ -103,7 +108,9 @@ python3 tools/check.py --only asm,net         # just those
 `VO_GAME` works instead of one argument, and either a folder or any file
 inside one will do. The checks that need the game run once per folder
 given and are named by build - `offsets/jpre` - because a table can only be
-wrong on the build it is for; before tagging, give all four.
+wrong on the build it is for; before tagging, give all four. Controller Expansion
+requires retail and Japanese rerelease checks for its new profiles; explicitly
+record any unavailable OEM/Japanese-original game checks as untested.
 
 | Name | What it proves |
 | --- | --- |
@@ -111,6 +118,10 @@ wrong on the build it is for; before tagging, give all four.
 | `asm` | `asm/` reassembles to the committed blobs, every blob links for every build, and the two placeholders the apply-time sections fill occur exactly once each |
 | `ui` | `asm/ui.asm` matches the committed resolution blob: reassembled with nasm when it is installed (always, on CI), by the recorded fingerprint of the source when it is not |
 | `net` | `net/dpctrl.dll` was built from the current `net/dpctrl.c`, by hash - two mingw versions do not produce identical bytes - and is the file `v-on-patcher.py` expects |
+| `tanita` | controller helper source/binary fingerprints, PE32 packaging, safe installation and native Tanita mapping |
+| `controller` | profile names/order, build gates, all 81 profile pairs, lever behavior, physical ownership and capture rules |
+| `raphnet` | device identities, exhaustive DC/Saturn button decoding, axis thresholds, Start claims, Pause and emitted retail/JPRE integration |
+| `custom` | twelve-slot remapping, independent player layouts, INI persistence and editor behavior |
 | `disc` | `disctest.py`: the disc reader, on ISO9660 images the test builds itself - one per sector layout, plus a cue that names the wrong one. Extraction is byte-exact, the `ssp.ini` rules give the retail and OEM file lists, and every refusal names what is wrong. Needs no game and no disc, so CI runs it |
 | `gui` | `guitest.py`: the window, opened under xvfb and driven without its loop - which button is offered for which source, that a copy holds both down until it finishes, and that the two columns end level whatever is open. None of these raise on their own, so each asserts the property. Needs a display; with none it skips and prints a note rather than passing quietly |
 | `lint` | pyflakes |

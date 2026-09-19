@@ -15,7 +15,9 @@ and release workflow see [DEVELOPING.md](../docs/DEVELOPING.md).
 | `debugbox.asm` | F11 Extras: the window procedure hook and the dialog procedure |
 | `padxinput.asm` | gamepad: the entry stubs, the message-pump stub, the input tick and the soft reset |
 | `levers.asm` | gamepad: the lever cleanup that runs after each input tick |
-| `twinstick.asm` | gamepad: the arcade twin-stick profile, two stubs and its tables |
+| `twinstick.asm` | shared digital lever engine and XInput, Custom, Tanita and HORI tables |
+| `raphnet.asm` | retail/JPRE native semantic dispatch, Start/Pause message handling and nine-profile F7 list |
+| `custombind.asm` | twelve-slot Custom editor, physical capture and independent saved layouts |
 | `introwait.asm` | gamepad: polls the pad while the intro movie blocks the message loop |
 | `kbpage.asm` | gamepad: two fixes to the keyboard bind page |
 | `bindlist.asm` | gamepad: the shared bind page's list, picked by device |
@@ -355,7 +357,7 @@ by `dialogs.py`.
 
 ## padtables.py
 
-Sixteen pad inputs, described once:
+Twenty pad inputs, including four D-pad directions, described once:
 
 ```python
 ('LT',       TRIGGER, LTRIGGER, PULL),
@@ -365,8 +367,10 @@ Sixteen pad inputs, described once:
 
 From that list it packs the condition table the tick reads, the bind list the
 F7 page offers, and the strings both point at, computing the pointers between
-them. The four profile names sit in the same string blob, so the device list
-is built from it too.
+them. Profile names share the string blob. Retail/JPRE use the nine-entry
+annex list in `raphnet.asm`, with all Twin-Stick profiles preceding the keyboards;
+OEM/Japanese original retain the upstream four-profile list. Saved device IDs
+are independent of display order.
 
 An input's id is `0xe0` plus its position in the list, which is also its index
 into the condition table. Reordering the list moves everyone's saved binds.
@@ -417,9 +421,13 @@ keyboard handler, because the handler is what reads them. Then it walks
 the twelve bind slots, testing each against the condition table and
 clearing the lever bits its mask names.
 
-**padpoll** decides which XInput slot a side reads, since slots are not
-player numbers: the sides on a pad profile, 1P first, take the connected
-slots in ascending order. So two pads on 0 and 1 serve 1P and 2P, and one
+**padpoll** on retail/JPRE routes through the controller helper: each player
+claims a physical source with Start/Options, independently of connection order.
+Claims last for the session and must be reselected after a detected disconnect.
+Raphnet uses its native semantic path; see [controller internals](../docs/CONTROLLERS.md).
+
+On OEM/Japanese original, the legacy allocator remains: sides on a pad profile,
+1P first, take the connected slots in ascending order. So two pads on 0 and 1 serve 1P and 2P, and one
 pad on slot 0 serves 2P alone when 1P is on the keyboard - which the fixed
 0/1 of earlier versions could not do. The map (`PADIDX`, slot + 1 per side,
 5 for none) is built on the first poll and rebuilt when a cached slot
@@ -437,8 +445,8 @@ the lever words and the jump masks are lever bits like any other.
 After those twelve it applies the D-pad to the first four slots' masks
 directly. The menus and the mech list are read out of the lever words rather
 than out of keys, which is why the sticks navigate them and why this does too.
-It cannot be a bind: the engine is one input per slot and the left stick
-already holds those four.
+Custom suppresses that fixed gameplay D-pad fallback so reassigned directions
+do not also invoke their old actions; fixed D-pad menu navigation remains.
 
 The **pump stub** replaces one `call PeekMessageA` in the main loop. The tick
 does not run while the game is paused, so Start is posted as F3 from here,

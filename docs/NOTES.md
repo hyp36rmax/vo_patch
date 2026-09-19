@@ -370,6 +370,12 @@ the session. `DISCL_BACKGROUND` removes the condition.
 
 ### Gamepad
 
+This section describes the upstream four-profile foundation, retained on USA
+OEM and Japanese original. On retail and Japanese rerelease,
+[Controller Expansion](CONTROLLERS.md) extends the F7 list to nine profiles and
+uses explicit physical controller ownership; its native Raphnet paths also
+bypass device 7's legacy joystick checks.
+
 The game predates XInput and reads pads through the Windows 95
 joystick API, which on a modern controller reports a partial view: one trigger
 unreachable, axis order inconsistent between Windows and Wine. So it is not

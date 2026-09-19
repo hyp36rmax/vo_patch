@@ -2,9 +2,10 @@
 
 [Controller documentation](README.md)
 
-This working procedure derives from the Tanita and Xbox 360 HORI characterization
-records and will inform future community profile requests. Preserve the hardware
-record even when the implementation selects only one Windows interface.
+This working procedure derives from Tanita, Xbox 360 HORI and Raphnet
+Dreamcast/Saturn characterization records and will inform future community
+profile requests. Preserve the hardware record even when the implementation
+selects only one Windows interface.
 
 Keep **OBSERVED** measurements, **IMPLEMENTED** translation rules and **VALIDATED**
 game behavior distinct. Record the interface, units, button-numbering convention
@@ -60,8 +61,9 @@ neutral. Note exposed axes that do not respond, without assigning them a purpose
 
 Test Up+Right on each lever at minimum; preferably add Up+Left, Down+Right and
 Down+Left. Verify that both relevant axes report simultaneously and record their
-values, variation and return to neutral. Name the tested diagonal rather than
-claiming coverage of all combinations from one result.
+values, variation and return to neutral. For button-based levers, record the
+simultaneous button indices instead of axis values. Name the tested diagonal
+rather than claiming coverage of all combinations from one result.
 
 ## 7. Buttons
 

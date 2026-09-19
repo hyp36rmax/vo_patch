@@ -6,7 +6,8 @@ Virtual-On* (PC, 1997), built on Pairomaniac's [V-On Patcher](https://github.com
 ## Overview
 
 The `Controller-Expansion` branch extends the patcher's twin-stick support to
-Custom XInput layouts, native Tanita HID and the Xbox 360 HORI Twin Stick EX.
+Custom XInput layouts, Xbox 360 HORI Twin Stick EX, and native HID profiles for
+Tanita and Raphnet-connected Dreamcast/Saturn Twin-Sticks.
 Profiles define how device inputs drive the game's two digital levers; P1 and
 P2 select their profiles and controllers independently.
 
@@ -57,7 +58,7 @@ pressing both triggers fires the centre weapon.
 
 [Reference hardware and implementation record](docs/controllers/custom-twinstick.md).
 
-A remappable XInput profile with Xbox/Brook-style defaults:
+Ready to use with Xbox/Brook-style defaults; remapping is optional:
 
 | Game input | Default XInput control |
 | --- | --- |
@@ -103,16 +104,17 @@ The PlayStation model is outside the current compatibility claim.
 
 Native HID profiles for Dreamcast HKT-7500 through Raphnet DC v1 (`289B:0008`)
 and Saturn HSS-0151 through Raphnet Saturn v2 (`289B:0043`). Hardware mappings
-are characterized, and the maintainer reports successful R1 in-game testing. Physical
-Start claims the selected controller. DC Pause remains separate; Saturn has no
-Pause control. See the [DC hardware record](docs/controllers/raphnet-dreamcast-twinstick.md),
+use device-specific decoding: DC reports buttons for both levers; Saturn reports
+X/Y axes for the left lever and buttons for the right. Both feed the existing
+digital Twin-Stick semantics. Physical Start claims the selected controller;
+DC has a separate Pause control, while Saturn has none. See the [DC hardware record](docs/controllers/raphnet-dreamcast-twinstick.md),
 [Saturn hardware record](docs/controllers/raphnet-saturn-twinstick.md) and
 [shared implementation/status](docs/controllers/raphnet-twinsticks.md).
 
 ## Player Assignment & Remapping
 
-Select P1 and P2 profiles independently in **F7**; mixed XInput, native Tanita and
-keyboard configurations are supported by the routing code. When prompted,
+Select P1 and P2 profiles independently in **F7**; XInput, native Tanita,
+Raphnet DC, Raphnet Saturn and keyboard profiles can be mixed. When prompted,
 release **Start / Options**, then press it on the controller intended for the
 displayed player. Selection considers all four XInput slots or up to two native
 units of the selected hardware family, so controllers can remain connected in any initial slot order.
@@ -152,14 +154,14 @@ remains available; Start/pause and Back/camera are fixed controls outside the ed
 Compatibility evidence combines device diagnostics, in-game control checks and
 software regression tests. Hardware checks cover neutral state, each lever
 direction, triggers, dash, simultaneous inputs and menu controls; two-player
-checks add isolation, reassignment and reconnect behavior. This records how
+checks cover player assignment and simultaneous input. Reconnect permutations
+are recorded separately in the hardware records. This records how
 original hardware behaves without treating API emulation as a substitute for a
 working controller.
 
-All implemented controller profiles are **1P Validated**, **2P Validated**, and
-**Functionally Tested** in mixed local VS, as confirmed by the maintainer.
-Custom remapping/capture and reassignment are also functionally tested.
-Identical multi-unit results remain separate from mixed-controller validation.
+The matrix records maintainer-confirmed hardware results separately from
+automated checks and manufacturer claims. Identical multi-unit configurations
+remain separate from mixed-controller validation.
 
 | Area | Status |
 | --- | --- |
