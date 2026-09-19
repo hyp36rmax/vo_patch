@@ -151,7 +151,7 @@ for this dual-unit test was not supplied.
 | P2 assignment | 2P Validated | Tanita-versus-Tanita local match |
 | Dual Tanita / simultaneous local VS | Functionally Tested | Maintainer reports two physical Tanitas working against each other |
 | Dual-unit disconnect/reconnect ordering | Not recorded | Not established by the local versus result |
-| Mixed-controller configuration | Not recorded for Tanita specifically | General ownership confirmation does not identify this combination |
+| Mixed-controller local VS | Functionally Tested | Maintainer confirmation for all controller profiles |
 
 [Mapping source](../../input/tanita_map.h), [ownership](../../input/controller.c)
 and [software checks](../../tools/tanitatest.py) provide implementation evidence;

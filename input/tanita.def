@@ -4,3 +4,4 @@ EXPORTS
     VonGetState
     VonSelectController
     VonCaptureInput
+    VonTwinGetState

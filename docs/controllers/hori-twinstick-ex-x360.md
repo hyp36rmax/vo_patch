@@ -113,9 +113,9 @@ XInput assignments can be swapped without unplugging controllers.
 | Diagonals, paired triggers/shoulders, neutral return | Functionally Tested | Individual PASS results above |
 | P1 operation | 1P Validated | Maintainer confirmation in the controller index |
 | P2 operation | 2P Validated | HORI assigned to P2 with another controller connected |
-| Mixed-controller connection | Functionally Tested | Other controller's model and simultaneous local VS result not recorded |
+| Mixed-controller local VS | Functionally Tested | Maintainer confirmation for all controller profiles |
 | Fixed-profile remapping | Not applicable | No remapping editor for this profile |
-| Reconnect permutations / simultaneous local VS | Not recorded individually | General ownership confirmation does not enumerate these cases |
+| Reconnect permutations | Not recorded individually | Mixed local VS does not establish reconnect ordering |
 | Dual HORI | Pending / Not Yet Validated | Two units owned; only one available for initial characterization |
 
 Ownership of a second unit is not evidence of a two-unit test. Record the second

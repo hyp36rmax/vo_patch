@@ -81,7 +81,8 @@ requires an XInput source even when switching from a previously selected Tanita.
 | P1 operation | 1P Validated | Maintainer confirmation in the controller index |
 | P2 operation | 2P Validated | Maintainer confirmation in the controller index |
 | Save/relaunch and cancel/timeout edge cases | Not recorded individually | Automated coverage exists; separate hardware results were not supplied |
-| Simultaneous local VS / multiple Brook adapters | Not Tested in the retained record | No configuration-specific result supplied |
+| Mixed-controller local VS | Functionally Tested | Maintainer confirmation for all controller profiles |
+| Multiple Brook adapters | Not Tested in the retained record | No identical-adapter result supplied |
 
 ## Source references and limits
 

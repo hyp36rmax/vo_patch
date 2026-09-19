@@ -70,8 +70,9 @@ INPUTS = [
 # 3 Simple) plus Controller Expansion devices 4 Custom, 5 Tanita, 6 HORI.
 PROFILES = ['Gamepad (XInput)', 'Twin-stick (XInput)', 'Twin-Stick (Custom)',
             'Twin-Stick (Tanita)', 'Twin-Stick (HORI EX)',
-            'Keyboard (Simple)', 'Keyboard (Real)']
-PROFILE_LABELS = ('gamepad', 'twin', 'custom', 'tanita', 'hori', 'simple', 'real')
+            'Keyboard (Simple)', 'Keyboard (Real)',
+            'Twin-Stick (Raphnet DC)', 'Twin-Stick (Raphnet Saturn)']
+PROFILE_LABELS = ('gamepad', 'twin', 'custom', 'tanita', 'hori', 'simple', 'real', 'raphnet_dc', 'raphnet_saturn')
 
 DEVLIST_LEN = 32        # the run the device list is written into
 
@@ -111,7 +112,7 @@ def build():
     devlist, dfix = bytearray(), []
     # The build chooses seven names, or four names followed by null pointers.
     # This keeps the device list's size fixed across all supported builds.
-    for i in range(len(PROFILES)):
+    for i in range(7):  # The original fixed-size list remains for older builds.
         dfix.append((len(devlist), 'abs', 'PROFILE_%d' % i, 0))
         devlist += struct.pack('<I', 0)
     devlist += b'\0' * (DEVLIST_LEN - len(devlist))

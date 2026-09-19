@@ -35,7 +35,7 @@ for building and contributing.
 ## Controller Profiles
 
 Gamepad (XInput), Keyboard (Simple) and Keyboard (Real) remain available alongside
-the four twin-stick profiles below. Fixed profiles do not expose gameplay rebinding;
+the twin-stick profiles below. Fixed profiles do not expose gameplay rebinding;
 Custom provides twelve independent action slots.
 
 ### Twin-Stick
@@ -99,13 +99,23 @@ both XInput and legacy Windows measurements.
 
 The PlayStation model is outside the current compatibility claim.
 
+### Twin-Stick (Raphnet DC / Raphnet Saturn)
+
+Native HID profiles for Dreamcast HKT-7500 through Raphnet DC v1 (`289B:0008`)
+and Saturn HSS-0151 through Raphnet Saturn v2 (`289B:0043`). Hardware mappings
+are characterized, and the maintainer reports successful R1 in-game testing. Physical
+Start claims the selected controller. DC Pause remains separate; Saturn has no
+Pause control. See the [DC hardware record](docs/controllers/raphnet-dreamcast-twinstick.md),
+[Saturn hardware record](docs/controllers/raphnet-saturn-twinstick.md) and
+[shared implementation/status](docs/controllers/raphnet-twinsticks.md).
+
 ## Player Assignment & Remapping
 
 Select P1 and P2 profiles independently in **F7**; mixed XInput, native Tanita and
 keyboard configurations are supported by the routing code. When prompted,
 release **Start / Options**, then press it on the controller intended for the
-displayed player. Selection considers all four XInput slots or both native
-Tanita units, so controllers can remain connected in any initial slot order.
+displayed player. Selection considers all four XInput slots or up to two native
+units of the selected hardware family, so controllers can remain connected in any initial slot order.
 
 | Assignment event | Behavior |
 | --- | --- |
@@ -117,7 +127,7 @@ Tanita units, so controllers can remain connected in any initial slot order.
 
 Ownership is deterministic **within the session**, not a persistent hardware-ID
 mapping across launches. XInput slot numbers are not saved as physical identities.
-Native Tanita paths remain reserved for the process; changing USB ports after
+Native HID paths remain reserved for the process; changing USB ports after
 both reservations are occupied requires a restart.
 
 For Custom, choose **Next** in F7, focus an action with the mouse or Tab, release
@@ -146,17 +156,23 @@ checks add isolation, reassignment and reconnect behavior. This records how
 original hardware behaves without treating API emulation as a substitute for a
 working controller.
 
-The maintainer confirms functional hardware operation, Custom remapping/capture
-and controller reassignment in the latest internal build. Detailed player-position
-and multi-unit results are tracked separately from that functional confirmation.
+All implemented controller profiles are **1P Validated**, **2P Validated**, and
+**Functionally Tested** in mixed local VS, as confirmed by the maintainer.
+Custom remapping/capture and reassignment are also functionally tested.
+Identical multi-unit results remain separate from mixed-controller validation.
 
 | Area | Status |
 | --- | --- |
-| Tanita movement, triggers and top controls | Functionally Tested |
-| Xbox 360 HORI EX controls | Functionally Tested; P1 and P2 validated |
-| Custom remapping/capture and controller reassignment | Functionally Tested; P1 and P2 validated |
+| Original Gamepad, Twin-stick and keyboard profiles | 1P Validated; 2P Validated; mixed VS Functionally Tested |
+| Tanita movement, triggers and top controls | 1P Validated; 2P Validated; mixed VS Functionally Tested |
+| Xbox 360 HORI EX controls | 1P Validated; 2P Validated; mixed VS Functionally Tested |
+| Custom remapping/capture and controller reassignment | 1P Validated; 2P Validated; mixed VS Functionally Tested |
 | Dual Tanita local versus | Functionally Tested; P1 and P2 validated |
 | Dual HORI | Pending |
+| Raphnet DC v1 / Saturn v2 | 1P Validated; 2P Validated; mixed VS Functionally Tested |
+| Mixed Raphnet DC/Saturn local VS | Functionally Tested |
+| Dual identical Raphnet DC / dual identical Saturn | Not Tested |
+| Raphnet Dreamcast adapter v2 | Manufacturer-documented HKT-7500 support; local physical validation Pending |
 | Retail / Japanese rerelease patching | Software checked: 812 patch combinations |
 
 The [controller documentation index](docs/controllers/README.md) separates observed

@@ -41,13 +41,13 @@ IMAGE_BASE = 0x6c640000
 BEGIN = '# --- Tanita hashes: written by input/build.py, do not edit ---'
 END = '# --- end Tanita hashes ---'
 
-EXPORTS = ('TanitaGetState', 'VonGetState', 'VonSelectController', 'VonCaptureInput')
+EXPORTS = ('TanitaGetState', 'VonGetState', 'VonSelectController', 'VonCaptureInput', 'VonTwinGetState')
 
 
 def source_hash():
     digest = hashlib.sha256()
     for path in (SRC, DEF, *(os.path.join(HERE, name) for name in
-                            ('tanita_map.h', 'controller.c', 'controller_logic.h'))):
+                            ('tanita_map.h', 'controller.c', 'controller_logic.h', 'twinstick_state.h', 'raphnet_map.h'))):
         with open(path, 'rb') as f:
             digest.update(f.read())
     return digest.hexdigest()

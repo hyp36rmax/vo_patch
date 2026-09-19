@@ -19,8 +19,8 @@ Manual dropdown assignment remains available after cancelling capture.
 The modal editor owns the active F7 window to prevent nested edits.
 The upstream Gamepad, Twin-stick, Simple and Real paths retain their mappings.
 Profile IDs stay 0 Real, 1 Gamepad, 2 Twin-stick, 3 Simple, 4 Custom; this change
-adds 5 Tanita and 6 HORI EX. F7 lists Gamepad, Twin-stick, Custom, Tanita, HORI,
-Simple, Real. Every player selects independently.
+includes 5 Tanita, 6 HORI EX, 7 Raphnet DC and 8 Raphnet Saturn. F7 lists
+Gamepad, Twin-stick, Custom, Tanita, HORI, Raphnet DC, Raphnet Saturn, Simple, Real. Every player selects independently.
 
 Tanita uses a narrowly scoped 32-bit HID helper. The game's DirectInput path is
 built around its legacy joystick profiles and device counts. Reusing that path
@@ -29,19 +29,18 @@ revision/collection identity. Raw Input would require window message handling.
 HID supports exact attributes, collection usage, descriptor-based values and a
 separate handle for each physical path, without a new game window hook.
 
-The helper accepts only VID 1F4F, PID 9001, revision 0200, usage page 1 / usage 5.
+The Tanita decoder accepts VID 1F4F, PID 9001, revision 0200, usage page 1 / usage 5.
 It reads X/Y/Z/Rz and the hat by usage, rather than guessing raw byte offsets.
 It expects these values and a button range starting at HID usage 1 through at
 least 13 in one report. Ambiguous or incomplete descriptors are rejected.
-The first user test confirms that the reader accepts that unit. No other HID
-profile is added.
+The first user test confirms that the reader accepts that Tanita unit.
 
 Overlapped reads keep the normal polling path nonblocking. Each handle owns its
 preparsed descriptor, report buffer, pending read and cached state. A bounded
 report drain avoids an unbounded busy loop. Completed malformed reports clear
 state; read failures close the handle and return disconnected. An incomplete
 read retains the last complete state. Cancellation completes before a buffer
-is reused. Up to two exact device paths are sorted and reserved for the process
+is reused. Up to two exact device paths per HID family are sorted and reserved for the process
 lifetime; a disconnected path does not shift the other player to a new unit.
 New USB paths after both reservations are filled require a game restart.
 
@@ -54,7 +53,7 @@ shoulder aliases. The shared lever engine clears left/right dash mask 0x02.
 
 HORI EX uses the existing XInput poller with a dedicated D-pad/right-stick
 bind table. It is manually selected and does not attempt VID/PID discovery
-through XInput. Native Tanita players consume no XInput slots. XInput players
+through XInput. Native HID players consume no XInput slots. XInput players
 use explicit Start selection on first use each session and on F7 confirmation.
 The helper queries all four slots (or both native units) and claims the one
 whose Start/Options is newly pressed after release. Simultaneous claims are
@@ -70,6 +69,14 @@ reassigning another connected controller. Reconnect requires F7 selection.
 The two unverified executable builds retain their legacy ordinal allocator.
 Raw XInput Y uses positive-up; utility percentages and retained measurements are
 documented separately in the [HORI record](controllers/hori-twinstick-ex-x360.md).
+
+Raphnet uses the same transport, physical-path reservations and ownership UI.
+Device-specific decoders return a 32-bit semantic mask: left U/D/L/R, right
+U/D/L/R, left/right trigger, left/right top, Start, Pause. `VonTwinGetState`
+provides owned native state directly to the lever engine; no Xbox-shaped
+intermediate state or virtual XInput device is introduced. See the
+[Raphnet hardware record](controllers/raphnet-twinsticks.md) for identities,
+mappings, descriptor constraints and physical acceptance gates.
 
 ## Binary dispatch evidence
 
@@ -87,6 +94,15 @@ blocks. Apply/serialize entries 5/6 skip legacy joystick serialization and
 resume at the common device-number writer. The JPRE save-table entries were
 verified against its switch bound and repeated pointer targets.
 
+Raphnet raises each gameplay switch bound from 7 to 8 and redirects its
+indirect jump to `asm/raphnet.asm`. IDs 0..6 still use their patched original
+table entries; IDs 7/8 use the native semantic tick. The original eight-entry
+allocation is not extended in place. F7's two list readers point to an annex
+list of nine profiles, with its iteration bound increased to nine. Device 7's
+legacy joystick-presence checks and display position 7's joystick-spending
+entry are bypassed. IDs 7/8 already take the no-bind default paths in startup,
+bind-page and serialization switches; the common device-number writer remains.
+
 Generated assembly and site maps must be regenerated through project tools.
 The DLL is built with input/build.py, which records source and binary hashes;
 VON_INPUT_CC can select an i686 Windows compiler. The committed first build uses
@@ -99,7 +115,7 @@ executable leaves this inert helper beside it; the original does not load it.
 ## Software checks
 
 - Existing and new profile names, order and build gates.
-- Assembly execution of all 49 profile pairs, including mixed APIs and both
+- Assembly execution across all 81 profile pairs, including mixed APIs and both
   keyboard profiles; verified builds pass player/profile to the ownership helper,
   while the legacy allocator is separately regression-tested.
 - Custom's 12 inputs and neutral state, both players, unchanged defaults.
@@ -114,6 +130,9 @@ executable leaves this inert helper beside it; the original does not load it.
   arming, held input rejection, chord rejection and threshold boundaries.
 - Native C mapping across all 256 byte-axis values, threshold boundaries,
   signed ranges, diagonals, hat/null and the specified buttons.
+- Raphnet identity matching, all 65,536 DC button masks, all 512 Saturn button
+  masks at nine lever positions, native Start edges, independent Pause and
+  both players through emitted retail/JPRE code.
 - Helper source/binary fingerprint, PE32 architecture, export and safe installation.
 - Pristine retail/JPRE patch bytes and the project's patch-combination tests.
 

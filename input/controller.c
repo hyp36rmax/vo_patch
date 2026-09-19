@@ -9,6 +9,8 @@
 #include <xinput.h>
 #include <stdio.h>
 #include "controller_logic.h"
+#include "twinstick_state.h"
+DWORD WINAPI RaphnetGetState(DWORD index, DWORD family, VonTwinState *state);
 DWORD WINAPI TanitaGetState(DWORD index, XINPUT_STATE *state);
 static VonOwner owners[2] = {{-1,0},{-1,0}};
 static int owner_kind[2], suppress_start[2], busy;
@@ -29,6 +31,27 @@ static DWORD raw_state(int source, XINPUT_STATE *state) {
         }
     }
     return get_state ? get_state(source,state) : ERROR_DEVICE_NOT_CONNECTED;
+}
+
+/* Claiming reads native Start directly; Raphnet never becomes XINPUT_STATE. */
+static DWORD native_state(int source, VonTwinState *state) {
+    state->controls=0;
+    if (source<6 || source>9) return ERROR_DEVICE_NOT_CONNECTED;
+    return RaphnetGetState((source-6)%2,1+(source-6)/2,state);
+}
+static DWORD source_start(int source, int *start) {
+    DWORD result;
+    *start=0;
+    if (source>=6) {
+        VonTwinState state;
+        result=native_state(source,&state);
+        if (!result) *start=!!(state.controls & VON_START);
+    } else {
+        XINPUT_STATE state;
+        result=raw_state(source,&state);
+        if (!result) *start=!!(state.Gamepad.wButtons & XINPUT_GAMEPAD_START);
+    }
+    return result;
 }
 
 typedef struct {
@@ -89,25 +112,22 @@ static INT_PTR CALLBACK procedure(HWND window, UINT msg, WPARAM wp, LPARAM lp) {
             state.Gamepad.sThumbRX,state.Gamepad.sThumbRY,p->threshold));
         if (input) EndDialog(window,input);
     } else {
-        int first=p->kind==5?4:0, end=p->kind==5?6:4, i, candidate=-1;
-        unsigned pressed=0;
+        int first=von_source_first(p->kind), end=von_source_end(p->kind), i, candidate;
+        unsigned connected=0, held=0;
         for (i=first;i<end;++i) {
-            XINPUT_STATE state;
-            unsigned bit=1u<<i;
-            if (raw_state(i,&state)) { p->ready &= ~bit; continue; }
-            if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_START)) p->ready |= bit;
-            else {
-                if (p->ready & bit) { candidate=i; ++pressed; }
-                p->ready &= ~bit;
-            }
+            int start;
+            if (source_start(i,&start)) continue;
+            connected |= 1u<<i;
+            if (start) held |= 1u<<i;
         }
-        if (pressed==1) {
+        candidate=von_start_edge(&p->ready,connected,held);
+        if (candidate>=0) {
             if (von_claim(owners,p->player,candidate)) {
                 owner_kind[p->player]=p->kind;
                 suppress_start[0]=suppress_start[1]=1;
                 EndDialog(window,1);
             } else label(window,"That controller belongs to the other player.\nPress Start / Options on another controller, or cancel.");
-        } else if (pressed>1) label(window,"Multiple controllers pressed Start. Release them and try ONE controller.");
+        } else if (candidate==-2) label(window,"Multiple controllers pressed Start. Release them and try ONE controller.");
     }
     return TRUE;
 }
@@ -127,33 +147,47 @@ static int prompt(HWND parent, Prompt *p) {
 __declspec(dllexport) int WINAPI VonSelectController(HWND parent, DWORD player, DWORD kind) {
     Prompt p={0};
     if (player>1 || busy) return 0;
-    if (kind!=1 && kind!=2 && kind!=4 && kind!=5 && kind!=6) {
+    if (von_kind_family(kind)<0) {
         owners[player].source=-1; owners[player].attempted=0; owner_kind[player]=0;
         return 1;
     }
     p.player=player; p.kind=(int)kind;
     owners[player].attempted=1;
     /* Cancel retains an existing claim only when its device family matches. */
-    if ((owner_kind[player]==5)!=(kind==5)) owners[player].source=-1;
+    if (von_kind_family(owner_kind[player])!=von_kind_family(kind)) owners[player].source=-1;
     if (GetActiveWindow()) parent=GetActiveWindow();
     return prompt(parent,&p);
+}
+/* Common first-use claim policy for both API-backed and native controllers. */
+static int ensure_owner(DWORD player, DWORD kind) {
+    if (player>1 || busy || von_kind_family(kind)<0) return 0;
+    if (!owners[player].attempted) {
+        int start, i, available=0;
+        for (i=von_source_first(kind);i<von_source_end(kind);++i)
+            if (i!=owners[1-player].source && !source_start(i,&start)) available=1;
+        if (!available) return 0;
+        VonSelectController(GetActiveWindow(),player,kind);
+    }
+    return von_owned_source(owners,player,kind);
+}
+__declspec(dllexport) DWORD WINAPI VonTwinGetState(DWORD player, DWORD kind, VonTwinState *state) {
+    DWORD result;
+    if (!state) return ERROR_BAD_ARGUMENTS;
+    state->controls=0;
+    if ((kind!=7 && kind!=8) || !ensure_owner(player,kind)) return ERROR_DEVICE_NOT_CONNECTED;
+    result=native_state(owners[player].source,state);
+    if (result) { owners[player].source=-1; state->controls=0; }
+    else if (suppress_start[player]) {
+        if (state->controls & VON_START) state->controls=0;
+        else suppress_start[player]=0;
+    }
+    return result;
 }
 __declspec(dllexport) DWORD WINAPI VonGetState(DWORD player, DWORD kind, XINPUT_STATE *state) {
     DWORD result;
     if (!state) return ERROR_BAD_ARGUMENTS;
     ZeroMemory(state,sizeof(*state));
-    if (player>1 || busy) return ERROR_DEVICE_NOT_CONNECTED;
-    if (!owners[player].attempted) {
-        /* Automatic first-use prompts never steal the only connected pad from
-         * another player. An explicit F7 selection may still request a swap. */
-        XINPUT_STATE probe;
-        int i, available=0, first=kind==5?4:0, end=kind==5?6:4;
-        for (i=first;i<end;++i)
-            if (i!=owners[1-player].source && !raw_state(i,&probe)) available=1;
-        if (!available) return ERROR_DEVICE_NOT_CONNECTED;
-        VonSelectController(GetActiveWindow(),player,kind);
-    }
-    if (!von_owned_source(owners,player,kind)) return ERROR_DEVICE_NOT_CONNECTED;
+    if (kind==7 || kind==8 || !ensure_owner(player,kind)) return ERROR_DEVICE_NOT_CONNECTED;
     result=raw_state(owners[player].source,state);
     if (result) { owners[player].source=-1; ZeroMemory(state,sizeof(*state)); }
     else if (suppress_start[player]) {
@@ -165,7 +199,7 @@ __declspec(dllexport) DWORD WINAPI VonGetState(DWORD player, DWORD kind, XINPUT_
 }
 __declspec(dllexport) int WINAPI VonCaptureInput(HWND parent, DWORD player, DWORD kind, int threshold) {
     Prompt p={0};
-    if (player>1 || busy) return 0;
+    if (player>1 || busy || kind==7 || kind==8) return 0;
     if (!von_owned_source(owners,player,kind) &&
         !VonSelectController(parent,player,kind)) return 0;
     p.player=player; p.kind=(int)kind; p.capture=1; p.threshold=threshold;

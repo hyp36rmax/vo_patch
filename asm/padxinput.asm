@@ -21,6 +21,7 @@ extern PADIDX                   ; the slot map, see padpoll; commitdev.asm
 extern PADRETRY                 ; clears it. And its miss counter.
 extern DEVICES                  ; committed device per player, + player * 4
 extern TANITA_DEVICE, HORI_DEVICE, CUSTOM_EDIT_DEVICE
+extern RAPH_DC_DEVICE, RAPH_SATURN_DEVICE, NATIVE_POLL, NATIVE_KEYS
 extern CUSTOM_DEVICE            ; 4 on verified builds; 1 otherwise (already accepted)
 extern DZTHR1                   ; stick thresholds out of 32767, 1P then
                                 ; 2P, indexed by the block's player. Written
@@ -224,6 +225,7 @@ pollpads:
     inc     esi
     cmp     esi, 2
     jb      .tanitapad
+    call    NATIVE_KEYS
 .out:
     popfd
     popad
@@ -263,6 +265,10 @@ tick:
     mov     dword [ebp - 4], 0
 
     mov     eax, [ebx]
+    cmp     dword [DEVICES + eax*4], RAPH_DC_DEVICE
+    je      .native
+    cmp     dword [DEVICES + eax*4], RAPH_SATURN_DEVICE
+    je      .native
     cmp     dword [DEVICES + eax*4], TANITA_DEVICE
     je      .poll
     call    resolve
@@ -294,6 +300,18 @@ tick:
     mov     edx, [ebx + 0x24]
     mov     byte [edx], 0x80
 
+    jmp     .keyboard
+.native:
+    mov     edx,nativestate
+    call    NATIVE_POLL
+    test    eax,eax
+    jnz     .keyboard
+    mov     dword [ebp-4],2
+    test    dword [nativestate],1<<12
+    jz      .keyboard
+    mov     edx,[ebx+0x18]
+    mov     byte [edx],0x80
+    call    CAMSKIP
 .keyboard:
     mov     eax, [ebx + 0x20]
     call    eax
@@ -327,6 +345,13 @@ tick:
     cmp     esi, 7
     jg      .dpadstart
 .live:
+    cmp     dword [ebp-4],2
+    jne     .binding
+    mov     eax,[nativestate]
+    bt      eax,esi
+    jc      .fire
+    jmp     .nextslot
+.binding:
     mov     edx, [ebx + 4]
     movzx   eax, byte [edx + esi*2]
     sub     eax, 0xe0
@@ -374,6 +399,8 @@ tick:
     ; is what navigates them, and in a round it moves. It cannot be a bind:
     ; one input per slot, and the left stick already holds those four.
 .dpadstart:
+    cmp     dword [ebp-4],2
+    je      epilogue
     ; Custom's D-pad is remappable in a fight; the fixed menu path remains.
     mov     eax,[ebx]
     cmp     dword [DEVICES+eax*4], CUSTOM_EDIT_DEVICE
@@ -704,3 +731,6 @@ capturefn: dd 0
 ownedname: db 'VonGetState',0
 selectname: db 'VonSelectController',0
 capturename: db 'VonCaptureInput',0
+
+align 4
+nativestate: dd 0

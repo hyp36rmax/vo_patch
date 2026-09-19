@@ -26,10 +26,15 @@ def tables(vp, build):
         names[2:2] = ['Twin-Stick (Custom)', 'Twin-Stick (Tanita)', 'Twin-Stick (HORI EX)']
     strings = vp.link('PAD_PROFILES', build)
     base = vp.cave_va('PAD_PROFILES', build)
-    pointers = struct.unpack('<8I', vp.link('PAD_DEVLIST', build))
+    if custom:
+        names[5:5] = ['Twin-Stick (Raphnet DC)', 'Twin-Stick (Raphnet Saturn)']
+        raw = vp.link('RAPH', build)[vp.BLOBS['RAPH'][2]['profiles']:][:40]
+        pointers = struct.unpack('<10I', raw)
+    else:
+        pointers = struct.unpack('<8I', vp.link('PAD_DEVLIST', build))
     actual = [strings[p - base:].split(b'\0')[0].decode() for p in pointers if p]
     assert actual == names, (build.short, actual)
-    assert pointers[len(names):] == (0,) * (8 - len(names))
+    assert pointers[len(names):] == (0,) * (len(pointers) - len(names))
     rows = vp.by_key(build)['padxinput'][2]
     for retail, jpre, player in ((0x422b4, 0x41974, 1), (0x1bc147, 0x1b6ab7, 2)):
         target = struct.pack('<I', vp.symbol_va(('TWIN', 'custom%dp' % player), build)).hex()
@@ -66,7 +71,7 @@ def emulate(vp, build, ucmod, regs):
     stack, stop, xinput = 0x10000000, 0x10001000, 0x10001100
     uc.mem_map(stack, 0x2000)
     sym = lambda name: vp.symbol_va(name, build)
-    for name in ('DEVORDER', 'TWIN', 'PADX', 'PAD_COND', 'LEVERS', 'CUSTOM'):
+    for name in ('DEVORDER', 'TWIN', 'PADX', 'PAD_COND', 'LEVERS', 'CUSTOM', 'RAPH'):
         uc.mem_write(vp.cave_va(name, build), vp.link(name, build))
     epilogue = sym(('PADX', 'epilogue'))
     uc.mem_write(epilogue, b'\xe9' + struct.pack('<i', vp.cave_va('LEVERS', build) - epilogue - 5))
@@ -85,7 +90,7 @@ def emulate(vp, build, ucmod, regs):
         assert uc.reg_read(regs.UC_X86_REG_EIP) == end, (build.short, entry)
 
     # Execute both directions of the F7 mapping for each player and profile.
-    order = [1, 2, 4, 5, 6, 3, 0] if build.short in ('retail', 'jpre') else [1, 2, 3, 0]
+    order = [1, 2, 4, 5, 6, 7, 8, 3, 0] if build.short in ('retail', 'jpre') else [1, 2, 3, 0]
     frame = stack + 0x800
     for player in range(2):
         for pos, device in enumerate(order):
@@ -110,10 +115,10 @@ def emulate(vp, build, ucmod, regs):
         uc.reg_write(regs.UC_X86_REG_EAX, 1)
         uc.reg_write(regs.UC_X86_REG_EDX, sym('STATE'))
         run(('PADX', 'padpoll'))
-        uses_pad = device in (1, 2) or (device in (4, 6) and len(order) == 7)
+        uses_pad = device in (1, 2) or (device in (4, 6) and len(order) == 9)
         assert bytes(uc.mem_read(sym('PADIDX'), 2)) == (b'\x01\x02' if uses_pad else b'\x05\x01')
 
-    if len(order) != 7:
+    if len(order) != 9:
         return
     # Every profile pairing allocates each API independently, P1 first.
     word(('PADX', 'tanitafn'), xinput)

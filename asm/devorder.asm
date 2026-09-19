@@ -3,7 +3,8 @@ bits 32
 ; (Custom), Keyboard (Simple), Keyboard (Real), while the original device
 ; numbers stay what the executable and v_on.ini have always used
 ; (0 Real, 1 gamepad, 2 twin-stick, 3 Simple). Controller Expansion uses
-; device 4 for Custom, 5 for Tanita and 6 for HORI EX.
+; device 4 for Custom, 5 for Tanita, 6 for HORI EX, 7 for Raphnet DC
+; and 8 for Raphnet Saturn. All Twin-Stick profiles precede the keyboards.
 ;
 ; Two mappings keep the list honest: the page's preselect turns the pending
 ; device into its list position, and the OK translate turns the chosen
@@ -11,6 +12,7 @@ bits 32
 ; the known profiles pass through unchanged, as do out-of-range values.
 
 extern BLOCKS                   ; pending devices, + player * 0x70
+extern DEV_MAX
 extern DEV_POS, DEV_NUM         ; this build's profile-order tables below
 %include "frames.inc"      ; the caller's locals, by name; the offset
                             ; is the retail build's, and build.py finds
@@ -18,8 +20,8 @@ extern DEV_POS, DEV_NUM         ; this build's profile-order tables below
                             ; DEVSEL: the F7 combo selection
                             ; DEVNUM: and the device it maps to
 
-posof:  db 6, 0, 1, 5, 2, 3, 4, 7       ; device -> list position
-devof:  db 1, 2, 4, 5, 6, 3, 0, 7       ; list position -> device
+posof:  db 8, 0, 1, 7, 2, 3, 4, 5, 6       ; device -> list position
+devof:  db 1, 2, 4, 5, 6, 7, 8, 3, 0       ; list position -> device
 ; OEM and Japanese original retain the four-profile ordering until their
 ; Custom dispatch sites have been verified from pristine executables.
 legacypos: db 3, 0, 1, 2, 4, 5, 6, 7
@@ -28,7 +30,7 @@ legacydev: db 1, 2, 3, 0, 4, 5, 6, 7
 ; The preselect read: in eax = player * 0x70, out eax = list position.
 posshim:
     mov     eax, [eax + BLOCKS]
-    cmp     eax, 7
+    cmp     eax, DEV_MAX
     ja      .raw
     movzx   eax, byte [DEV_POS + eax]
 .raw:
@@ -38,7 +40,7 @@ posshim:
 ; the two replaced loads produced them.
 devshim:
     mov     eax, [ebp + DEVSEL]            ; the combo selection
-    cmp     eax, 7
+    cmp     eax, DEV_MAX
     ja      .raw
     movzx   eax, byte [DEV_NUM + eax]
 .raw:

@@ -257,7 +257,7 @@ def check_link(vp, blobs):
 
 
 SOURCES = [
-    ('TIMER', 'timer.asm'), ('DEBUGBOX', 'debugbox.asm'),
+    ('RAPH', 'raphnet.asm'), ('TIMER', 'timer.asm'), ('DEBUGBOX', 'debugbox.asm'),
     ('PADX', 'padxinput.asm'), ('LEVERS', 'levers.asm'),
     ('CUSTOM', 'custombind.asm'), ('TWIN', 'twinstick.asm'), ('INTROWAIT', 'introwait.asm'),
     ('KBPAGE', 'kbpage.asm'), ('BINDLIST', 'bindlist.asm'),
