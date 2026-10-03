@@ -6654,7 +6654,7 @@ FEATURES = [
      'Gamepad (XInput)\ttwelve named actions, bind them yourself\n'
      'Twin-stick (XInput)\tthe arcade levers, nothing to bind\n'
      'Twin-Stick (Custom)\tremap twelve gameplay inputs (retail/JPRE)\n'
-     'Tanita and HORI EX\tdedicated hardware profiles (retail/JPRE)\n'
+     'Dedicated Twin-Sticks\tTanita, HORI EX, Raphnet DC/Saturn (retail/JPRE)\n'
      'Keyboard (Simple)\tevery action on a bindable key\n'
      'Keyboard (Real)\tthe two-lever keyboard scheme\n'
      '\n'
