@@ -2,9 +2,10 @@
 """Compile net/dpctrl.c to net/dpctrl.dll and record its hashes in
 v-on-patcher.py.
 
-The DLL is a file in the repository: the release build ships it beside the
-exe (PyInstaller's _internal/), a source checkout reads it from net/. The
-patcher checks the file against NETPLAY_DLL_SHA before installing it.
+The DLL is a file in the repository: both releases ship it in net/ beside
+the script (in the Windows release, _internal/net/), and a source checkout
+reads it from net/. The patcher checks the file against NETPLAY_DLL_SHA
+before installing it.
 
     python3 net/build.py            compile, write the DLL and the hashes
     python3 net/build.py --check    is the DLL current? writes nothing

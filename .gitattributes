@@ -2,7 +2,6 @@
 # shebang must not pick up a CR from a Windows checkout.
 * text=auto
 *.py text eol=lf
-*.spec text eol=lf
 *.yml text eol=lf
 *.md text eol=lf
 *.asm text eol=lf
@@ -11,3 +10,6 @@
 *.c text eol=lf
 *.def text eol=lf
 *.service text eol=lf
+
+# The signed launcher ships byte for byte as committed.
+*.exe binary

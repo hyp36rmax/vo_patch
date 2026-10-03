@@ -7,7 +7,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Read-only by default; the windows job takes write for the release upload.
+# Read-only by default; the release job takes write for the upload.
 permissions:
   contents: read
 
@@ -23,6 +23,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # the launcher check compares commit dates
 
       - uses: actions/setup-python@v5
         with:
@@ -98,13 +100,32 @@ jobs:
           i686-w64-mingw32-objdump -p /tmp/vontanita.dll | grep -q TanitaGetState
           echo "ok"
 
+      # The committed launcher (see the windows job) has to be signed, and
+      # committed no earlier than the files it is built from. Otherwise a
+      # change to launcher/ would never reach a release.
+      - name: Committed launcher
+        run: |
+          if [ ! -f launcher/v-on-patcher.exe ]; then
+            echo 'none committed: builds use a fresh one'
+            exit 0
+          fi
+          sudo apt-get install -y -qq osslsigncode
+          out=$(osslsigncode verify -in launcher/v-on-patcher.exe 2>&1) || true
+          echo "$out" | grep -q 'Signature verification: ok' \
+            || { echo "$out"; echo '::error::launcher/v-on-patcher.exe is not validly signed'; exit 1; }
+          exe=$(git log -1 --format=%ct -- launcher/v-on-patcher.exe)
+          src=$(git log -1 --format=%ct -- launcher/launcher.c launcher/launcher.rc launcher/build.bat assets/icon.ico)
+          [ "$exe" -ge "$src" ] \
+            || { echo '::error::launcher/v-on-patcher.exe is older than its source: delete it and commit the one the next tag signs'; exit 1; }
+          echo 'signed, and newer than its source'
+
       # What this job cannot do is touch a real copy of the game, so the
       # checks that need one are skipped here. Run them by hand before
-      # tagging, once per build - each runs against every folder given and
-      # is named by build, because a table can only be wrong on the build
-      # it is for:
+      # tagging, once per build - each runs against every folder in
+      # ~/.vo-test and is named by build, because a table can only be
+      # wrong on the build it is for:
       #
-      #     python3 tools/check.py RETAIL/ OEM/ JP/ JPRE/
+      #     python3 tools/check.py
       #
       # offsets  the only check that catches a wrong offset
       # banner   the only check that proves the title prompt reads back as
@@ -114,47 +135,35 @@ jobs:
 
   # Builds on every push to a branch above, on a tag, and on demand from
   # the Actions tab. Pull requests are left out: the push that follows the
-  # merge builds the same tree, and PyInstaller takes minutes.
+  # merge builds the same tree.
   #
-  # A push build is an artifact and nothing else - only a tag reaches the
-  # release page. Artifacts keep for 90 days, so the last few commits are
-  # always downloadable without tagging anything.
+  # A push build is an unsigned artifact and nothing else. Artifacts keep
+  # for 90 days, so the last few commits are always downloadable without
+  # tagging anything. A tag build hands its unzipped build to the sign job,
+  # and only the release job after it reaches the release page.
+  #
+  # The build is Python as python.org ships it, unpacked into _internal
+  # with the script, and a small launcher beside it. No PyInstaller: its
+  # bootloader and packed archive are what scanners flag.
   windows:
     needs: verify
     if: github.event_name != 'pull_request'
     runs-on: windows-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
 
+      # The Python the release carries, pinned to the patch release so each
+      # release ships the same PSF-signed files. 3.12.10 is the last 3.12
+      # with Windows binaries.
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-
-      # PyInstaller from source, with its bootloader built here rather than
-      # taken from the wheel. The wheel's bootloader is the same bytes in
-      # every PyInstaller exe ever shipped, malware included, so antivirus
-      # signatures match it; one built on this runner matches nothing.
-      # Needs the MSVC toolchain, which windows-latest carries. certifi is
-      # not imported unless the platform trust store fails, but it has to be
-      # installed here or there is nothing to fall back to in the exe; the
-      # bundle check below is what notices if it goes missing.
-      - name: PyInstaller with a fresh bootloader
-        shell: bash
-        run: |
-          git clone -q --depth 1 --branch v6.21.0 https://github.com/pyinstaller/pyinstaller.git pyi
-          cd pyi/bootloader && python ./waf all
-          cd .. && pip install -q .
-          cd .. && pip install -q certifi
-          python -c "import PyInstaller; print(PyInstaller.__version__)"
+          python-version: '3.12.10'
 
       # The source carries no version. A tag build takes it from the tag, so
-      # the tag and the filename cannot disagree; anything else takes the
+      # the tag and the zip names cannot disagree; anything else takes the
       # short SHA, so a downloaded artifact says which commit built it.
-      # Everything downstream - the spec, the exe name, the Windows file
-      # properties, the window title, --version - reads this one line.
+      # The window title, --version and the zip names read this one line.
       - name: Stamp the version
         shell: bash
         run: |
@@ -174,48 +183,74 @@ jobs:
           EOF
           grep '^VERSION = ' v-on-patcher.py
 
-      # Everything about the build lives in v-on-patcher.spec, including the
-      # version, which it reads out of the script.
-      - run: pyinstaller v-on-patcher.spec --noconfirm
-
-      # A frozen build fails at import time or not at all, so check the
-      # bundle: no tkinter and the exe is dead on arrival.
-      - name: Inspect the bundle
+      # _internal: the Python above, certifi (the CA list the cnc-ddraw
+      # download falls back on), the stamped script and the netplay DLL.
+      - name: Bundle
         shell: bash
         run: |
-          ls -l dist/ dist/v-on-patcher/
-          pyi-archive_viewer -l -b dist/v-on-patcher/*.exe > listing.txt
-          grep -q 'pyi_rth__tkinter' listing.txt || { echo 'no Tk runtime hook'; exit 1; }
-          ls dist/v-on-patcher/_internal/_tkinter*.pyd || { echo 'tkinter was not bundled'; exit 1; }
-          ls dist/v-on-patcher/_internal/certifi/cacert.pem || { echo 'certifi CA list was not bundled'; exit 1; }
-          ls dist/v-on-patcher/_internal/vontanita.dll || { echo 'Tanita DLL was not bundled'; exit 1; }
-          ls dist/v-on-patcher/_internal/dpctrl.dll || { echo 'netplay DLL was not bundled'; exit 1; }
-          echo "$(find dist/v-on-patcher -type f | wc -l) files, tkinter, CA list and DLL present"
+          pip install -q certifi
+          python tools/bundle.py dist/v-on-patcher
+          for f in pythonw.exe python312._pth python312.zip DLLs/_tkinter.pyd \
+                   Lib/site-packages/certifi/cacert.pem v-on-patcher.py net/dpctrl.dll input/vontanita.dll; do
+            [ -f "dist/v-on-patcher/_internal/$f" ] || { echo "missing from _internal: $f"; exit 1; }
+          done
 
-      # The listing cannot see inside the PYZ, so an over-eager entry in
-      # EXCLUDES looks fine there and dies at the exe's own import line -
-      # which is how a build shipped with email excluded and urllib.request
-      # importing it. Running it is the only test that catches that.
-      # --selfcheck needs neither a display nor a copy of the game.
+      # The launcher is compiled on every build so its source keeps
+      # building, but what ships is the signed copy committed as
+      # launcher/v-on-patcher.exe: the same bytes every release, so the
+      # reputation it earns with scanners and SmartScreen carries over.
+      # With none committed, the fresh one goes in and a tag signs it.
+      - name: Launcher
+        shell: cmd
+        run: |
+          if not exist build mkdir build
+          call launcher\build.bat "%GITHUB_WORKSPACE%\build\v-on-patcher.exe"
+
+      - name: Launcher into the bundle
+        shell: bash
+        run: |
+          if [ -f launcher/v-on-patcher.exe ]; then
+            cp launcher/v-on-patcher.exe dist/v-on-patcher/
+            echo 'the committed launcher'
+          else
+            cp build/v-on-patcher.exe dist/v-on-patcher/
+            echo 'a fresh launcher, unsigned'
+          fi
+
+      # Through the launcher, --selfcheck: it finds the script, passes the
+      # arguments on, and the tables check out. The bundled Python on its
+      # own: it imports what the window and the download need and opens Tk.
+      # Then a script that raises: the launcher has to return the failure
+      # and pass Python's traceback on. The Python files' signatures are
+      # printed, not checked.
       #
-      # The exe is windowed: on a crash it puts up a dialog and waits for
-      # someone to click it, so the timeout is what makes that a failed step
-      # instead of a hung job.
+      # On a crash the launcher can put up a message box and wait for a
+      # click, so the timeout is what makes that a failed step instead of a
+      # hung job.
       - name: The exe starts
         shell: bash
         run: |
-          timeout 60 dist/v-on-patcher/v-on-patcher-*.exe --selfcheck
-          echo 'the exe runs and its tables check out'
+          cd dist/v-on-patcher
+          timeout 60 ./v-on-patcher.exe --selfcheck
+          timeout 60 _internal/python.exe -c "import tkinter, ssl, certifi, ctypes, urllib.request; r = tkinter.Tk(); r.destroy(); print('Tk', tkinter.TkVersion, '|', ssl.OPENSSL_VERSION)"
+          powershell -NoProfile -Command "Get-AuthenticodeSignature _internal\python*.dll, _internal\pythonw.exe, _internal\DLLs\_tkinter.pyd | Format-Table Status, @{n='Signer';e={\$_.SignerCertificate.Subject}}, Path -AutoSize -Wrap"
+          rm -rf ../../crash && cp -r . ../../crash && cd ../../crash
+          echo "raise RuntimeError('launcher test')" > _internal/v-on-patcher.py
+          if timeout 60 ./v-on-patcher.exe 2> stderr.txt; then
+            echo 'a script that raised exited 0'; exit 1
+          fi
+          grep -q "RuntimeError: launcher test" stderr.txt \
+            || { cat stderr.txt; echo 'the traceback did not come through'; exit 1; }
+          echo 'the launcher runs the script, returns its failures and passes their tracebacks on'
 
       # To the log, not an asset: a checksum beside its own binary proves
       # nothing. The VirusTotal line is a lookup, not an upload: it says
       # whether anyone has already scanned this exact file, and where.
-      # Upload it there by hand before a release and read the verdicts.
       - name: Checksum
         shell: bash
         run: |
-          cd dist/v-on-patcher && sha256sum *.exe
-          echo "VirusTotal: https://www.virustotal.com/gui/file/$(sha256sum *.exe | cut -c1-64)"
+          cd dist/v-on-patcher && sha256sum v-on-patcher.exe
+          echo "VirusTotal: https://www.virustotal.com/gui/file/$(sha256sum v-on-patcher.exe | cut -c1-64)"
 
       # Linux users run the script, so ship it too. Strip CR or the shebang
       # breaks when it is run directly.
@@ -229,6 +264,7 @@ jobs:
           version = re.search(rb"^VERSION = '(.*)'$", text, re.M).group(1).decode()
           pathlib.Path('dist/v-on-patcher-%s.py' % version).write_bytes(text)
           shutil.copy('net/dpctrl.dll', 'dist/dpctrl.dll')
+          shutil.copy('input/vontanita.dll', 'dist/vontanita.dll')
           shutil.copy('input/vontanita.dll', 'dist/vontanita.dll')
           print('staged v-on-patcher-%s.py and dpctrl.dll' % version)
           EOF
@@ -250,39 +286,130 @@ jobs:
           fi
 
       # Two zips: -win with the exe and _internal/ at its top, -python with
-      # the script and the netplay DLL beside it. Not -src: GitHub adds its
-      # own "Source code" zip to every release, and two of those confuse.
+      # the script and the netplay DLL beside it (tools/package.py). Not
+      # -src: GitHub adds its own "Source code" zip to every release, and
+      # two of those confuse.
       - name: Zip
+        if: github.ref_type != 'tag'
         shell: bash
         run: |
-          cd dist && python -c "
-          import os, zipfile
-          with zipfile.ZipFile('$artifact-win.zip', 'w', zipfile.ZIP_DEFLATED) as z:
-              for root, _dirs, files in os.walk('v-on-patcher'):
-                  for f in files:
-                      p = os.path.join(root, f)
-                      z.write(p, os.path.relpath(p, 'v-on-patcher'))
-          with zipfile.ZipFile('$artifact-python.zip', 'w', zipfile.ZIP_DEFLATED) as z:
-              for f in os.listdir('.'):
-                  if f.endswith('.py'):
-                      z.write(f)
-              z.write('dpctrl.dll', 'net/dpctrl.dll')
-              z.write('vontanita.dll', 'input/vontanita.dll')
-          "
-          ls -l *.zip
-          for z in *.zip; do unzip -l "$z" | sed -n '1,5p'; done
+          python tools/package.py dist "$artifact"
+          python tools/packagetest.py "dist/$artifact-win.zip" "dist/$artifact-python.zip"
 
       - uses: actions/upload-artifact@v4
+        if: github.ref_type != 'tag'
         with:
           name: ${{ env.artifact }}
           path: dist/*.zip
 
+      # A tag's build goes to the sign job unzipped: the launcher is signed
+      # before anything is packed.
+      - uses: actions/upload-artifact@v4
+        if: github.ref_type == 'tag'
+        with:
+          name: unsigned
+          path: dist/
+          retention-days: 1
+
+  # Signs the tag's launcher with the Certum cloud certificate through
+  # ssign, on Linux, and zips the result; a launcher committed signed ships
+  # as it is. The credentials are secrets of the `signing` environment,
+  # which only v* tags can use (Settings -> Environments -> signing ->
+  # Deployment branches and tags); no other job and no other ref can read
+  # them. With a required reviewer set there, the
+  # job waits for approval on the run's page before it starts.
+  #
+  # CERTUM_EMAIL is the SimplySign account's e-mail; CERTUM_OTP is the whole
+  # otpauth:// URI from the SimplySign QR code, not the bare seed, so the
+  # TOTP algorithm is read from it rather than assumed. The URI signs as its
+  # owner for as long as it is valid: if it leaks, re-issue the QR code.
+  sign:
+    needs: windows
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    environment: signing
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: unsigned
+          path: dist
+
+      # Signing the committed launcher again would change its bytes.
+      - name: Signed already?
+        id: signed
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq osslsigncode
+          if osslsigncode extract-signature -in dist/v-on-patcher/v-on-patcher.exe -out /tmp/signature >/dev/null 2>&1; then
+            echo 'the launcher is the committed, signed one'
+            echo 'yes=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      # Built from a pinned commit with its own lockfile, not the latest
+      # crate: this binary is handed the signing credentials.
+      - name: ssign, pinned
+        if: steps.signed.outputs.yes != 'true'
+        run: |
+          cargo install --locked --git https://github.com/Le-Syl21/ssign \
+            --rev 2cc2b1a6f5b5abe4695b184cb806621b3b355ad2 ssign
+          ssign --version
+
+      - name: Sign
+        if: steps.signed.outputs.yes != 'true'
+        env:
+          CERTUM_EMAIL: ${{ secrets.CERTUM_EMAIL }}
+          CERTUM_OTP: ${{ secrets.CERTUM_OTP }}
+        run: |
+          ssign -n "V-On Patcher" -u "https://github.com/$GITHUB_REPOSITORY" \
+            dist/v-on-patcher/v-on-patcher.exe
+
+      # ssign does not verify its own output. A signature whose digest does
+      # not match, or one without a timestamp - invalid once the certificate
+      # expires - fails the job here instead of reaching the release.
+      - name: Verify
+        run: |
+          out=$(osslsigncode verify -in dist/v-on-patcher/v-on-patcher.exe 2>&1) || true
+          echo "$out"
+          if echo "$out" | grep -q MISMATCH; then echo '::error::the Authenticode digest does not match'; exit 1; fi
+          if echo "$out" | grep -q 'Timestamp is not available'; then echo '::error::the signature has no timestamp'; exit 1; fi
+          echo "$out" | grep -q 'Signature verification: ok' || { echo '::error::the signature did not verify'; exit 1; }
+
+      - name: Checksum
+        run: |
+          cd dist/v-on-patcher && sha256sum v-on-patcher.exe
+          echo "VirusTotal: https://www.virustotal.com/gui/file/$(sha256sum v-on-patcher.exe | cut -c1-64)"
+
+      - name: Zip
+        run: |
+          python3 tools/package.py dist "v-on-patcher-$GITHUB_REF_NAME"
+          python3 tools/packagetest.py "dist/v-on-patcher-$GITHUB_REF_NAME-win.zip" "dist/v-on-patcher-$GITHUB_REF_NAME-python.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v-on-patcher-${{ github.ref_name }}
+          path: dist/*.zip
+
+  # The only job with write access, and it holds no signing secrets.
+  release:
+    needs: sign
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: v-on-patcher-${{ github.ref_name }}
+          path: dist
+
       # gh is preinstalled on the runner, so no third party action is needed
       - name: Attach to the release
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             notes="docs/releases/$GITHUB_REF_NAME.md"
@@ -295,6 +422,9 @@ jobs:
               gh release create "$GITHUB_REF_NAME" \
                 --title "$GITHUB_REF_NAME" --generate-notes
             fi
+          fi
+          if [[ "$GITHUB_REF_NAME" == *-controller-expansion.* ]]; then
+            test "$(gh release view "$GITHUB_REF_NAME" --json isPrerelease --jq .isPrerelease)" = true
           fi
           gh release upload "$GITHUB_REF_NAME" \
             dist/*.zip --clobber

@@ -7885,8 +7885,8 @@ def writable(folder):
     deleting a probe file is the only answer that holds on both platforms,
     and it costs nothing next to copying 95 MB.
 
-    A PyInstaller build carries a manifest, so Windows does not silently
-    redirect the write into VirtualStore: an unelevated write to a folder
+    The release runs under pythonw.exe, which carries a manifest, so
+    Windows does not silently redirect the write into VirtualStore: an unelevated write to a folder
     the user does not own arrives here as EACCES rather than appearing to
     succeed somewhere else."""
     probe = os.path.join(folder, '.v-on-patcher-write-test')
@@ -8034,8 +8034,8 @@ def install_tanita(gamedir):
 
 # --- netplay ------------------------------------------------------------
 # The DirectPlay replacement, compiled by net/build.py to net/dpctrl.dll,
-# which the release carries beside the exe (PyInstaller's _internal/) and a
-# source checkout has in net/. Unlike cnc-ddraw this is ours, and it
+# which both releases and a source checkout carry in net/ beside the
+# script. Unlike cnc-ddraw this is ours, and it
 # replaces a file the game already has, so the original is kept as
 # dpctrl.dll.stock.
 
@@ -8059,15 +8059,12 @@ NETPLAY_MARK = b'vo-net.log'
 
 
 def netplay_dll():
-    """The DLL bytes, from the file shipped with the program: the frozen
-    build's _internal/, a checkout's net/, or beside the script - where
-    the release's dpctrl.dll goes for the released .py."""
-    if getattr(sys, 'frozen', False):
-        paths = [os.path.join(sys._MEIPASS, NETPLAY_NAME)]
-    else:
-        here = os.path.dirname(os.path.abspath(__file__))
-        paths = [os.path.join(here, 'net', NETPLAY_NAME),
-                 os.path.join(here, NETPLAY_NAME)]
+    """The DLL bytes, from the file shipped with the program: net/ beside
+    the script, in a checkout and in both releases, or beside the script
+    itself."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    paths = [os.path.join(here, 'net', NETPLAY_NAME),
+             os.path.join(here, NETPLAY_NAME)]
     for path in paths:
         try:
             with open(path, 'rb') as f:
@@ -8234,7 +8231,7 @@ def _urlopen(req, timeout=30):
     Windows keeps only a small set of root certificates and fetches the rest
     on demand through CryptoAPI, which OpenSSL never consults - so a machine
     that has not needed this root before reports it as missing and the
-    download fails. certifi is bundled in the release build for that case.
+    download fails. certifi is bundled in the Windows release for that case.
     Anything else, including a genuinely bad certificate, is raised as it
     was."""
     try:

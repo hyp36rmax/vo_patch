@@ -7,7 +7,7 @@ using the patcher see [patcher guide](PATCHER.md); for what the patches do see
 ## The four layers
 
 ```
-asm/*.asm    ──nasm──►  hex strings in v-on-patcher.py  ──PyInstaller──►  v-on-patcher-X.Y.Z-win.zip
+asm/*.asm    ──nasm──►  hex strings in v-on-patcher.py  ──CI───────────►  v-on-patcher-X.Y.Z-win.zip
 net/dpctrl.c ──mingw─►  net/dpctrl.dll                     CI builds this  (exe + _internal/)
 input/*.c   ──mingw─►  input/vontanita.dll                 controller helper
   you edit             asm/build.py, net/build.py, input/build.py
@@ -17,7 +17,7 @@ input/*.c   ──mingw─►  input/vontanita.dll                 controller he
 `v-on-patcher.py` cannot read `asm/` at runtime, so the machine code is baked in
 as text between marker comments; `asm/build.py` is the only thing that puts
 it there. The netplay DLL is a file, `net/dpctrl.dll`, that `net/build.py`
-compiles and the release ships beside the exe. `input/build.py` builds the
+compiles and the release ships in `net/` beside the script. `input/build.py` builds the
 controller helper from the native HID reader, ownership/capture code and mapping
 headers, then records source and binary hashes in the patcher. It serves Tanita,
 Raphnet and explicit XInput ownership; its filename remains `vontanita.dll`.
@@ -41,7 +41,7 @@ needs pip. The script checks and prints; the actual install is one `apt` or
 
 `nasm` is needed only to rebuild `asm/`, `asm/ui.asm` included, mingw only
 to rebuild the netplay and controller DLLs. Neither is needed to run the patcher
-or build the exe: machine code is embedded in `v-on-patcher.py`, and the DLLs
+or build the Windows release: machine code is embedded in `v-on-patcher.py`, and the DLLs
 are committed as `net/dpctrl.dll` and `input/vontanita.dll`.
 
 `python3-pyflakes` is the `lint` check; `python3-capstone` (4.x or 5.x)
@@ -98,15 +98,18 @@ still a script of its own; the runner only decides what to run, so CI and you
 cannot drift apart.
 
 ```bash
-python3 tools/check.py                        # the ones CI can run
-python3 tools/check.py /path/to/VIRTUAL-ON    # and the ones that need the game
-python3 tools/check.py RETAIL/ OEM/ JP/ JPRE/ # those once per build
+python3 tools/check.py                        # everything, every build in ~/.vo-test
+python3 tools/check.py /path/to/VIRTUAL-ON    # the game checks on this folder instead
+python3 tools/check.py RETAIL/ OEM/ JP/ JPRE/ # or on these
 python3 tools/check.py --list                 # what they are
 python3 tools/check.py --only asm,net         # just those
 ```
 
-`VO_GAME` works instead of one argument, and either a folder or any file
-inside one will do. The checks that need the game run once per folder
+`~/.vo-test` is yours and not in the repository; `tools/vo-test.example`
+is its template. It names the game folder of each build
+(`VO_GAME_RETAIL`, `VO_GAME_OEM`, `VO_GAME_JP`, `VO_GAME_JPRE`). Folders
+on the command line come first, then `VO_GAME` from the environment, then
+the file. A folder or any file inside one will do. The checks that need the game run once per folder
 given and are named by build - `offsets/jpre` - because a table can only be
 wrong on the build it is for; before tagging, give all four. Controller Expansion
 requires retail and Japanese rerelease checks for its new profiles; explicitly
@@ -122,6 +125,7 @@ record any unavailable OEM/Japanese-original game checks as untested.
 | `controller` | profile names/order, build gates, all 81 profile pairs, lever behavior, physical ownership and capture rules |
 | `raphnet` | device identities, exhaustive DC/Saturn button decoding, axis thresholds, Start claims, Pause and emitted retail/JPRE integration |
 | `custom` | twelve-slot remapping, independent player layouts, INI persistence and editor behavior |
+| `package` | generated ZIP helper paths, exact DLL bytes, real packaged-script discovery, and missing/misplaced/stale helper rejection; does not execute Windows |
 | `disc` | `disctest.py`: the disc reader, on ISO9660 images the test builds itself - one per sector layout, plus a cue that names the wrong one. Extraction is byte-exact, the `ssp.ini` rules give the retail and OEM file lists, and every refusal names what is wrong. Needs no game and no disc, so CI runs it |
 | `gui` | `guitest.py`: the window, opened under xvfb and driven without its loop - which button is offered for which source, that a copy holds both down until it finishes, and that the two columns end level whatever is open. None of these raise on their own, so each asserts the property. Needs a display; with none it skips and prints a note rather than passing quietly |
 | `lint` | pyflakes |
@@ -285,16 +289,9 @@ A patch that only changes what a machine shows, or how it reads its own
 controls, stays out: those are each player's own business.
 
 Two scripts under `tools/` build the DLL and put it in a game folder. Both
-read `~/.vo-test`, which is yours and is not in the repository:
-
-```bash
-# ~/.vo-test
-VO_GAME=/path/to/VIRTUAL-ON           # vo-dll.sh
-VO_GAME_A=/path/to/VIRTUAL-ON         # vo-loopback.sh
-VO_GAME_B=/path/to/VIRTUAL-ON-P2
-VO_PFX_A=$HOME/prefixes/virtual-on
-VO_PFX_B=$HOME/prefixes/virtual-on-p2
-```
+read `~/.vo-test` (*The checks*, above). `vo-dll.sh` installs into
+`VO_GAME`, or `VO_GAME_RETAIL` when that is unset; `vo-loopback.sh` uses
+`VO_GAME_A`, `VO_GAME_B`, `VO_PFX_A` and `VO_PFX_B`.
 
 `tools/vo-dll.sh` is for testing against another machine:
 
@@ -352,9 +349,9 @@ at a live server, the flood aside.
 ## Releasing
 
 The version comes from the tag and nowhere else. `VERSION = 'dev'` stays in
-the source; the workflow rewrites that line during the build, and everything
-else - the spec, the exe name, the file properties, the window title,
-`--version`, the title-screen line - reads it from there. Nothing to bump.
+the source; the workflow rewrites that line during the build, and the
+window title, `--version`, the title-screen line and the zip names read it
+from there. Nothing to bump.
 
 The title-screen line is the one thing the patcher writes that is not the same
 for everyone, so it is written after the patch table rather than from it and
@@ -363,7 +360,7 @@ per release.
 
 ```bash
 git pull
-python3 tools/check.py RETAIL/ OEM/ JP/ JPRE/ # everything, nothing skipped
+python3 tools/check.py     # every build in ~/.vo-test, nothing skipped
 
 git tag v0.8.4
 git push && git push --tags
@@ -377,21 +374,23 @@ generated-notes step below: `gh release create v0.8.4 --notes-file
 notes.md` makes the tag, and the tag build only attaches the zips.
 
 CI runs `verify` (ubuntu) and, only if it passes, `windows`, which stamps the
-version, installs PyInstaller from source with its bootloader compiled on the
-runner, builds `dist/v-on-patcher/` (the exe with its `_internal/` folder: the
-runtime, the libraries, `dpctrl.dll`), checks the bundle, runs `--selfcheck`
-on the exe, prints its checksum and VirusTotal link, and attaches two zips to
-the release: `v-on-patcher-vX.Y.Z-win.zip`, the folder with the exe at its top,
-and `v-on-patcher-vX.Y.Z-python.zip`, the LF-normalised script with
-`net/dpctrl.dll`.
+version and builds `dist/v-on-patcher/`: the exe with its `_internal/`
+folder (see [The Windows build](#the-windows-build)). On a tag, `sign`
+signs the exe if it is not signed already and `release` attaches two zips
+to the release: `v-on-patcher-vX.Y.Z-win.zip`, the folder with the exe at
+its top, and `v-on-patcher-vX.Y.Z-python.zip`, the LF-normalised script
+with `net/dpctrl.dll` (see [Signing](#signing)). A push that is not a tag
+builds the same two zips as an artifact. Its exe is the committed
+launcher, or an unsigned fresh one when none is committed.
 
-The exe is unsigned, and scanners have opinions about an unsigned program
-that edits another program. Before announcing: upload the exe from the win
-zip to VirusTotal once, and submit it to Microsoft as a false positive
-(Security Intelligence, as a developer, repository in the notes). The
-verdict usually clears within a day. Do not reanalyze on VirusTotal while
-it is still flagged; detections feed each other. The README's *Virus
-warnings* section tells users how to allow it in Defender meanwhile.
+The exe is the same file in every release until the launcher changes, so
+it needs checking only then: upload it to VirusTotal once (the `sign`
+job's log has its checksum and lookup link), and if Defender flags it,
+submit it to Microsoft as a false positive (Security Intelligence, as a
+developer, repository in the notes). The verdict usually clears within a
+day. Do not reanalyze on VirusTotal while it is still flagged; detections
+feed each other. The README's *Virus warnings* section tells users how to
+allow it in Defender meanwhile.
 
 `--generate-notes` writes the release body from commit subjects, which for a
 squashed history is close to useless. Replace it once CI is green:
@@ -433,6 +432,162 @@ gh release delete v0.8.4 --yes     # if a release was created
 # fix, re-tag
 ```
 
+Re-tagging builds again; it signs only when no launcher is committed.
+
+### Controller Expansion packaging and release policy
+
+CE uses the upstream launcher and bundle tools. The only additional runtime file
+is `input/vontanita.dll`: `tools/bundle.py` places it in `_internal/input/` for
+Windows, and `tools/package.py` places it in `input/` beside the Python script.
+Its source and binary hashes remain checked by the patcher and controller tests.
+The helper includes Tanita, Raphnet, device ownership and input capture support;
+its C sources are build inputs, not runtime dependencies.
+
+CE releases require explicit maintainer approval before creating or pushing a
+tag. Tags matching `*-controller-expansion.*` require reviewed release notes in
+`docs/releases/<tag>.md` and are published as pre-releases, never latest stable.
+Branch builds only upload workflow artifacts; they do not publish releases.
+Existing CE releases must remain pre-releases when uploading replacement assets.
+
+The committed upstream launcher is reused byte-for-byte. Its signature does not
+cover the CE Python script or native helpers. A fork must configure its own
+`signing` environment; upstream signing credentials are not inherited. Changing
+the launcher requires a separately approved signing arrangement.
+
+### Signing
+
+A tag build runs three jobs after `verify`:
+
+1. `windows` builds the release and hands it over unzipped, as an
+   artifact named `unsigned` that expires after a day.
+2. `sign` signs the exe, the launcher, on Linux with
+   [ssign](https://github.com/Le-Syl21/ssign) and a Certum open-source
+   code signing certificate. A launcher committed signed is left as it
+   is (*The committed launcher*, below). It checks the signature and its
+   timestamp with `osslsigncode verify`, prints the signed exe's
+   checksum, and zips both packages with `tools/package.py`.
+3. `release` uploads the zips to the release page.
+
+With a launcher committed, a tag signs nothing: the secrets are used only
+for a release that changes the launcher.
+
+Only `release` can write to the repository, and only `sign` can read the
+signing secrets. The Python files in `_internal` carry the Python
+Software Foundation's signatures. `dpctrl.dll` is not signed: the patcher compares it with
+`NETPLAY_DLL_SHA` to tell its own build from an older one, so signing it
+would mean signing before the commit and updating that hash.
+
+The certificate is Certum's "Code Signing in the cloud": the private key
+stays on Certum's servers and signing is a request to them, logged in
+with the account's e-mail and a one-time code from the SimplySign phone
+app. ssign does that login and request itself; it is built from a pinned
+commit, and moving the pin is a change to review like any other. The
+timestamp keeps a signature valid after the one-year certificate
+expires.
+
+### Setting up signing
+
+Once, and again whenever the certificate or its QR code is renewed:
+
+1. **Get the `otpauth://` URI.** The QR code the SimplySign app scanned
+   holds it. Decode the image locally, never with an online reader, since
+   the URI can sign as the certificate's owner:
+
+   ```bash
+   zbarimg --raw qr.png
+   ```
+
+   The output is one line starting `otpauth://totp/`. Delete the image
+   afterwards.
+
+2. **Create the `signing` environment** in the repository's Settings →
+   Environments. Environments belong to one repository, so sr2-patcher's
+   does not count here:
+   - *Deployment branches and tags*: selected branches and tags, one rule
+     of type Tag with the pattern `v*`.
+   - *Environment secrets* (not repository secrets): `CERTUM_EMAIL`, the
+     SimplySign account's e-mail, and `CERTUM_OTP`, the whole
+     `otpauth://` URI.
+   - *Required reviewers*, optional: with one set, each tag's `sign` job
+     waits on the run's page until it is approved under **Review
+     deployments**. Without, tags sign unattended.
+
+3. **Check the next signing.** A tag signs only when no launcher is
+   committed (*The committed launcher*, below). In that tag's `sign`
+   job, the *Verify* step ends with `Signature verification: ok`.
+
+4. **Check the exe on Windows**: Properties → Digital Signatures lists
+   the signer, issued by *Certum Code Signing 2021 CA*, with a Certum
+   timestamp.
+
+If the URI leaks, re-issue the QR code in Certum's SimplySign account,
+scan it into the app again and replace `CERTUM_OTP` in every repository
+that has it. A renewed certificate needs nothing else changed: ssign
+fetches the certificate from the account at every signing.
+
+To sign a file by hand, without the workflow, run ssign with the current
+code from the phone app instead of the URI:
+
+```bash
+ssign -e <account e-mail> -T <code> v-on-patcher.exe
+```
+
+### The Windows build
+
+The Windows release is Python as python.org ships it, unpacked, with a
+small exe to start it:
+
+- `_internal/` holds `pythonw.exe` and `python.exe`, their DLLs and
+  Tcl/Tk, the standard library compiled into `python312.zip`, certifi,
+  the stamped script as `v-on-patcher.py`, `net/dpctrl.dll`, and
+  `input/vontanita.dll`.
+  `tools/bundle.py` copies it out of the Python it runs under.
+  `python312._pth` limits that Python to what it lists, so nothing from
+  an installed Python or `PYTHONPATH` gets in.
+- `v-on-patcher.exe` beside it is the launcher, `launcher/launcher.c`. It
+  runs `_internal\pythonw.exe _internal\v-on-patcher.py` with its own
+  arguments and returns the exit code. Python's stderr goes to a
+  temporary file. If Python exits with an error and wrote to it, the
+  launcher shows the text in a message box, or copies it to its own
+  stderr when that is a file or a pipe.
+
+It is not PyInstaller because scanners match on PyInstaller's
+bootloader and packed archive.
+
+To build it by hand on Windows, with certifi installed and a Visual
+Studio C++ toolset:
+
+    python tools/bundle.py dist\v-on-patcher
+    launcher\build.bat %CD%\dist\v-on-patcher\v-on-patcher.exe
+
+The `windows` job does the same on every push to main or Controller-Expansion and on a tag, after
+`verify`. It uses Python 3.12.10, pinned so each release ships the same
+files, and checks that the bundle has what the patcher needs. Then it
+runs `--selfcheck` through the launcher, opens Tk with the bundled
+Python, and checks that a script that raises comes back as a failure
+with its traceback.
+
+### The committed launcher
+
+A release ships `launcher/v-on-patcher.exe`, a signed launcher committed
+to the repository, not the one the job compiles. Scanners and SmartScreen
+judge a file by its hash, so an unchanged exe keeps its reputation and
+one Microsoft submission covers every release. The job still compiles
+the launcher so the source stays buildable.
+
+To change the launcher:
+
+1. Change `launcher/`, raise the version in `launcher.rc`, and delete
+   `launcher/v-on-patcher.exe`, in one commit.
+2. Tag a release. With no committed launcher, the job ships the one it
+   compiled and `sign` signs it.
+3. Take `v-on-patcher.exe` out of that release's `-win.zip` and commit it
+   as `launcher/v-on-patcher.exe`.
+
+The `verify` job fails if the committed launcher is not validly signed,
+or was committed before the last change to `launcher/launcher.c`,
+`launcher.rc`, `build.bat` or `assets/icon.ico`.
+
 ## What catches what
 
 | Mistake | Caught by | When |
@@ -442,6 +597,7 @@ gh release delete v0.8.4 --yes     # if a release was created
 | moved a blob's site, left its address behind | `asm` | CI, every push |
 | ran a build, forgot to commit | `tree` | CI, every push |
 | dpctrl.c stopped exporting something | mingw build step | CI, every push |
+| changed `launcher/`, left the old exe committed | `Committed launcher` step | CI, every push |
 | reordered a site list | `tables` | CI, every push |
 | two patches on one byte | `tables` | CI, every push |
 | typo'd an offset | `offsets` | **only if you run it** |

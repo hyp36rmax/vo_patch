@@ -11,14 +11,20 @@ gamepads for both players, the soundtrack from files instead of the disc,
 and two-player versus over the internet with a code to share - no port
 forwarding.
 
-<img height="220" alt="Widescreen match" src="https://github.com/user-attachments/assets/464143ee-a63b-4004-83f5-16cf28c146dd" />
-&nbsp;
-<img height="220" alt="Widescreen title screen" src="https://github.com/user-attachments/assets/eaa35047-e49a-4ca9-8ff1-9cb7e1d8a07f" />
-<img height="448" alt="Widescreen ending cutscene: Temjin over the Earth and the Moon" src="https://github.com/user-attachments/assets/3f1e19b6-406d-4a80-8a0c-e2fd9f0ffdea" />
-<br />
-...in a nutshell - the patch makes the game <i>just work ™️</i>
-<br /><br />
-<img height="700" alt="The patcher window" src="https://github.com/user-attachments/assets/e7273d44-0968-4864-8f37-5d3b899cc50d" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/464143ee-a63b-4004-83f5-16cf28c146dd" alt="Widescreen match" width="49.5%" />
+  <img src="https://github.com/user-attachments/assets/eaa35047-e49a-4ca9-8ff1-9cb7e1d8a07f" alt="Widescreen title screen" width="49.5%" />
+</p>
+
+<img src="https://github.com/user-attachments/assets/3f1e19b6-406d-4a80-8a0c-e2fd9f0ffdea" alt="Widescreen ending cutscene: Temjin over the Earth and the Moon" width="100%" />
+
+<p align="center">
+  ...in a nutshell - the patch makes the game <i>just work ™️</i>
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e7273d44-0968-4864-8f37-5d3b899cc50d" alt="The patcher window" height="700" />
+</p>
 
 <h4 align="center">
   <a href="#quick-start">Quick start</a> &nbsp;·&nbsp;
@@ -38,9 +44,8 @@ forwarding.
 
 **Download** `v-on-patcher-*-win.zip` from the
 [Controller Expansion build artifacts](https://github.com/hyp36rmax/vo_patch/actions/workflows/build.yml),
-unzip it anywhere and run `v-on-patcher-*.exe`; the `_internal` folder beside it
-has to stay. It is unsigned, so SmartScreen calls it an unknown publisher the
-first time you run it. If a virus scanner objects, see
+unzip it anywhere and run `v-on-patcher.exe`; the `_internal` folder
+beside it has to stay. If SmartScreen or a virus scanner objects, see
 [Virus warnings](#virus-warnings). On Linux, see
 [Running the Python script](#running-the-python-script).
 
@@ -74,24 +79,29 @@ Restore leave them alone.
 
 ## Virus warnings
 
-Defender and other scanners sometimes flag the download. It is a false
-positive: an unsigned program that edits another program is the sort of
-thing they warn about. To allow it in Defender: Windows Security → Virus &
-threat protection → Protection history → the entry for the file → Allow,
-then run it again.
+The unchanged upstream launcher is signed with a Certum open-source code signing certificate
+(Properties → Digital Signatures). This signature covers the launcher, not the
+CE script or helper DLLs. SmartScreen can still warn until it
+has built up a reputation: **More info** → **Run anyway**.
 
-If you would rather not run it, `v-on-patcher.py` does everything the download
-does - see [Running the Python script](#running-the-python-script). Each
-release is built on GitHub from this repository, and the build log lists the
-file's checksum if you want to check that yours matches.
+Scanners can still flag it, since a program that edits another program
+is what they look for. A detection ending in `!ml`, such as Defender's
+`Trojan:Win32/Wacatac.B!ml`, is a machine-learning guess, not a match
+for anything known. To allow it in Defender: Windows Security → Virus &
+threat protection → Protection history → the entry → **Allow**.
+
+Every release is built on GitHub from this repository. If you would
+rather not run the exe, `v-on-patcher.py` does everything it does - see
+[Running the Python script](#running-the-python-script).
 
 ## Installing from a disc image
 
 The patcher reads the image itself, so there is nothing to mount and no
 virtual drive to set up.
 
-<img height="280" alt="INSTALL section" src="https://github.com/user-attachments/assets/d03430cf-4ef4-4ff8-bf8d-e608d5049be5" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d03430cf-4ef4-4ff8-bf8d-e608d5049be5" alt="INSTALL section" height="280" />
+</p>
 
 Put the **`.cue`** sheet in **Source** - the small file beside the `.bin`
 files, not the `.bin` itself. Choose a folder in **Install to** and press
@@ -144,8 +154,9 @@ For how the copy rules are read off the disc, see
 
 ## What the patches do
 
-<img height="160" alt="Patched game" src="https://github.com/user-attachments/assets/15fdc7a1-c52e-4565-8977-6ac024229f4f" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/15fdc7a1-c52e-4565-8977-6ac024229f4f" alt="Patched game" height="160" />
+</p>
 
 **Essential** fixes what is broken on modern systems and is always applied.
 Without it the game does not start, crashes when you lose a round, runs at a
@@ -244,8 +255,9 @@ is skipped, version included, and everything else still applies.
 Open the collapsed **ADD-ONS** header and press **Install** on a row. The
 same button reads **Remove** once installed.
 
-<img height="360" alt="ADD-ONS section" src="https://github.com/user-attachments/assets/314b5279-9e61-4899-8cef-d5f40e0a65d7" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/314b5279-9e61-4899-8cef-d5f40e0a65d7" alt="ADD-ONS section" height="360" />
+</p>
 
 | Row | What it is |
 | --- | --- |
@@ -263,18 +275,16 @@ render at 1920x1080 itself. The 3D view, the menus, the HUD and the text are
 all drawn at that size, and the wider view shows more of the arena at the
 sides rather than stretching the middle.
 
-<img height="220" alt="Widescreen match, 1P" src="https://github.com/user-attachments/assets/b4026e8a-39d6-4fe2-9f6f-275e5c2c4545" />
-&nbsp;
-<img height="220" alt="Widescreen machine select" src="https://github.com/user-attachments/assets/2118e335-366e-4f2a-b332-f9fca25ce4ac" />
-<br />
-<img height="220" alt="Widescreen split screen" src="https://github.com/user-attachments/assets/4fa56492-db68-4a9b-92b7-a2724adf0bef" />
-&nbsp;
-<img height="220" alt="Widescreen menu" src="https://github.com/user-attachments/assets/dc17fcbd-5898-4ca5-907e-865024d2d509" />
-<br />
-<img height="220" alt="Widescreen NEXT ENEMY screen" src="https://github.com/user-attachments/assets/f5ccbf1a-fca8-47c0-9c43-cd41c13f6f6c" />
-&nbsp;
-<img height="220" alt="Widescreen two-player machine select" src="https://github.com/user-attachments/assets/690d6e7c-e480-4144-bc3d-f4a8be750c62" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b4026e8a-39d6-4fe2-9f6f-275e5c2c4545" alt="Widescreen match, 1P" width="49.5%" />
+  <img src="https://github.com/user-attachments/assets/2118e335-366e-4f2a-b332-f9fca25ce4ac" alt="Widescreen machine select" width="49.5%" />
+  <br />
+  <img src="https://github.com/user-attachments/assets/4fa56492-db68-4a9b-92b7-a2724adf0bef" alt="Widescreen split screen" width="49.5%" />
+  <img src="https://github.com/user-attachments/assets/dc17fcbd-5898-4ca5-907e-865024d2d509" alt="Widescreen menu" width="49.5%" />
+  <br />
+  <img src="https://github.com/user-attachments/assets/f5ccbf1a-fca8-47c0-9c43-cd41c13f6f6c" alt="Widescreen NEXT ENEMY screen" width="49.5%" />
+  <img src="https://github.com/user-attachments/assets/690d6e7c-e480-4144-bc3d-f4a8be750c62" alt="Widescreen two-player machine select" width="49.5%" />
+</p>
 
 It is **on by default**, like the other Extra patches. Untick it for the
 original 640x480.
@@ -352,8 +362,9 @@ you are editing.
 
 ### Stick deadzone
 
-<img height="270" alt="F11 Extras dialog" src="https://github.com/user-attachments/assets/a2482765-37bc-46d3-8763-4923c8e5449b" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a2482765-37bc-46d3-8763-4923c8e5449b" alt="F11 Extras dialog" height="270" />
+</p>
 
 How far a stick has to move before it counts. It is 40% out of the box, set
 per player in the *Stick Deadzone % [ XInput ]* box of the F11 Extras dialog
@@ -381,8 +392,9 @@ forwards. Hence the usual advice to run a VPN.
 player hosts and gets a short code, the other types it in. No port
 forwarding, no VPN. Direct IP is still there for LAN play.
 
-<img height="360" alt="Internet play dialog" src="https://github.com/user-attachments/assets/aab7d268-e9f5-47bb-810c-83b183f253e5" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/aab7d268-e9f5-47bb-810c-83b183f253e5" alt="Internet play dialog" height="360" />
+</p>
 
 ### Before you start
 
@@ -528,8 +540,9 @@ On a modern panel that can mean a stretched picture or no windowed mode.
 That part is between the game and the graphics driver, and it is what
 cnc-ddraw is for.
 
-<img height="360" alt="cnc-ddraw row under ADD-ONS" src="https://github.com/user-attachments/assets/ee0e5c12-2db3-4a85-bc23-8ba4d859c6ce" />
-<br /><br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ee0e5c12-2db3-4a85-bc23-8ba4d859c6ce" alt="cnc-ddraw row under ADD-ONS" height="360" />
+</p>
 
 [cnc-ddraw](https://github.com/FunkyFr3sh/cnc-ddraw) replaces the DirectDraw
 the game renders through, adding windowed and borderless modes, correct
@@ -635,9 +648,9 @@ draws the title prompt as scrambled letters.
 
 ## Running the Python script
 
-The patcher is one Python script, `v-on-patcher.py`; the Windows download is
-that script frozen into an exe. On Linux, or if you would rather not run
-an unsigned exe, run the script itself. Two ways to get it:
+The patcher is one Python script, `v-on-patcher.py`; the Windows download
+is that script with Python beside it. On Linux, or if you would rather
+not run the exe, run the script itself. Two ways to get it:
 
 - `v-on-patcher-*-python.zip` from the
   [Controller Expansion build artifacts](https://github.com/hyp36rmax/vo_patch/actions/workflows/build.yml):
@@ -676,25 +689,35 @@ python3 v-on-patcher.py --selfcheck        # validate the patch tables
 
 [docs/README.md](README.md) maps the developer documentation.
 
-To build the Windows binary yourself, `pip install pyinstaller` and run
-`pyinstaller v-on-patcher.spec`. It builds `dist/v-on-patcher/`, the exe with its
-`_internal` folder, as `v-on-patcher-dev.exe` - releases take their version from
-the git tag, and a source tree has none.
+The Windows build is `tools/bundle.py` and `launcher/`, run by
+[.github/workflows/build.yml](../.github/workflows/build.yml);
+[docs/DEVELOPING.md](DEVELOPING.md) has the steps to build it by hand.
 
 To change the machine code the patches install, see [asm/](../asm/);
 `asm/build.py` builds it into the hex strings in `v-on-patcher.py`. Never edit
 those by hand.
 
-## AI Disclaimer
+## Upstream development disclosure
 
-LLMs are part of the toolchain here, alongside Ghidra, gdb and winedbg on
-the running game, Cheat Engine and Unicorn. The scope, the disc dumps, the
-testing and the debugging are human. Every change is read before it goes
-in and played on all four builds before it ships. Offsets and bytes are
-verified against the original before anything is written, and the patcher
-refuses any file that is not an unmodified build it has tables for. It is
-still a hobby project poking at a nearly 30-year-old binary, so expect
-bugs.
+The following disclosure describes Pairomaniac’s upstream project and its test
+process; CE validation is recorded separately in [controller documentation](controllers/README.md).
+
+### AI disclaimer
+
+LLMs are part of the toolchain here: much of the assembly and the
+documentation was written with one. The reverse engineering was not. The
+addresses and the behaviour each patch relies on come from tracing and
+debugging the running game with Ghidra, gdb, winedbg, Cheat Engine and
+Unicorn, and the LLM writes to that brief. The scope, the disc dumps, the
+testing and the debugging are human. The patcher edits the game's own
+files and adds its code beside them; it is not a reimplementation of the
+game.
+
+Every change is read line by line before it goes in, and every patch is
+played on all four builds before it ships. Offsets and bytes are verified
+against the originals before anything is written, and the patcher refuses
+any file that is not an unmodified build it has tables for. It is still a
+hobby project poking at a nearly 30-year-old binary, so expect bugs.
 
 ## Credits and licence
 

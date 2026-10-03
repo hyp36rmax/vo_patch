@@ -1,0 +1,26 @@
+# ~/.vo-test: where the installed games and the Wine prefixes are on this
+# machine. Read by tools/check.py, tools/vo-dll.sh and tools/vo-loopback.sh;
+# never in the repository. Copy to ~/.vo-test and fill in. Leave out a
+# build you do not have.
+
+# The installed games, one per build: what the checks on real files read.
+VO_GAME_RETAIL=$HOME/games/VIRTUAL-ON
+VO_GAME_OEM=$HOME/games/VIRTUAL-ON-OEM
+VO_GAME_JP=$HOME/games/VIRTUAL-ON-JP
+VO_GAME_JPRE=$HOME/games/VIRTUAL-ON-JP-RE
+
+# tools/vo-dll.sh installs into VO_GAME, or VO_GAME_RETAIL when it is unset.
+#VO_GAME=$HOME/games/VIRTUAL-ON
+
+# tools/vo-loopback.sh: two installs, each with a prefix of its own.
+# Two different builds also test that two compiles stay in lockstep.
+VO_GAME_A=$HOME/games/VIRTUAL-ON
+VO_GAME_B=$HOME/games/VIRTUAL-ON-JP
+VO_PFX_A=$HOME/Faugus/virtual-on
+VO_PFX_B=$HOME/Faugus/virtual-on-jp
+
+# How to run them: umu with a Proton, or plain wine. Unset, umu-run is
+# taken from PATH and a Proton-CachyOS build is looked for.
+#VO_UMU=/usr/bin/umu-run
+#VO_PROTON="$HOME/.steam/root/compatibilitytools.d/Proton-CachyOS Latest"
+#VO_WINE=/usr/bin/wine

@@ -8,7 +8,7 @@ other game features; this index covers development.
 | --- | --- |
 | [controllers/](controllers/README.md) | hardware characterization, profile implementation, validation records and testing methodology |
 | [MAP.md](MAP.md) | where things are: the repository, the regions of `v-on-patcher.py`, and the executable's layout - stock sections, the game's code and data as far as it is mapped, the sections the patcher appends, the annex blob by blob, sites by patch |
-| [DEVELOPING.md](DEVELOPING.md) | setup, the daily loop, the checks and what each catches, adding a blob, a site or a build, netplay development, releasing, troubleshooting |
+| [DEVELOPING.md](DEVELOPING.md) | setup, the daily loop, the checks and what each catches, adding a blob, a site or a build, netplay development, releasing, signing and the Windows build, troubleshooting |
 | [NOTES.md](NOTES.md) | how each patch works inside the game: the patch table with every site, the builds and how their offsets map, and a section per patch on what the game does and why the change is what it is |
 | [TEXT.md](TEXT.md) | the three ways the game draws text, where each string the patcher touches lives, and how the title banner and the credit line are made |
 | [HIRES.md](HIRES.md) | the resolution patch: what it rewrites, the blob, the game's scenes as read off it, the multi-build port and its record, what is queued |
@@ -29,3 +29,7 @@ Where something lives, by question:
   HIRES.md, *Porting to other builds* and *What porting actually
   taught*.
 - *How do I cut a release?* DEVELOPING.md, *Releasing*.
+- *How is the exe signed, and how is signing set up?* DEVELOPING.md,
+  *Signing* and *Setting up signing*.
+- *How is the Windows release built, and when does the exe change?*
+  DEVELOPING.md, *The Windows build* and *The committed launcher*.

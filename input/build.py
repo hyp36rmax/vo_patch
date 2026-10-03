@@ -2,8 +2,8 @@
 """Compile input/tanita.c to input/vontanita.dll and record its hashes in
 v-on-patcher.py.
 
-The DLL is a file in the repository: the release build ships it beside the
-exe (PyInstaller's _internal/), a source checkout reads it from input/. The
+The DLL is a file in the repository: the Windows release ships it in _internal/input/
+beside the bundled script, a source checkout reads it from input/. The
 patcher checks the file against TANITA_DLL_SHA before installing it.
 
     python3 input/build.py            compile, write the DLL and the hashes

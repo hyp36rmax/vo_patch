@@ -245,11 +245,12 @@ python3 net/build.py            # compile to net/dpctrl.dll, record its hash
 python3 net/build.py --check    # is the DLL current? no compiler needed
 ```
 
-`net/dpctrl.dll` is committed: the release build ships it beside the exe
-(PyInstaller's `_internal/`), a source checkout reads it from here, and the
-patcher checks it against the hash `build.py` recorded in `v-on-patcher.py`
-before installing it. The linker is pinned (no timestamp, fixed image base)
-so the same mingw produces the same bytes.
+`net/dpctrl.dll` is committed: both releases ship it in `net/` beside the
+script (in the Windows release, `_internal\net`), a source checkout reads
+it from here, and the patcher checks it against the hash `build.py`
+recorded in `v-on-patcher.py` before installing it. The linker is pinned
+(no timestamp, fixed image base) so the same mingw produces the same
+bytes.
 
 `--check` compares a hash of `dpctrl.c` against the one recorded in
 `v-on-patcher.py`, and the DLL file against its recorded hash, rather than

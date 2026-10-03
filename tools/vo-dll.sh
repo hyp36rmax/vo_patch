@@ -6,8 +6,9 @@
 #   tools/vo-dll.sh restore [DIR]  put the stock dpctrl.dll back
 #   tools/vo-dll.sh status  [DIR]  what is installed
 #
-# DIR defaults to VO_GAME, from the environment or ~/.vo-test, which is
-# sourced if present. For two local instances use vo-loopback.sh instead.
+# DIR defaults to VO_GAME, or VO_GAME_RETAIL, from the environment or
+# ~/.vo-test, which is sourced if present. For two local instances use
+# vo-loopback.sh instead.
 
 set -euo pipefail
 
@@ -21,8 +22,8 @@ DLL=$REPO/net/dpctrl.dll
 die() { echo "$*" >&2; exit 1; }
 
 game_dir() {
-    local d=${1:-${VO_GAME:-}}
-    [ -n "$d" ] || die "give a game folder, or set VO_GAME in the environment or ~/.vo-test"
+    local d=${1:-${VO_GAME:-${VO_GAME_RETAIL:-}}}
+    [ -n "$d" ] || die "give a game folder, or set VO_GAME_RETAIL in ~/.vo-test"
     [ -f "$d/v_on.exe" ] || die "no v_on.exe in $d"
     echo "$d"
 }
@@ -71,5 +72,5 @@ case "${1:-}" in
     install) d=$(game_dir "${2:-}"); install_dll "$d" ;;
     restore) d=$(game_dir "${2:-}"); restore "$d" ;;
     status)  d=$(game_dir "${2:-}"); status "$d" ;;
-    *)       sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' ;;
+    *)       sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//' ;;
 esac
